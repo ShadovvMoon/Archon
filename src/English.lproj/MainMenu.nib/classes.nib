@@ -1,0 +1,67 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {changeMode = id; }; 
+            CLASS = BSPView; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {rotateCamButton = id; selectButton = id; translateButton = id; }; 
+            SUPERCLASS = NSOpenGLView; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                changeBspNumber = id; 
+                changeRenderMode = id; 
+                loadMap = id; 
+                zoomIn = id; 
+                zoomOut = id; 
+            }; 
+            CLASS = ModelController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                BspNumberPopup = id; 
+                BspView = id; 
+                LODList = id; 
+                ModelList = id; 
+                mapNameField = id; 
+                openGLView = id; 
+                renderModePopup = id; 
+                subImageList = id; 
+                textureList = id; 
+                textureView = id; 
+                workingIndicator = id; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = ModelView; LANGUAGE = ObjC; SUPERCLASS = NSOpenGLView; }, 
+        {
+            ACTIONS = {openPreferences = id; save = id; sliderChanged = id; }; 
+            CLASS = PreferencesController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                genericDrawDistanceSlider = id; 
+                genericDrawDistanceText = id; 
+                itemDrawDistanceSlider = id; 
+                itemDrawDistanceText = id; 
+                moveSizeSlider = id; 
+                moveSizeText = id; 
+                playerSpawnDrawDistanceSlider = id; 
+                playerSpawnDrawDistanceText = id; 
+                preferencesWindow = id; 
+                sceneryDrawDistanceSlider = id; 
+                sceneryDrawDistanceText = id; 
+                vehicleDrawDistanceSlider = id; 
+                vehicleDrawDistanceText = id; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            CLASS = SparkEditWindow; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {BspView = id; TabView = id; }; 
+            SUPERCLASS = NSWindow; 
+        }, 
+        {CLASS = TextureView; LANGUAGE = ObjC; SUPERCLASS = NSOpenGLView; }
+    ); 
+    IBVersion = 1; 
+}
