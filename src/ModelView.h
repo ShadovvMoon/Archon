@@ -29,4 +29,5 @@
 - (void)drawRect:(NSRect)rect;
 - (void)releaseAllObjects;
 - (void)setMapfile:(HaloMap *)mapfile;
+@property (retain) HaloMap *_mapfile;
 @end

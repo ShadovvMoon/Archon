@@ -39,4 +39,7 @@
 - (void)orientUp;
 - (void) UpdateMouseMove:(int) DeltaX deltaY:(int) DeltaY;
 - (void) RotateView:(float) angle x:(float) x y:(float) y z:(float) z;
+@property float m_Speed;
+@property float m_CurrentRotX;
+@property int allow_z;
 @end

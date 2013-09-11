@@ -64,6 +64,7 @@ int compare(const void *a, const void *b);
 	free(scen_spawns);
 	free(item_spawns);
 	free(mach_references);
+	free(device_groups);
 	free(mach_spawns);
 	free(spawns);
 	free(mp_flags);
@@ -71,8 +72,9 @@ int compare(const void *a, const void *b);
 }
 
 
-
-
+-(void)resetMachineReferences
+{
+}
 
 static g_PID(pid_t process)
 {
@@ -281,7 +283,9 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	mp_flags = malloc(sizeof(multiplayer_flags) * header.MultiplayerFlags.chunkcount);
 	skies = malloc(sizeof(SkyBox) * header.SkyBox.chunkcount);
 	mach_references = malloc(sizeof(machine_ref) * header.MachineRef.chunkcount);
+	device_groups = malloc(sizeof(device_group) * header.DeviceGroups.chunkcount);
 	mach_spawns = malloc(sizeof(machine_spawn) * header.Machine.chunkcount);
+	encounters = malloc(sizeof(encounter) * header.Encounters.chunkcount);
 	
 	memset(vehi_references,0,sizeof(vehicle_reference) * header.VehicleRef.chunkcount);
 	memset(vehi_spawns, 0, sizeof(vehicle_spawn) * header.Vehicle.chunkcount);
@@ -293,6 +297,9 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	memset(skies, 0, sizeof(SkyBox) * header.SkyBox.chunkcount);
 	memset(mach_references, 0, sizeof(machine_ref) * header.MachineRef.chunkcount);
 	memset(mach_spawns, 0, sizeof(machine_spawn) * header.Machine.chunkcount);
+	memset(device_groups, 0, sizeof(device_group) * header.DeviceGroups.chunkcount);
+	memset(encounters, 0, sizeof(encounter) * header.Encounters.chunkcount);
+	
 	
 	int x;
 	/* BEGIN VEHICLE SPAWNS */
@@ -337,6 +344,7 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	/* END MULTIPLAYER FLAGS */
 	
 	/* BEGIN MACHINES */
+	mach_ref_count = 0;
 	NSLog(@"Machine spawn pos in map: 0x%x", (header.Machine.offset + [self offsetInMap]));
 	positionInScenario = header.MachineRef.offset;
 	for (x = 0; x < header.MachineRef.chunkcount; x++)
@@ -348,6 +356,27 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 		mach_spawns[x] = [self readMachineSpawn];
 	mach_spawn_count = header.Machine.chunkcount;
 	/* END MACHINES */
+	
+	
+	/* BEGIN DEVICE GROUPS */
+	device_group_count = 0;
+	NSLog(@"Device group spawn pos in map: 0x%x", (header.DeviceGroups.offset + [self offsetInMap]));
+	positionInScenario = header.DeviceGroups.offset;
+	for (x = 0; x < header.DeviceGroups.chunkcount; x++)
+		device_groups[x] = [self readDeviceGroup];
+	device_group_count = header.DeviceGroups.chunkcount;
+	
+	/* END DEVICE GROUPS */
+	
+	/* BEGIN ENCOUNTERS */
+	encounters_count = 0;
+	NSLog(@"Device group spawn pos in map: 0x%x", (header.Encounters.offset + [self offsetInMap]));
+	positionInScenario = header.Encounters.offset;
+	for (x = 0; x < header.Encounters.chunkcount; x++)
+		encounters[x] = [self readEncounter];
+	encounters_count = header.Encounters.chunkcount;
+	
+	/* END ENCOUNTERS */
 	
 	positionInScenario = header.SkyBox.offset;
 	skybox_count = header.SkyBox.chunkcount;
@@ -396,13 +425,26 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	[self readScenario:&reflex->chunkcount size:0x4];
 	[self readScenario:&reflex->offset size:0x4];
 	[self readScenario:&reflex->zero size:0x4];
+	
+	
+	
 	reflex->offset -= ([_mapfile magic] + resolvedOffset);
+	NSLog(@"REFLEXIVE OFFSET %d", reflex->offset);
 	reflex->newChunkCount = reflex->chunkcount; // Set this as such
 	reflex->chunkSize = 0;
+	reflex->refNumber=_reflexCounter;
 	reflex->oldOffset = reflex->offset;
 	
 	_reflexLookup[_reflexCounter] = (unsigned int)reflex; // Here the reflexive ewre using is in the form of a pointer, so we can just add it to this table
 	_reflexCounter++;
+}
+- (void)readScenarioReflexiveType:(reflexive_tag *)reflex
+{
+	[self readScenario:&reflex->chunkcount size:0x4];
+	[self readScenario:&reflex->offset size:0x4];
+	[self readScenario:&reflex->zero size:0x4];
+		
+	reflex->offset -= ([_mapfile magic] + resolvedOffset);
 }
 - (void)readScenarioReflexiveAtAddress:(reflexive *)reflex addr:(int)addr
 {
@@ -566,7 +608,7 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	SkyBox sky;
 	[self readScenarioTagReference:&sky.skybox];
 	[_mapfile readLongAtAddress:&sky.modelIdent address:[[_mapfile tagForId:sky.skybox.TagId] offsetInMap] + 0xC];
-	//NSLog(@"Skybox ID: 0x%x", sky.modelIdent);
+	NSLog(@"Skybox ID: 0x%x", sky.modelIdent);
 	return sky;
 }
 - (machine_ref)readMachineReference
@@ -574,9 +616,66 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	machine_ref machRef;
 	[self readScenarioTagReference:&machRef.machTag];
 	[self readScenario:machRef.zeros size:32];
-		
+	
+	
 	return machRef;
 }
+
+- (device_group)readDeviceGroup
+{
+	device_group machRef;
+	[self readScenario:&machRef.name size:32];
+	[self readScenario:&machRef.initial_value size:4];
+	[self readScenario:&machRef.flags size:2];
+	
+	return machRef;
+}
+
+- (encounter)readEncounter
+{
+	NSLog(@"Reading encounter...");
+	encounter machRef;
+	
+	[self readScenario:&machRef size:128];
+	[self readScenarioReflexiveType:&machRef.squads.chunkcount];
+	[self readScenarioReflexiveType:&machRef.platoons.chunkcount];
+	[self readScenarioReflexiveType:&machRef.firing.chunkcount];
+	[self readScenarioReflexiveType:&machRef.start_locations.chunkcount];
+	
+	NSLog(@"squads = %d", machRef.squads.chunkcount);
+	NSLog(@"platoons = %d", machRef.platoons.chunkcount);
+	NSLog(@"firing = %d", machRef.firing.chunkcount);
+	NSLog(@"start_locations = %d", machRef.start_locations.chunkcount);
+	
+	NSLog(@"MACHINE TAG IS %d", sizeof(machRef)-sizeof(player_spawn)-sizeof(int));
+	
+	machRef.start_locs_count = 0;
+	int x = 0;
+	
+	machRef.start_locs = malloc(sizeof(player_spawn) * machRef.start_locations.chunkcount);
+	memset(machRef.start_locs, 0, sizeof(player_spawn) * machRef.start_locations.chunkcount);
+	NSLog(@"Memory allocated.");
+	int tmp_pos = positionInScenario;
+	positionInScenario = machRef.start_locations.offset;
+	NSLog(@"Position determined");
+	for (x = 0; x < machRef.start_locations.chunkcount; x++)
+	{
+		NSLog(@"%d", x);
+		machRef.start_locs[x] = [self readPlayerSpawn];
+		NSLog(@"X: %f, %f, %f", machRef.start_locs[x].coord[0], machRef.start_locs[x].coord[1], machRef.start_locs[x].coord[2]);
+	}
+	NSLog(@"Locs increased");
+	machRef.start_locs_count = machRef.start_locations.chunkcount;
+	NSLog(@"Search successful");
+	positionInScenario = tmp_pos;
+	/* END PLAYER SPAWNS */
+	//positionInScenario+=ENCOUNTER_CHUNK;
+	
+	NSLog(@"Player repaired!");
+	
+	return machRef;
+}
+
 - (machine_spawn)readMachineSpawn
 {
 	int i;
@@ -751,6 +850,16 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	return newtagIdent;
 }
 
+- (long)setBaseModelIdent:(long)newtagIdent ident:(long)ident
+{
+	// ident is the identity of the parent tag, ie weapon and such
+	MapTag *tempTag = [_mapfile tagForId:ident];
+	[_mapfile seekToAddress:([tempTag offsetInMap] + 0x34)];
+	[_mapfile writeLong:newtagIdent];
+	//NSLog(@"Tag offset: 0x%x", [tempTag offsetInMap]);
+	return 1;
+}
+
 /* 
 
 Accessor Methods
@@ -796,6 +905,10 @@ Accessor Methods
 {
 	return mach_spawns;
 }
+- (encounter *)encounters
+{
+	return encounters;
+}
 - (SkyBox *)sky
 {
 	return skies;
@@ -836,6 +949,10 @@ Accessor Methods
 {
 	return mach_spawn_count;
 }
+- (int)encounter_count
+{
+	return encounters_count;
+}
 
 /* 
 
@@ -856,7 +973,10 @@ Begin Duplication Methods
 	switch (type)
 	{
 		case s_scenery:
-			retVal = ((s_scenery * 10000) + [self duplicateScenery:index coord:coo] );
+			retVal = ((s_scenery * MAX_SCENARIO_OBJECTS) + [self duplicateScenery:index coord:coo] );
+			break;
+		case s_machine:
+			retVal = ((s_machine * MAX_SCENARIO_OBJECTS) + [self duplicateMachine:index coord:coo] );
 			break;
 	}
 	return retVal;
@@ -868,10 +988,16 @@ Begin Duplication Methods
 	switch (type)
 	{
 		case s_scenery:
-			retVal = ((s_scenery * 10000) + [self duplicateScenery:index coord:0] );
+			retVal = ((s_scenery * MAX_SCENARIO_OBJECTS) + [self duplicateScenery:index coord:0] );
 			break;
 		case s_item:
-			retVal = ((s_item * 10000) + [self duplicateMpEquipment:index]);
+			retVal = ((s_item * MAX_SCENARIO_OBJECTS) + [self duplicateMpEquipment:index]);
+			break;
+		case s_machine:
+			retVal = ((s_machine * MAX_SCENARIO_OBJECTS) + [self duplicateMachine:index coord:0]);
+			break;
+		case s_vehicle:
+			retVal = ((s_vehicle * MAX_SCENARIO_OBJECTS) + [self duplicateVehicle:index]);
 			break;
 	}
 	return retVal;
@@ -886,6 +1012,8 @@ Begin Duplication Methods
 	
 	
 	
+	
+	
 	// Lets copy the data
 	memcpy(&tmpSpawn,&scen_spawns[index],sizeof(scenery_spawn));
 	
@@ -895,9 +1023,9 @@ Begin Duplication Methods
     }
     else
     {
-    scen_spawns[index].isSelected = NO;
-	for (i = 0; i < 2; i++)
-		tmpSpawn.coord[i] -= [[_mapfile tagForId:tmpSpawn.modelIdent] bounding_box]->max[i];
+		scen_spawns[index].isSelected = NO;
+		for (i = 0; i < 2; i++)
+			tmpSpawn.coord[i] -= [[_mapfile tagForId:tmpSpawn.modelIdent] bounding_box]->max[i];
     }
     
 	tmpSpawn.isSelected = NO;
@@ -919,6 +1047,7 @@ Begin Duplication Methods
 	
 	return (scenery_spawn_count-1);
 }
+
 - (void)createSceneryReference:(TAG_REFERENCE)tag
 {
 	scenery_reference	*tmpRefPointer,
@@ -948,6 +1077,93 @@ Begin Duplication Methods
 	// Rebuild our array of scenery tags.
 	[self buildArrayOfSceneryTags];
 }
+
+- (void)createDeviceGroup
+{
+	device_group	*tmpRefPointer,
+	tmpRef;
+	
+	// Lets create our scenery spawn
+	tmpRef.initial_value = 1;
+	
+	device_group_count++;
+	header.DeviceGroups.newChunkCount = device_group_count;
+	
+	tmpRefPointer = (device_group *)malloc(sizeof(device_group) * device_group_count);
+	
+	// Copy the old shit
+	memcpy(tmpRefPointer, device_groups, (sizeof(device_group) * (device_group_count - 1)));
+	memcpy(&tmpRefPointer[device_group_count-1], &tmpRef, sizeof(device_group));
+	
+	// Destroy the old data
+	free(device_groups);
+	
+	// Set the pointer
+	device_groups = tmpRefPointer;
+}
+
+- (void)createMachineReference:(TAG_REFERENCE)tag
+{
+	machine_ref *newtmpRefPointer, tmpRef;
+	
+	if (![_mapfile isTag:tag.TagId])
+		return;
+	
+	// Lets create our scenery spawn
+	tmpRef.machTag = tag;
+	tmpRef.modelIdent = [self baseModelIdent:tag.TagId];
+	
+	mach_ref_count++;
+	header.MachineRef.newChunkCount = mach_ref_count;
+	//NSLog(@"CR1");
+	newtmpRefPointer = (machine_ref *)malloc(sizeof(machine_ref) * (mach_ref_count+1));
+	//NSLog(@"CR2");
+	/// Copy the old stuff
+	memcpy(newtmpRefPointer, mach_references, (sizeof(machine_ref) * (mach_ref_count - 1)));
+	//NSLog(@"CR3");
+	
+	memcpy(&newtmpRefPointer[mach_ref_count-1], &tmpRef, sizeof(machine_spawn));
+	//NSLog(@"CR4");
+	// Destroy the old data
+	
+	free(mach_references);
+	//NSLog(@"CR5");
+	// Set the pointer
+	mach_references = newtmpRefPointer;
+	//NSLog(@"CR6");
+	[self buildArrayOfMachineTags];
+	//NSLog(@"CR7");
+}
+- (int)duplicateVehicle:(int)index
+{
+	vehicle_spawn tmpSpawn, *tmpSpawnPointer;
+	int i;
+	
+	if (index < 0 || index > vehicle_spawn_count)
+		return 0;
+	
+	vehi_spawns[index].isSelected = NO;
+	
+	// Lets copy the data
+	memcpy(&tmpSpawn, &vehi_spawns[index], sizeof(vehicle_spawn));
+	
+	for (i = 0; i < 2; i++)
+		tmpSpawn.coord[i] -= 0.5f;
+	tmpSpawn.isSelected = NO;
+	
+	// Now lets redo the counters
+	vehicle_spawn_count += 1;
+	header.Vehicle.newChunkCount = vehicle_spawn_count;
+	
+	tmpSpawnPointer = malloc(sizeof(vehicle_spawn) * vehicle_spawn_count);
+	
+	// Copy the old items
+	memcpy(tmpSpawnPointer, vehi_spawns, (sizeof(vehicle_spawn) * (vehicle_spawn_count - 1)));
+	memcpy(&tmpSpawnPointer[vehicle_spawn_count-1],&tmpSpawn,sizeof(vehicle_spawn));
+	free(vehi_spawns);
+	vehi_spawns = tmpSpawnPointer;
+	return (vehicle_spawn_count-1);
+}
 - (int)duplicateMpEquipment:(int)index
 {
 	mp_equipment tmpSpawn, *tmpSpawnPointer;
@@ -960,6 +1176,7 @@ Begin Duplication Methods
 	
 	// Lets copy the data
 	memcpy(&tmpSpawn, &item_spawns[index], sizeof(mp_equipment));
+	
 	
 	for (i = 0; i < 2; i++)
 		tmpSpawn.coord[i] -= 0.5f;
@@ -977,6 +1194,49 @@ Begin Duplication Methods
 	free(item_spawns);
 	item_spawns = tmpSpawnPointer;
 	return (item_spawn_count-1);
+}
+- (int)duplicateMachine:(int)index coord:(int)coo
+{
+	machine_spawn tmpSpawn, *tmpSpawnPointer;
+	int i;
+	
+	if (index < 0 || index > mach_spawn_count)
+		return 0;
+	
+	mach_spawns[index].isSelected = NO;
+	
+	// Lets copy the data
+	memcpy(&tmpSpawn, &mach_spawns[index], sizeof(machine_spawn));
+	
+	if (coo)
+    {
+        mach_spawns[index].isSelected = YES;
+    }
+    else
+    {
+		mach_spawns[index].isSelected = NO;
+		for (i = 0; i < 2; i++)
+			tmpSpawn.coord[i] -= 0.5f;
+    }
+	
+	scen_spawns[index].isSelected = NO;
+	
+	//FILE *tmpFile = fopen("/Users/samuco/Desktop/machine.seo","w+");
+	//fwrite(&mach_spawns[index],sizeof(machine_spawn),1,tmpFile);
+	//fclose(tmpFile);
+	
+	// Now lets redo the counters
+	mach_spawn_count += 1;
+	header.Machine.newChunkCount = mach_spawn_count;
+	
+	tmpSpawnPointer = malloc(sizeof(machine_spawn) * mach_spawn_count);
+	
+	// Copy the old items
+	memcpy(tmpSpawnPointer, mach_spawns, (sizeof(machine_spawn) * (mach_spawn_count - 1)));
+	memcpy(&tmpSpawnPointer[mach_spawn_count-1],&tmpSpawn,sizeof(machine_spawn));
+	free(mach_spawns);
+	mach_spawns = tmpSpawnPointer;
+	return (mach_spawn_count-1);
 }
 - (void)createPlayerSpawn:(player_spawn)p_Spawn
 {
@@ -1023,7 +1283,7 @@ Begin Duplication Methods
 	
 	// Now lets create the exit
 	t_exit.coord[0] = coord[0];
-	t_exit.coord[1] = (coord[1] + 1.0f);
+	t_exit.coord[1] = (coord[1]);
 	t_exit.coord[2] = coord[2];
 	t_exit.rotation = 0.0f;
 	t_exit.type = teleporter_exit;
@@ -1043,8 +1303,93 @@ Begin Duplication Methods
 	free(mp_flags);
 	mp_flags = tmpSpawnPointer;
 
-	return ((s_netgame * 10000) + (multiplayer_flags_count - 2));
+	return ((s_netgame * MAX_SCENARIO_OBJECTS) + (multiplayer_flags_count - 2));
 }
+
+- (unsigned int)createSkull:(float *)coord
+{
+	NSLog(@"Create scenery");
+	scenery_spawn tmpSpawn, *tmpSpawnPointer;
+	
+	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/scenery.seo"];
+	FILE *tmpFile = fopen([scen cString],"r+");
+	fread(&tmpSpawn, sizeof(scenery_spawn), 1, tmpFile);
+	fclose(tmpFile);
+	
+	// Lets copy the data
+	if (!coord[0] || !coord[1] || !coord[2])
+		return 0;
+	
+	tmpSpawn.coord[0] = coord[0];
+	tmpSpawn.coord[1] = (coord[1]);
+	tmpSpawn.coord[2] = coord[2];
+	tmpSpawn.rotation[0]=0;
+	tmpSpawn.rotation[1]=0;
+	tmpSpawn.rotation[2]=0;
+	
+	tmpSpawn.isSelected = NO;
+	tmpSpawn.numid=0;
+	
+	tmpSpawn.modelIdent = [self baseModelIdent:scen_references[0].scen_ref.TagId];
+	
+	// Now lets redo the counters.
+	scenery_spawn_count += 1;
+	header.Scenery.newChunkCount = scenery_spawn_count;
+	
+	tmpSpawnPointer = malloc(sizeof(scenery_spawn) * scenery_spawn_count);
+	
+	// Copy the old scenery
+	memcpy(tmpSpawnPointer,scen_spawns,(sizeof(scenery_spawn) * (scenery_spawn_count - 1)));
+	memcpy(&tmpSpawnPointer[scenery_spawn_count-1], &tmpSpawn, sizeof(scenery_spawn));
+	free(scen_spawns);
+	scen_spawns = tmpSpawnPointer;
+	
+	return (scenery_spawn_count-1);
+}
+
+- (unsigned int)createMachine:(float *)coord
+{
+	NSLog(@"Creating machine");
+	machine_spawn tmpSpawn, *tmpSpawnPointer;
+	
+	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/machine.seo"];
+	FILE *tmpFile = fopen([scen cString],"r+");
+	fread(&tmpSpawn, sizeof(machine_spawn), 1, tmpFile);
+	fclose(tmpFile);
+	
+	// Lets copy the data
+	if (!coord[0] || !coord[1] || !coord[2])
+		return 0;
+	
+	// Lets create the teleporter entrance
+	tmpSpawn.coord[0] = coord[0];
+	tmpSpawn.coord[1] = (coord[1]);
+	tmpSpawn.coord[2] = coord[2];
+	tmpSpawn.rotation[0]=0;
+	tmpSpawn.rotation[1]=0;
+	tmpSpawn.rotation[2]=0;
+	
+	tmpSpawn.isSelected = NO;
+	tmpSpawn.numid=0;
+	
+	//tmpSpawn.modelIdent = [self baseModelIdent:mach_references[0].machTag.TagId];
+	
+	// Now lets redo the counters.
+	mach_spawn_count += 1;
+	header.Machine.newChunkCount = mach_spawn_count;
+	
+	tmpSpawnPointer = malloc(sizeof(machine_spawn) * mach_spawn_count);
+	
+	// Copy the old scenery
+	memcpy(tmpSpawnPointer,mach_spawns,(sizeof(machine_spawn) * (mach_spawn_count - 1)));
+	memcpy(&tmpSpawnPointer[mach_spawn_count-1], &tmpSpawn, sizeof(machine_spawn));
+	free(mach_spawns);
+	mach_spawns = tmpSpawnPointer;
+	
+	return (mach_spawn_count-1);
+}
+
+
 
 
 
@@ -1072,6 +1417,9 @@ Scenario object destruction
 			break;
 		case s_netgame:
 			[self deleteNetgameFlag:index];
+			break;
+		case s_machine:
+			[self deleteMachine:index];
 			break;
 	}
 }
@@ -1126,6 +1474,33 @@ Scenario object destruction
 	
 	scen_spawns = (scenery_spawn *)tmpSpawnPointer;
 }
+
+- (void)deleteMachine:(int)index
+{
+	machine_spawn *tmpSpawnPointer;
+	int i, x;
+	
+	if (index < 0 || index > mach_spawn_count)
+		return;
+	
+	tmpSpawnPointer = (machine_spawn *)malloc(sizeof(machine_spawn) * (mach_spawn_count - 1));	
+	
+	for (i = 0; i < index; i++)
+		memcpy(&tmpSpawnPointer[i], &mach_spawns[i], sizeof(machine_spawn));
+	x = i;
+	for (i = (index + 1); i < mach_spawn_count; i++)
+	{
+		memcpy(&tmpSpawnPointer[x], &mach_spawns[i], sizeof(machine_spawn));
+		x++;
+	}
+	mach_spawn_count--;
+	header.Machine.newChunkCount = mach_spawn_count;
+	
+	free(mach_spawns);
+	
+	mach_spawns = (machine_spawn *)tmpSpawnPointer;
+}
+
 - (void)deletePlayerSpawn:(int)index
 {
 	
@@ -1246,6 +1621,7 @@ Item swapping
 	[self buildArrayOfInactiveSceneryTags];
 	[self buildArrayOfMachineTags];
 	[self buildArrayOfInactiveMachineTags];
+	[self buildArrayOfVehicleTags];
 }
 - (void)buildArrayOfSceneryTags
 {
@@ -1327,12 +1703,34 @@ Item swapping
 }
 - (void)buildArrayOfVehicleTags
 {
+	int i;
 	
+	// Get rid of anything previously held
+	if (vehiTagArray)
+	{
+		[vehiTagArray removeAllObjects];
+		[vehiTagArray release];
+	}
+	
+	vehiTagArray = [[NSMutableArray alloc] initWithCapacity:vehi_ref_count];
+	
+	// Create an array of all the scenery references
+	for (i = 0; i < vehi_ref_count; i++)
+	{
+		if ([_mapfile isTag:vehi_references[i].vehi_ref.TagId])
+			[vehiTagArray addObject:[[_mapfile tagForId:vehi_references[i].vehi_ref.TagId] tagName]];
+		else
+			[vehiTagArray addObject:@"Dead vehicle reference!"];
+	}
 }
 - (void)setItmcArray:(NSMutableArray *)tagArray lookup:(int *)lookup
 {
 	itmcTagArray = [tagArray retain];
 	itmcLookup = (int *)lookup;
+}
+- (NSMutableArray *)vehiTagArray
+{
+	return vehiTagArray;
 }
 - (NSMutableArray *)scenTagArray
 {
@@ -1559,8 +1957,9 @@ int compare(const void *a, const void *b)
 
 
 
-- (void)rebuildScenario222
+- (void)rebuildScenario
 {
+	int debug = 0;
 	int i, x, n,
 	sizeChange = 0,
 	index, 
@@ -1572,20 +1971,33 @@ int compare(const void *a, const void *b)
 	cacashit,
 	*hack;
 	
-	reflexive *tmpReflex, *nextReflex;
+	reflexive *tmpReflex, *nextReflex, *areflex;
 	
 	newScnr = (char *)malloc([self tagLength]);
 	memset(newScnr,0,[self tagLength]);
 	
 	negativeOffset = (0 - ([_mapfile magic] + [self offsetInMap]));
 	
+	if (device_group_count == 0)
+	{
+		//Add two device groups for the hell of it
+		[self createDeviceGroup];
+		[self createDeviceGroup];
+	}
+	
 	/* See how many reflexives are actually in use here */
 	for (i = 0; i < 79; i++)
 	{
 		tmpReflex = (reflexive *)_reflexLookup[i];
-		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset) && (tmpReflex->chunkcount > 0))
+		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset))
 			realReflexives++;
-	}
+		else if (tmpReflex->refNumber==15 && mach_ref_count)
+			realReflexives++;
+		else if (tmpReflex->refNumber==14 && mach_spawn_count)
+			realReflexives++;
+		else if (tmpReflex->refNumber==13 && device_group_count)
+			realReflexives++;
+	} 
 	
 	int OffsetTable[realReflexives];
 	x = 0;
@@ -1593,42 +2005,182 @@ int compare(const void *a, const void *b)
 	for (i = 0; i < 79; i++)
 	{
 		tmpReflex = (reflexive *)_reflexLookup[i];
-		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset) && (tmpReflex->chunkcount > 0))
+		if (debug) NSLog(@"REF %d", tmpReflex->refNumber);
+
+		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset))
 		{
-			OffsetTable[x] = ((tmpReflex->offset * 100) + i);
+			OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
+			x++;
+		}
+		else if (tmpReflex->refNumber==15 && mach_ref_count)
+		{
+			//Find the last offset
+			int largest_offset = 0;
+			int largest_index = 0;
+			int a;
+			for (a=0;a<15;a++)
+			{
+				areflex = (reflexive *)_reflexLookup[a];
+				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+				{
+					if (areflex->offset > largest_offset)
+					{
+						largest_offset = areflex->offset;
+						largest_index = a;
+					}
+				}
+			}
+			reflexive *scenery = (reflexive *)_reflexLookup[largest_index];
+			
+			int increment_offset = scenery->newChunkCount*scenery->chunkSize;
+			if (mach_spawn_count)
+				increment_offset+=mach_spawn_count*MACHINE_CHUNK;
+			
+			int increment_offset2 = mach_spawn_count*MACHINE_REF_CHUNK;
+			tmpReflex->offset=scenery->offset+increment_offset;
+			
+			tmpReflex->chunkcount=0;
+			tmpReflex->newChunkCount=mach_spawn_count;
+			
+			for (a=16;a<79;a++)
+			{
+				areflex = (reflexive *)_reflexLookup[a];
+				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+				{
+					areflex->offset+=increment_offset2;
+					_reflexLookup[a] = (reflexive *)areflex;
+				}
+			}
+			_reflexLookup[15]=(reflexive *)tmpReflex;
+			
+			OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
+			x++;
+		}
+		else if (tmpReflex->refNumber==14 && mach_spawn_count)
+		{
+			
+			//Find the last offset
+			int largest_offset = 0;
+			int largest_index = 0;
+			int a;
+			for (a=0;a<14;a++)
+			{
+				areflex = (reflexive *)_reflexLookup[a];
+				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+				{
+					if (areflex->offset > largest_offset)
+					{
+						largest_offset = areflex->offset;
+						largest_index = a;
+					}
+				}
+			}
+			reflexive *scenery = (reflexive *)_reflexLookup[largest_index];
+			int increment_offset = scenery->newChunkCount*scenery->chunkSize;
+			int increment_offset2 = mach_spawn_count*MACHINE_CHUNK;
+			tmpReflex->offset=scenery->offset+increment_offset;
+			
+			tmpReflex->chunkcount=0;
+			
+			for (a=15;a<79;a++)
+			{
+				areflex = (reflexive *)_reflexLookup[a];
+				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+				{
+					areflex->offset+=increment_offset2;
+					_reflexLookup[a] = (reflexive *)areflex;
+				}
+			}
+			_reflexLookup[14]=(reflexive *)tmpReflex;
+			
+			OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
+			x++;
+		}
+		else if (tmpReflex->refNumber==13)
+		{
+			
+			//Lets add a device group for fun!
+			int largest_offset = 0;
+			int largest_index = 0;
+			int a;
+			for (a=0;a<13;a++)
+			{
+				areflex = (reflexive *)_reflexLookup[a];
+				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+				{
+					if (areflex->offset > largest_offset)
+					{
+						largest_offset = areflex->offset;
+						largest_index = a;
+					}
+				}
+			}
+			
+			tmpReflex->newChunkCount=device_group_count;
+			
+			reflexive *scenery = (reflexive *)_reflexLookup[largest_index];
+			int increment_offset = scenery->newChunkCount*scenery->chunkSize;
+			int increment_offset2 = tmpReflex->newChunkCount*DEVICE_CHUNK;
+			tmpReflex->offset=scenery->offset+increment_offset;
+			tmpReflex->chunkcount=0;
+			
+			for (a=14;a<79;a++)
+			{
+				areflex = (reflexive *)_reflexLookup[a];
+				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+				{
+					areflex->offset+=increment_offset2;
+					_reflexLookup[a] = (reflexive *)areflex;
+				}
+			}
+			_reflexLookup[13]=(reflexive *)tmpReflex;
+			
+			OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
 			x++;
 		}
 	}
+	if (debug) NSLog(@"END");
 	
 	/* Ok, we have all of the working reflexives, lets sort shit */
 	qsort(OffsetTable, x, sizeof(int), compare);
 	
+	if (debug) NSLog(@"1");
 	/* Now that this is done, lets update our reflexive offsets */
 	for (i = 0; i < x; i++)
 	{
-		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 100];
+		if (debug) NSLog(@"BLAH %d", i);
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
 		
 		//if (i == (x - 1))
 		//	break; // Last reflexive - leave it alone. We need this for the BSP data.
-		
+		if (debug) NSLog(@"NEXT1");
 		
 		tmpReflex->offset += sizeChange;
+		if (debug) NSLog(@"NEXT2");
 		if (tmpReflex->chunkcount != tmpReflex->newChunkCount)
 		{
+			if (debug) NSLog(@"NEXT3");
 			sizeChange += ((tmpReflex->newChunkCount - tmpReflex->chunkcount) * tmpReflex->chunkSize);
+			if (debug) NSLog(@"NEXT4");
 			tmpReflex->chunkcount = tmpReflex->newChunkCount;
 		}
 		
 	}
-	
-	
+	if (debug) NSLog(@"1EE");
 	/* Ok, thats all sorted out. Now lets copy everything into our new scenario buffer */
+	int offset_buff=0;
 	for (i = 0; i < x; i++)
 	{
-		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 100];
-		nextReflex = (reflexive *)_reflexLookup[OffsetTable[i+1] % 100];
-		index = (int)(OffsetTable[i] % 100);
+		if (debug) NSLog(@"Searching %d", i);
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
+		if (!tmpReflex)
+		{
+			continue;
+		}
 		
+		nextReflex = (reflexive *)_reflexLookup[OffsetTable[i+1] % 1000];
+		index = (int)(OffsetTable[i] % 1000);
+		if (debug) NSLog(@"Saving %d", index);
 		switch (index)
 		{
 			case 3: // Scenery spawns
@@ -1655,8 +2207,8 @@ int compare(const void *a, const void *b)
 				for (n = 0; n < tmpReflex->chunkcount; n++)
 				{
 					bufIndex = (n * SCENERY_REF_CHUNK);
-					memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_references[n],SCENERY_REF_CHUNK);
-					insertMemory([RenderView ID], [_mapfile magic] + &newScnr[tmpReflex->offset + bufIndex], &scen_references[n], SCENERY_REF_CHUNK);
+					memcpy(&newScnr[tmpReflex->offset +  bufIndex],&scen_references[n],SCENERY_REF_CHUNK);
+					//insertMemory([RenderView ID], [_mapfile magic] + &newScnr[tmpReflex->offset + bufIndex], &scen_references[n], SCENERY_REF_CHUNK);
 				}
 				break;
 			case 7: // vehicle spawns
@@ -1681,6 +2233,49 @@ int compare(const void *a, const void *b)
 						vehi_spawns[n].numid = EndianSwap16(vehi_spawns[n].numid);
 						*hack = EndianSwap32(*hack);
 					}
+				}
+				break;
+			case 8: // Vehicle ref
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+				if (debug) 	NSLog(@"Saving vehicle ref %d", n);
+					bufIndex = (n * VEHICLE_REF_CHUNK);
+					memcpy(&newScnr[tmpReflex->offset +  bufIndex],&vehi_references[n],VEHICLE_REF_CHUNK);
+					//insertMemory([RenderView ID], [_mapfile magic] + &newScnr[tmpReflex->offset + bufIndex], &scen_references[n], SCENERY_REF_CHUNK);
+				}
+				break;
+			case 13: // Device groups
+				if (debug) NSLog(@"device group! %d", header.DeviceGroups.chunkcount);
+				if (debug) NSLog(@"Number of groups is %d", tmpReflex->chunkcount);
+				for (n = 0; n < device_group_count; n++)
+				{
+					if (debug) NSLog(@"Creating device group numbered %d", n);
+					
+					bufIndex = (n * DEVICE_CHUNK);
+					memcpy(&newScnr[tmpReflex->offset + bufIndex], &device_groups[n], DEVICE_CHUNK);
+				}
+				break;
+			case 14: // Machines
+				if (debug) NSLog(@"MACHINE!");
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+					if (debug) NSLog(@"Creating machine numbered %d", n);
+					
+					bufIndex = (n * MACHINE_CHUNK);
+					memcpy(&newScnr[tmpReflex->offset + bufIndex], &mach_spawns[n], MACHINE_CHUNK);
+				}
+				break;
+			case 15: // Machine ref
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+					if (debug) NSLog(@"Saving machine ref  %d", n);
+					
+					bufIndex = (n * MACHINE_REF_CHUNK);
+					void *destination = &newScnr[tmpReflex->offset + bufIndex];
+					const void *data = &mach_references[n];
+					memcpy(destination,data,MACHINE_REF_CHUNK);
+					
+					if (debug) NSLog(@"Machine ref created!");
 				}
 				break;
 			case 30: // spawns
@@ -1752,6 +2347,14 @@ int compare(const void *a, const void *b)
 					
 				}
 				break;
+			case 48: // encounters
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+					//Fix up our starting locations reference
+					bufIndex = (n * ENCOUNTER_CHUNK);
+					memcpy(&newScnr[tmpReflex->offset + bufIndex], &encounters[n], ENCOUNTER_CHUNK);
+				}
+				break;
 			default:
 				if (i < (x - 1))
 					memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
@@ -1773,61 +2376,74 @@ int compare(const void *a, const void *b)
 				break;	
 		}
 	}
+	if (debug) NSLog(@"Mid-map contstruction complete. Create the header");
 	/* Construct the scenario header */
 	memcpy(newScnr,scnr,0x5B0);
+	if (debug) NSLog(@"Header copied.");
 	
 	/* Update all the scenario header reflexives */
 	for (i = 0; i < x; i++)
 	{
-		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 100];
+		NSLog(@"Updating reflexive %d", i);
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
+		NSLog(@"1");
 		tmpReflex->offset += ([self offsetInMap] + [_mapfile magic]);
+		NSLog(@"2");
 		memcpy(&newScnr[tmpReflex->location_in_mapfile], &tmpReflex->chunkcount, 4);
+		NSLog(@"3");
 		memcpy(&newScnr[tmpReflex->location_in_mapfile+4], &tmpReflex->offset, 4);
+		NSLog(@"4");
 		memcpy(&newScnr[tmpReflex->location_in_mapfile+8], &tmpReflex->zero, 4);
+		NSLog(@"5");
 		tmpReflex->offset -= ([self offsetInMap] + [_mapfile magic]);
 	}
+	if (debug) NSLog(@"Reflexives completed");
 	
 	
 #ifdef __DEBUG__
 	NSLog(@"Address of bsp offset: 0x%x", (header.StructBsp.offset - resolvedOffset));
 #endif
 	
+if (debug) 	NSLog(@"Writing data...");
 	/* Consistency write! */
 	// This writes the last few hundred bytes, whatever it is, thats beyond the 0xCACACACA crap. This also ensures that the bsp data won't be corrupted.
-	tmpReflex = (reflexive *)_reflexLookup[OffsetTable[x-1] % 100];
+	tmpReflex = (reflexive *)_reflexLookup[OffsetTable[x-1] % 1000];
 	memcpy(&newScnr[tmpReflex->offset],&scnr[tmpReflex->offset],(([self tagLength] - tmpReflex->offset) - (header.StructBsp.chunkcount * 0x20)));
 	
 #ifdef __DEBUG__
 	NSLog(@"Final reflexive data: [offset][0x%x] :: [chunkcount][%d]", tmpReflex->offset, tmpReflex->chunkcount);
 #endif
 	
+if (debug) NSLog(@"Writing bsp...");
 	memcpy(&newScnr[header.StructBsp.offset - resolvedOffset],&scnr[header.StructBsp.offset - resolvedOffset],(0x20 * header.StructBsp.chunkcount));
 	/* End consistency write! */
 	
-	
+	if (debug) NSLog(@"Adjusting offsets...");
 	/* Reset the adjusted offset values */
 	for (i = 0; i < x; i++)
 	{
-		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 100];
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
 		tmpReflex->offset = tmpReflex->oldOffset;
 	}
 	
-	
+	if (debug) NSLog(@"Destroying old scenaro...");
 	/* Destroy the old scenario */
 	free(scnr);
 	
+	if (debug) NSLog(@"Creating new scenario...");
 	/* Set the scenario pointer to the new scenario */
 	scnr = (char *)newScnr;
 	
-	FILE *tmpFile = fopen("test.scnr","w+");
-	
-	fwrite(scnr,[self tagLength],1,tmpFile);
-	
-	fclose(tmpFile);
+	if (debug) NSLog(@"Writing test scenario");
+	//if (debug) FILE *tmpFile = fopen("/Users/samuco/Desktop/test.scnr","w+");
+	///if (debug) NSLog(@"Writing...");
+	///if (debug) NSLog(@"Closing...");
+	//if (debug) fclose(tmpFile);
+	//if (debug) NSLog(@"Map rebuild complete!");
 }
 
 
-- (void)rebuildScenario
+- (void)rebuildScenario222
 {
 	int x, n, index, bufIndex;
 	reflexive	*tmpReflex,
@@ -1889,9 +2505,9 @@ int compare(const void *a, const void *b)
 	*/
 	for (x = 0; x < _activeReflexCounter; x++)
 	{
-		tmpReflex = (reflexive *)_reflexLookup[ _activeReflexives[x] % 100 ];
-		nextReflex = (reflexive *)_reflexLookup[ _activeReflexives[x+1] % 100 ];
-		index = (int)(_activeReflexives[x] % 100);
+		tmpReflex = (reflexive *)_reflexLookup[ _activeReflexives[x] % 1000 ];
+		nextReflex = (reflexive *)_reflexLookup[ _activeReflexives[x+1] % 1000 ];
+		index = (int)(_activeReflexives[x] % 1000);
 		
 		switch (index)
 		{
@@ -2083,7 +2699,7 @@ int compare(const void *a, const void *b)
 	
 	for (x = 0; x < _activeReflexCounter; x++)
 	{
-		tmpReflex = (reflexive *)_reflexLookup[ _activeReflexives[x] % 100 ];
+		tmpReflex = (reflexive *)_reflexLookup[ _activeReflexives[x] % 1000 ];
 		tmpReflex->offset += ([self offsetInMap] + [_mapfile magic]);
 		memcpy(&scnr[tmpReflex->location_in_mapfile], &tmpReflex->chunkcount, 4);
 		memcpy(&scnr[tmpReflex->location_in_mapfile+4], &tmpReflex->offset, 4);
@@ -2115,6 +2731,7 @@ int compare(const void *a, const void *b)
 
 - (void)saveScenario
 {
+	NSLog(@"WRITING SCENARIO!");
 	[_mapfile writeAnyDataAtAddress:scnr size:[self tagLength] address:[self offsetInMap]];
 }
 

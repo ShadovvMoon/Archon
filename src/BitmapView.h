@@ -50,4 +50,11 @@
 
 /* IB Actions */
 - (IBAction)extractTexture:(id)sender;
+@property (retain) NSTableView *bitmapList;
+@property (retain) NSTableView *subImageList;
+@property (retain) HaloMap *_mapfile;
+@property (retain) TextureManager *_texManager;
+@property int selectedBitmap;
+@property int selectedBitmapIdent;
+@property int selectedImage;
 @end

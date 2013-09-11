@@ -26,4 +26,13 @@
 - (void)windowDidBecomeKey:(NSNotification *)notification;
 - (void)windowDidResignKey:(NSNotification *)notification;
 - (void)scrollCredits:(NSTimer *)timer;
+@property (retain) id appNameField;
+@property (retain) id copyrightField;
+@property (retain) id creditsField;
+@property (retain) id versionField;
+@property (retain) NSTimer *scrollTimer;
+@property float currentPosition;
+@property float maxScrollHeight;
+@property NSTimeInterval startTime;
+@property BOOL restartAtTop;
 @end

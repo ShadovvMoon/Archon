@@ -12,6 +12,10 @@
 		1406E5A510F93FBB004A983D /* SelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E5A410F93FBB004A983D /* SelectView.m */; };
 		142F1A0910F8765100E69B8D /* BGHUDAppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */; };
 		142F1A2F10F8765A00E69B8D /* BGHUDAppKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */; };
+		14388B8E151879F2003DE7CD /* squish.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 14388B8D151879F2003DE7CD /* squish.framework */; };
+		14388B8F15187A02003DE7CD /* squish.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 14388B8D151879F2003DE7CD /* squish.framework */; };
+		143B86B712A24D3B0092D35E /* scenery.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86B612A24D3B0092D35E /* scenery.seo */; };
+		143B86EA12A25A0A0092D35E /* machine.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86E912A25A0A0092D35E /* machine.seo */; };
 		144893AD10FA90130026A004 /* relaunch in Resources */ = {isa = PBXBuildFile; fileRef = 144893AC10FA90130026A004 /* relaunch */; };
 		1448949510FAAAE30026A004 /* swordedit.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1448949410FAAAE30026A004 /* swordedit.icns */; };
 		1497F237115DB811006D2CA6 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1497F236115DB811006D2CA6 /* Security.framework */; };
@@ -41,8 +45,6 @@
 		5CE019150DD7D392007AA956 /* ModelTag.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CE019140DD7D392007AA956 /* ModelTag.m */; };
 		5CE019550DD7D9B1007AA956 /* Geometry.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CE019540DD7D9B1007AA956 /* Geometry.m */; };
 		5CEA8D2D0CCC23A100B5636E /* AppController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CEA8D2C0CCC23A100B5636E /* AppController.m */; };
-		77A9ECD30F6DE07500E3961D /* squish.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77A9ECD20F6DE07500E3961D /* squish.framework */; };
-		77A9ECD80F6DE08500E3961D /* squish.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 77A9ECD20F6DE07500E3961D /* squish.framework */; };
 		8D11072A0486CEB800E47090 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
@@ -66,7 +68,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				142F1A2F10F8765A00E69B8D /* BGHUDAppKit.framework in Copy Frameworks */,
-				77A9ECD80F6DE08500E3961D /* squish.framework in Copy Frameworks */,
+				14388B8F15187A02003DE7CD /* squish.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -85,6 +87,9 @@
 		1406E5A410F93FBB004A983D /* SelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SelectView.m; sourceTree = "<group>"; };
 		142F19C110F8722100E69B8D /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = BGHUDAppKit.framework; sourceTree = "<group>"; };
+		14388B8D151879F2003DE7CD /* squish.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = squish.framework; sourceTree = "<group>"; };
+		143B86B612A24D3B0092D35E /* scenery.seo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file; path = scenery.seo; sourceTree = "<group>"; };
+		143B86E912A25A0A0092D35E /* machine.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = machine.seo; sourceTree = "<group>"; };
 		144893AC10FA90130026A004 /* relaunch */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = relaunch; sourceTree = "<group>"; };
 		1448949410FAAAE30026A004 /* swordedit.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = swordedit.icns; sourceTree = "<group>"; };
 		1497F236115DB811006D2CA6 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Security.framework; sourceTree = "<group>"; };
@@ -146,7 +151,6 @@
 		5CEC796E0DE2395E00C33BFB /* VectorMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VectorMath.h; sourceTree = "<group>"; };
 		5CEC79AE0DE23A6E00C33BFB /* Moved Aside Functions */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Moved Aside Functions"; sourceTree = "<group>"; };
 		5CEC7B9A0DE24E8300C33BFB /* GeneralMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeneralMath.h; sourceTree = "<group>"; };
-		77A9ECD20F6DE07500E3961D /* squish.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = squish.framework; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* swordedit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = swordedit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -158,9 +162,9 @@
 			files = (
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				5C675B960CD4219D00F664DE /* OpenGL.framework in Frameworks */,
-				77A9ECD30F6DE07500E3961D /* squish.framework in Frameworks */,
 				142F1A0910F8765100E69B8D /* BGHUDAppKit.framework in Frameworks */,
 				1497F237115DB811006D2CA6 /* Security.framework in Frameworks */,
+				14388B8E151879F2003DE7CD /* squish.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -237,6 +241,8 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				143B86E912A25A0A0092D35E /* machine.seo */,
+				143B86B612A24D3B0092D35E /* scenery.seo */,
 				1448949410FAAAE30026A004 /* swordedit.icns */,
 				144893AC10FA90130026A004 /* relaunch */,
 				5C00A91E0DD5215E00C2253D /* AboutBox.nib */,
@@ -251,9 +257,9 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				14388B8D151879F2003DE7CD /* squish.framework */,
 				1497F236115DB811006D2CA6 /* Security.framework */,
 				142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */,
-				77A9ECD20F6DE07500E3961D /* squish.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
@@ -453,9 +459,19 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0440;
+			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "swordedit" */;
 			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* swordedit */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -476,6 +492,8 @@
 				5C00A9200DD5215E00C2253D /* AboutBox.nib in Resources */,
 				144893AD10FA90130026A004 /* relaunch in Resources */,
 				1448949510FAAAE30026A004 /* swordedit.icns in Resources */,
+				143B86B712A24D3B0092D35E /* scenery.seo in Resources */,
+				143B86EA12A25A0A0092D35E /* machine.seo in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -561,7 +579,6 @@
 				FRAMEWORK_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/../../../Library/Frameworks\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INFOPLIST_FILE = Info.plist;
@@ -616,6 +633,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = i386;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "";
@@ -624,8 +642,7 @@
 					"-D",
 					__DEBUG__,
 				);
-				PREBINDING = NO;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx10.7;
 			};
 			name = Debug;
 		};
@@ -636,12 +653,12 @@
 					ppc,
 					i386,
 				);
+				GCC_VERSION = 4.0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx10.7;
 				SEPARATE_SYMBOL_EDIT = NO;
 			};
 			name = Release;

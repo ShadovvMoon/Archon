@@ -11,6 +11,8 @@
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
 
+#define MAX_SCENARIO_OBJECTS 1000000
+
 typedef struct 
 {
 	unsigned char TName[32];          // 'object'
@@ -86,11 +88,14 @@ typedef enum
 	s_scenery = 1,
 	s_vehicle = 2,
 	s_playerspawn = 3,
+	s_encounter = 9,
 	s_item = 4,
 	s_netgame = 5,
 	s_machine = 6,
 	s_playerobject = 7,
-	s_mapobject = 8
+	s_mapobject = 8,
+	s_bsppoint = 10,
+	s_colpoint = 11
 } SelectionType;
 
 typedef enum
@@ -164,6 +169,13 @@ typedef struct
 	// Scenario reconstruction aspect
 	int refNumber;
 } reflexive;
+
+typedef struct
+{
+	long chunkcount;
+	int offset;
+	long zero;
+} reflexive_tag;
 
 typedef struct
 {
@@ -309,16 +321,16 @@ typedef struct
 	short desired_permutation;
 	float coord[3];
 	float rotation[3];
-	/*
+	
 	long unknown1[0xA];
 	float body_vitality;
-	short unknown2;
+	//short unknown2;
 	short flags;
 	long unknown3[2];
 	char mpTeamIndex;
 	char secondPosMPTeamIndex;
 	short mpSpawnFlags;
-	*/
+	
 	unsigned long unknown2[22];
 	
 	// Not part of the in-map data
@@ -422,13 +434,16 @@ typedef struct machine_spawn
 	short desired_permutation;
 	float coord[3];
 	float rotation[3];
+	
 	short flags;
 	short flags2;
+	
 	long zeros[7];
 	
 	// non-spawn data
 	BOOL isSelected;
 } machine_spawn;
+#define MACHINE_CHUNK 0x40
 
 // 0x30 in length
 typedef struct machine_ref
@@ -439,6 +454,39 @@ typedef struct machine_ref
 	// non-map data
 	long modelIdent;
 } machine_ref;
+#define MACHINE_REF_CHUNK 0x30
+
+typedef struct 
+{
+	float coord[3];
+	bool isSelected;
+	int index;
+	int amindex;
+	int mesh;
+} bsp_point;
+
+typedef struct device_group
+{
+	long name[8];
+	float initial_value;
+	short flags;
+	
+} device_group;
+#define DEVICE_CHUNK 52
+
+typedef struct encounter
+{
+	long unknown[32];
+	reflexive_tag squads;
+	reflexive_tag platoons;
+	reflexive_tag firing;
+	reflexive_tag start_locations;
+	
+	int start_locs_count;
+	player_spawn *start_locs;
+} encounter;
+#define ENCOUNTER_CHUNK 176
+
 
 /* END SCENARIO */
 /* BEGIN MODELS */
@@ -682,6 +730,20 @@ typedef struct
   unsigned long unknown[4];
   reflexive Material;
 }BSP_LIGHTMAP;
+typedef struct
+{
+	short LightmapIndex;
+	short unk1;
+	unsigned long unknown[4];
+	reflexive Material;
+}BSP_COLLISION;
+typedef struct
+{
+	float x, y, z;
+	float edge;
+	
+	int isSelected;
+}vert;
 typedef struct
 {
   short SkyIndex;

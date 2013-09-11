@@ -130,8 +130,35 @@
 	
 	for (x = 0; x < partsref.chunkcount; x++)
 	{
-		parts[x].shaderBitmapIndex = [[_mapfile bitmTagForShaderId:[parent shaderIdentForIndex:parts[x].shaderIndex]] idOfTag];
-		[[parent _texManager] loadTextureOfIdent:parts[x].shaderBitmapIndex subImage:0];
+		
+		int graphics_insane = 0;
+		if (graphics_insane)
+		{
+			
+			NSMutableArray *bitmaps = [_mapfile bitmsTagForShaderId:[parent shaderIdentForIndex:parts[x].shaderIndex]];
+			if ([bitmaps count] > 0)
+			{
+				parts[x].shaderBitmapIndex = [[bitmaps objectAtIndex:0] idOfTag];
+				[[parent _texManager] loadTextureOfIdent:parts[x].shaderBitmapIndex subImage:0];
+				
+				int i;
+				for (i=0;i<[bitmaps count]; i++)
+				{
+					//[[parent _texManager] loadTextureOfIdent:[[bitmaps objectAtIndex:i] idOfTag] subImage:0];
+				}
+			}
+			else
+			{
+				parts[x].shaderBitmapIndex = nil;
+			}
+		}
+		else
+		{
+		
+			parts[x].shaderBitmapIndex = [[_mapfile bitmTagForShaderId:[parent shaderIdentForIndex:parts[x].shaderIndex]] idOfTag];
+			[[parent _texManager] loadTextureOfIdent:parts[x].shaderBitmapIndex subImage:0];
+			
+		}
 	}
 	texturesLoaded = TRUE;
 }
@@ -235,4 +262,13 @@
 	}
 	glFlush();
 }
+@synthesize numParts;
+@synthesize vertexSize;
+@synthesize vertexOffset;
+@synthesize textures;
+@synthesize _mapfile;
+@synthesize parent;
+@synthesize _texManager;
+@synthesize parts;
+@synthesize texturesLoaded;
 @end

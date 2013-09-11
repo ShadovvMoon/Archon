@@ -167,4 +167,11 @@
 		
 	}
 }
+@synthesize bitmapList;
+@synthesize subImageList;
+@synthesize _mapfile;
+@synthesize _texManager;
+@synthesize selectedBitmap;
+@synthesize selectedBitmapIdent;
+@synthesize selectedImage;
 @end

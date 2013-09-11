@@ -55,6 +55,9 @@ enum MapFileReadResult
 	NSMutableArray *itmcList;
 	NSMutableDictionary *itmcLookupDict;
 	
+	NSMutableArray *machList;
+	NSMutableDictionary *machLookupDict;
+	
 	NSMutableArray *scenList;
 	NSMutableDictionary *scenLookupDict;
 	NSMutableDictionary *scenNameLookupDict;
@@ -134,4 +137,22 @@ enum MapFileReadResult
 - (long)modIdForKey:(int)key;
 - (long)bitmIdForKey:(int)key;
 - (void)saveMap;
+@property (getter=currentFile) FILE *mapFile;
+@property (retain) NSString *bitmapFilePath;
+@property FILE *bitmapsFile;
+@property (retain,getter=scenario) Scenario *mapScenario;
+@property (retain,getter=bsp) BSP *bspHandler;
+@property (retain,getter=_texManager) TextureManager *_texManager;
+@property long _magic;
+@property (retain) NSMutableArray *tagArray;
+@property (retain) NSMutableDictionary *tagLookupDict;
+@property (retain,getter=itmcList) NSMutableArray *itmcList;
+@property (retain,getter=itmcLookup) NSMutableDictionary *itmcLookupDict;
+@property (retain,getter=scenList) NSMutableArray *scenList;
+@property (retain,getter=scenLookup) NSMutableDictionary *scenLookupDict;
+@property (retain,getter=scenLookupByName) NSMutableDictionary *scenNameLookupDict;
+@property (retain,getter=modTagList) NSMutableArray *modTagList;
+@property (retain,getter=modTagLookup) NSMutableDictionary *modTagLookupDict;
+@property (retain,getter=bitmTagList) NSMutableArray *bitmTagList;
+@property (retain,getter=bitmLookup) NSMutableDictionary *bitmTagLookupDict;
 @end

@@ -90,4 +90,10 @@
 {
 	return offset;
 }
+@synthesize identity;
+@synthesize stringOffset;
+@synthesize offset;
+@synthesize resolvedOffset;
+@synthesize resolvedStringOffset;
+@synthesize offsetInIndex;
 @end

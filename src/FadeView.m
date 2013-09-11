@@ -155,4 +155,8 @@
 }
 
 
+@synthesize _fadeImage;
+@synthesize _fadeAlpha;
+@synthesize _fadeDuration;
+@synthesize _fadeTimer;
 @end

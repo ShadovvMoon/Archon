@@ -16,4 +16,6 @@
 	Scenario *_scenario;
 }
 
+@property (retain) HaloMap *_mapfile;
+@property (retain) Scenario *_scenario;
 @end

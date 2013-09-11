@@ -51,4 +51,14 @@
 - (void)drawAxes:(BOOL)withPointerArrow;
 - (TextureManager *)_texManager;
 - (void)renderPartyTriangle;
+@property (retain) HaloMap *_mapfile;
+@property (retain,getter=_texManager) TextureManager *_texManager;
+@property (retain) NSMutableArray *subModels;
+@property (retain) NSMutableArray *shaders;
+@property (getter=u_scale) float u_scale;
+@property (getter=v_scale) float v_scale;
+@property MODEL_REGION *regions;
+@property (getter=bounding_box) BOUNDING_BOX *bb;
+@property BOOL moving;
+@property BOOL selected;
 @end

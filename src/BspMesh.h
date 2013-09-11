@@ -28,11 +28,16 @@
 	unsigned long _bspMagic;
 	
 	SUBMESH_INFO *m_pMesh;
+	
+	vert *coll_verts;
+	int coll_count;
+	
 	BSP_WEATHER *m_pWeather;
 	BSP_XREF m_BspXrefs[BSP_XREF_COUNT];
 	
 	BSP_HEADER m_BspHeader;
 	BSP_LIGHTMAP *m_pLightmaps;
+	BSP_COLLISION *m_pCollisions;
 	BSP_CLUSTER *m_pClusters;
 	
 	BOUNDING_BOX m_MapBox;
@@ -48,6 +53,7 @@
 - (void)dealloc;
 - (void)freeBSPAllocation;
 - (SUBMESH_INFO *)m_pMesh:(long)index;
+- (vert*)collision_verticies;
 - (unsigned long)m_SubMeshCount;
 - (void)LoadVisibleBsp:(unsigned long)BspHeaderOffset version:(unsigned long)version;
 - (void)LoadPcSubmeshes;
@@ -56,4 +62,18 @@
 - (void)getMapCentroid:(float *)center_x center_y:(float *)center_y center_z:(float *)center_z;
 - (void)UpdateBoundingBox:(int)mesh_index pCoord:(float *)pCoord version:(unsigned long)version;
 - (void)ResetBoundingBox;
+
+@property (retain) HaloMap *_mapfile;
+@property (retain) BSP *_bspParent;
+@property (retain) TextureManager *_texManager;
+@property (getter=m_SubMeshCount) unsigned long m_SubMeshCount;
+@property unsigned long _bspMagic;
+@property SUBMESH_INFO *m_pMesh;
+@property BSP_WEATHER *m_pWeather;
+@property BSP_LIGHTMAP *m_pLightmaps;
+@property BSP_CLUSTER *m_pClusters;
+@property BOOL texturesLoaded;
+@property unsigned long m_CentroidCount;
+@property int m_activeBsp;
+@property int m_TriTotal;
 @end

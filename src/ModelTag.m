@@ -312,4 +312,14 @@
 	glEnd();  // Done with triangle
 
 }
+@synthesize _mapfile;
+@synthesize _texManager;
+@synthesize subModels;
+@synthesize shaders;
+@synthesize u_scale;
+@synthesize v_scale;
+@synthesize regions;
+@synthesize bb;
+@synthesize moving;
+@synthesize selected;
 @end

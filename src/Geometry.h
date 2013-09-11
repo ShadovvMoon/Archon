@@ -38,4 +38,13 @@
 - (void)loadBitmaps;
 - (BOUNDING_BOX)determineBoundingBox;
 - (void)drawIntoView:(BOOL)useAlphas;
+@property int numParts;
+@property int vertexSize;
+@property int vertexOffset;
+@property GLuint *textures;
+@property (retain) HaloMap *_mapfile;
+@property (retain) ModelTag *parent;
+@property (retain) TextureManager *_texManager;
+@property part *parts;
+@property BOOL texturesLoaded;
 @end

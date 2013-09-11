@@ -42,4 +42,10 @@
 - (int)tagLocation;
 - (long)stringOffset;
 - (long)rawOffset;
+@property (getter=idOfTag) long identity;
+@property (getter=stringOffset) long stringOffset;
+@property (getter=rawOffset) long offset;
+@property (getter=offsetInMap) long resolvedOffset;
+@property long resolvedStringOffset;
+@property long offsetInIndex;
 @end

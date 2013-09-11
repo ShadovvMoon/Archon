@@ -67,7 +67,8 @@
 			NSLog(@"BSP Chunk %i is located at: 0x%x", i, BspChunk.location_in_mapfile);
 			#endif
  			m_pBspInfo[i] = [self readBspInfo];
-			BspMesh *tempBsp = [[BspMesh alloc] initWithMapAndBsp:_mapfile bsp_class:self texManager:_texManager bsp_magic:m_pBspInfo[i].Magic];
+			tempBsp = [[BspMesh alloc] initWithMapAndBsp:_mapfile bsp_class:self texManager:_texManager bsp_magic:m_pBspInfo[i].Magic];
+			[tempBsp retain];
 			
 			// In bob's words, "Read in the scenario BSP Info"
 			offset = [_mapfile currentOffset];
@@ -91,6 +92,13 @@
 	printf("\n");
 	#endif
 }
+
+
+-(BspMesh*)mesh
+{
+	return tempBsp;
+}
+
 - (UNCOMPRESSED_BSP_VERT)readUncompressedBspVert
 {
 	UNCOMPRESSED_BSP_VERT retVert;
@@ -106,6 +114,21 @@
 	[_mapfile readFloat:&retVert.tangent[0]];
 	[_mapfile readFloat:&retVert.tangent[1]];
 	[_mapfile readFloat:&retVert.tangent[2]];
+	[_mapfile readFloat:&retVert.uv[0]];
+	[_mapfile readFloat:&retVert.uv[1]];
+	return retVert;
+}
+- (COMPRESSED_BSP_VERT)readCompressedBspVert
+{
+	COMPRESSED_BSP_VERT retVert;
+	
+	
+	[_mapfile readFloat:&retVert.vertex_k[0]];
+	[_mapfile readFloat:&retVert.vertex_k[1]];
+	[_mapfile readFloat:&retVert.vertex_k[2]];
+	[_mapfile readLong:&retVert.comp_normal];
+	[_mapfile readLong:&retVert.comp_binormal];
+	[_mapfile readLong:&retVert.comp_tangent];
 	[_mapfile readFloat:&retVert.uv[0]];
 	[_mapfile readFloat:&retVert.uv[1]];
 	return retVert;
@@ -127,6 +150,18 @@
 	[_mapfile readShort:&retTri.tri_ind[1]];
 	[_mapfile readShort:&retTri.tri_ind[2]];
 	return retTri;
+}
+
+- (vert)readVert
+{
+	vert retHeader;
+
+	[_mapfile readLong:&retHeader.x];
+	[_mapfile readLong:&retHeader.y];
+	[_mapfile readLong:&retHeader.z];
+	[_mapfile readLong:&retHeader.edge];
+	
+	return retHeader;
 }
 - (MATERIAL_SUBMESH_HEADER)readMaterialSubmeshHeader
 {
@@ -161,10 +196,10 @@
 	for (i = 0; i < 4; i++)
 		[_mapfile readFloat:&retHeader.Plane[i]];
 		
-	[_mapfile readLong:&retHeader.UnkFlag2];
+	[_mapfile readLong:&retHeader.UnkFlag2]; 
 	[_mapfile readLong:&retHeader.UnkCount1];
 	[_mapfile readLong:&retHeader.VertexCount1];
-	[_mapfile readLong:&retHeader.UnkZero4];
+	[_mapfile readLong:&retHeader.UnkZero4]; //Vertex offset
 	[_mapfile readLong:&retHeader.VertexOffset];
 	[_mapfile readLong:&retHeader.Vert_Reflexive];
 	[_mapfile readLong:&retHeader.UnkAlways3];
@@ -182,6 +217,7 @@
 	[_mapfile readLong:&retHeader.SomeOffset2];
 	[_mapfile readLong:&retHeader.VertexDataOffset];
 	[_mapfile readLong:&retHeader.UnkZero8];
+	//[_mapfile readLong:&retHeader.VertexDataOffset];
 	return retHeader;
 }
 - (SCENARIO_BSP_INFO)readBspInfo
@@ -249,4 +285,13 @@
 	if (m_pBsp)
 		[[self getActiveBsp] getMapCentroid:_center_x center_y:_center_y center_z:_center_z];
 }
+@synthesize _mapfile;
+@synthesize _texManager;
+@synthesize m_ActiveBsp;
+@synthesize m_Version;
+@synthesize m_Magic;
+@synthesize m_BspCount;
+@synthesize m_pBspInfo;
+@synthesize m_BspNames;
+@synthesize m_pBsp;
 @end

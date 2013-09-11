@@ -308,4 +308,7 @@
 	//		      0, 0, 0, 
 	//		  0, 0, 0);
 }
+@synthesize m_Speed;
+@synthesize m_CurrentRotX;
+@synthesize allow_z;
 @end

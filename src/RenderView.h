@@ -15,6 +15,7 @@
 #import "Selection.h"
 #import "Camera.h"
 #import "Scenario.h"
+#import "BspMesh.h"
 
 #define BITS_PER_PIXEL          32.0
 #define DEPTH_SIZE              32.0
@@ -85,6 +86,7 @@
 	IBOutlet NSTextField *selectedAddress;
 	IBOutlet NSTextField *selectedType;
 	IBOutlet NSPopUpButton *selectedSwapButton;
+	IBOutlet NSPopUpButton *selectedTypeSwapButton;
 	/* End Selection Related */
 	
 	/* Begin Scenario Editing Related */
@@ -105,6 +107,8 @@
 	IBOutlet NSPopUpButton *s_spawnTypePopupButton;
 	IBOutlet NSButton *s_spawnCreateButton;
 	IBOutlet NSButton *s_spawnEditWindowButton;
+	IBOutlet NSButton *s_skullCreateButton;
+	IBOutlet NSButton *s_machineCreateButton;
 	IBOutlet SpawnEditorController *_spawnEditor;
 	/* End Scenario Editing Related */
 	
@@ -131,6 +135,10 @@
 	BSP *mapBSP;
 	TextureManager *_texManager;
 	
+	bsp_point *bsp_points;
+	int bsp_point_count;
+	int editable;
+
 	int activeBSPNumber;
 	CVector3 camCenter[3];
 	
@@ -181,6 +189,7 @@
 	IBOutlet NSPanel *spawnc;
 	IBOutlet NSPanel *spawne;
 	IBOutlet NSPanel *select;
+	IBOutlet NSPanel *machine;
 	
 	IBOutlet NSButton *player_1;
 	IBOutlet NSButton *player_2;
@@ -197,6 +206,10 @@
 	IBOutlet NSButton *player_13;
 	IBOutlet NSButton *player_14;
 	IBOutlet NSButton *player_15;
+	
+	IBOutlet NSSlider *duplicate_amount;
+	
+	SUBMESH_INFO *pMesh;
 }
 /* Begin Renderview-Specific Functions */
 - (id)initWithFrame: (NSRect) frame;
@@ -266,6 +279,7 @@
 - (IBAction)openRender:(id)sender;
 - (IBAction)openSXpawn:(id)sender;
 - (IBAction)openSpawn:(id)sender;
+- (IBAction)openMach:(id)sender;
 
 - (IBAction)killKeys:(id)sender;
 - (void)setRotationSliders:(float)x y:(float)y z:(float)z;
@@ -274,8 +288,8 @@
 /* End GUI interface section */
 -(int)usesColor;
 /* Begin Scenario Editing Functions */
-- (void)trySelection:(NSPoint)downPoint shiftDown:(BOOL)shiftDown width:(CGFloat)w height:(CGFloat)h;
-- (void)deselectAllObjects;
+//- (void)trySelection:(NSPoint)downPoint shiftDown:(BOOL)shiftDown width:(CGFloat)w height:(CGFloat)h;
+//- (void)deselectAllObjects;
 - (void)processSelection:(unsigned int)name;
 - (void)fillSelectionInfo;
 - (void)performTranslation:(NSPoint)downPoint zEdit:(BOOL)zEdit;
@@ -296,4 +310,108 @@
 - (void)loadCameraPrefs;
 - (void)renderPartyTriangle;
 /* End miscellaneous functions */
+@property (retain) NSMenuItem *pointsItem;
+@property (retain) NSMenuItem *wireframeItem;
+@property (retain) NSMenuItem *shadedTrisItem;
+@property (retain) NSMenuItem *texturedItem;
+@property (retain) NSView *view_glo;
+@property (setter=setPID:) int my_pid_v;
+@property (getter=ID) int haloProcessID;
+@property (retain) NSButton *buttonPoints;
+@property (retain) NSButton *buttonWireframe;
+@property (retain) NSButton *buttonShadedFaces;
+@property (retain) NSButton *buttonTextured;
+@property (retain) NSButton *wall;
+@property (retain) NSWindow *selecte;
+@property (retain) NSPopUpButton *bspNumbersButton;
+@property (retain) NSSlider *framesSlider;
+@property (retain) NSTextField *fpsText;
+@property (retain) NSSlider *lodDropdownButton;
+@property (retain) NSButton *useAlphaCheckbox;
+@property (retain) NSTextField *opened;
+@property (retain) NSTextField *cam_p;
+@property (retain) NSButton *selectMode;
+@property (retain) NSButton *translateMode;
+@property (retain) NSButton *moveCameraMode;
+@property (retain) NSButton *duplicateSelected;
+@property (retain) NSButton *b_deleteSelected;
+@property (retain) NSSlider *cspeed;
+@property (retain) NSMenuItem *m_MoveCamera;
+@property (retain) NSMenuItem *m_SelectMode;
+@property (retain) NSMenuItem *m_TranslateMode;
+@property (retain) NSMenuItem *m_duplicateSelected;
+@property (retain) NSMenuItem *m_deleteFocused;
+@property (retain) NSTextField *selectText;
+@property (retain) NSTextField *selectedName;
+@property (retain) NSTextField *selectedAddress;
+@property (retain) NSTextField *selectedType;
+@property (retain) NSPopUpButton *selectedSwapButton;
+@property (retain) NSTextField *s_accelerationText;
+@property (retain) NSSlider *s_accelerationSlider;
+@property (retain) NSSlider *s_xRotation;
+@property (retain) NSSlider *s_yRotation;
+@property (retain) NSSlider *s_zRotation;
+@property (retain) NSTextField *s_xRotText;
+@property (retain) NSTextField *s_yRotText;
+@property (retain) NSTextField *s_zRotText;
+@property (retain) NSPopUpButton *s_spawnTypePopupButton;
+@property (retain) NSButton *s_spawnCreateButton;
+@property (retain) NSButton *s_spawnEditWindowButton;
+@property (retain) SpawnEditorController *_spawnEditor;
+@property (retain) NSUserDefaults *prefs;
+@property 	bool shouldDraw;
+@property 	bool FullScreen;
+@property 	bool first;
+@property BOOL _useAlphas;
+@property int _LOD;
+@property (retain) Camera *_camera;
+@property (retain) NSTimer *drawTimer;
+@property (retain) HaloMap *_mapfile;
+@property (retain) Scenario *_scenario;
+@property (retain) BSP *mapBSP;
+@property (retain) TextureManager *_texManager;
+@property int activeBSPNumber;
+@property float _fps;
+@property float rendDistance;
+@property int currentRenderStyle;
+@property float maxRenderDistance;
+@property int dup;
+@property float cameraMoveSpeed;
+@property float acceleration;
+@property int accelerationCounter;
+@property int is_css;
+@property (retain) NSMutableArray *new_characters;
+@property int _mode;
+@property (retain) Selection *selee;
+@property (retain) NSMutableArray *selections;
+@property GLuint *_lookup;
+@property int _selectType;
+@property int _selectFocus;
+@property float s_acceleration;
+@property int isfull;
+@property int should_update;
+@property float _lineWidth;
+@property double selectDistance;
+@property (retain) NSButton *msel;
+@property (retain) NSPanel *camera;
+@property (retain) NSPanel *render;
+@property (retain) NSPanel *spawnc;
+@property (retain) NSPanel *spawne;
+@property (retain) NSPanel *select;
+@property (retain) NSButton *player_1;
+@property (retain) NSButton *player_2;
+@property (retain) NSButton *player_3;
+@property (retain) NSButton *player_4;
+@property (retain) NSButton *player_5;
+@property (retain) NSButton *player_6;
+@property (retain) NSButton *player_7;
+@property (retain) NSButton *player_8;
+@property (retain) NSButton *player_9;
+@property (retain) NSButton *player_10;
+@property (retain) NSButton *player_11;
+@property (retain) NSButton *player_12;
+@property (retain) NSButton *player_13;
+@property (retain) NSButton *player_14;
+@property (retain) NSButton *player_15;
+@property (retain) NSSlider *duplicate_amount;
 @end

@@ -133,4 +133,13 @@ static AboutBox *sharedInstance = nil;
 		}
 	}
 }
+@synthesize appNameField;
+@synthesize copyrightField;
+@synthesize creditsField;
+@synthesize versionField;
+@synthesize scrollTimer;
+@synthesize currentPosition;
+@synthesize maxScrollHeight;
+@synthesize startTime;
+@synthesize restartAtTop;
 @end

@@ -38,7 +38,7 @@ enum
 	
 	SkyBox *skies;
 	int skybox_count;
-	
+	int current_ref;
 	/* Begin spawn related vars */
 	
 	vehicle_reference *vehi_references;
@@ -50,6 +50,7 @@ enum
 	scenery_spawn *scen_spawns;
 	int scenery_spawn_count;
 	int scen_ref_count;
+	NSMutableArray *vehiTagArray;
 	NSMutableArray *scenTagArray;
 	NSMutableArray *scenModelArray;
 	NSMutableArray *inactiveScenTagArray;
@@ -60,6 +61,12 @@ enum
 	int mach_ref_count;
 	NSMutableArray *machTagArray;
 	NSMutableArray *inactiveMachTagArray;
+	
+	device_group *device_groups;
+	int device_group_count;
+	
+	encounter *encounters;
+	int encounters_count;
 	
 	mp_equipment *item_spawns;
 	int item_spawn_count;
@@ -106,6 +113,7 @@ enum
 - (void)readScenarioAtAddress:(void *)buffer address:(int)address size:(int)size;
 - (void)skipBytes:(int)count;
 - (void)readScenarioReflexive:(reflexive *)reflex;
+- (void)readScenarioReflexiveType:(reflexive_tag *)reflex;
 - (void)readScenarioReflexiveAtAddress:(reflexive *)reflex addr:(int)addr;
 - (void)readScenarioTagReference:(TAG_REFERENCE *)ref;
 - (void)readScenarioTagReferenceAtAddress:(TAG_REFERENCE *)ref addr:(int)addr;
@@ -120,6 +128,8 @@ enum
 - (SkyBox)readSkyBox;
 - (machine_ref)readMachineReference;
 - (machine_spawn)readMachineSpawn;
+- (device_group)readDeviceGroup;
+- (encounter)readEncounter;
 - (void)readMultiplayerFlags;
 /* END DATA TYPE READING */
 
@@ -142,6 +152,7 @@ enum
 - (multiplayer_flags *)netgame_flags;
 - (machine_ref *)mach_references;
 - (machine_spawn *)mach_spawns;
+- (encounter *)encounters;
 - (SkyBox *)sky;
 /* END DATA SET ACCESSORS */
 
@@ -155,6 +166,7 @@ enum
 - (int)multiplayer_flags_count;
 - (int)mach_ref_count;
 - (int)mach_spawn_count;
+- (int)encounter_count;
 /* END DATA TYPE COUNTER ACCESSORS */
 
 /* Scenario editing functions */

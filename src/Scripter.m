@@ -38,4 +38,6 @@
 {	
 	return 0;
 }
+@synthesize _mapfile;
+@synthesize _scenario;
 @end

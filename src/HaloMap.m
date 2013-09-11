@@ -107,17 +107,21 @@
 	mapFile = fopen([mapName cString],"r+");
 	
 	if (!mapFile)
+	{
+		NSLog(mapName);
+		NSLog(@"Cannot read map.");
 		return 3;
+	}
 	
 	bitmapsFile = fopen([bitmapFilePath cString], "r+");
 	
 	// Lets load the map header, ok?
 	[self readLongAtAddress:&mapHeader.map_id address:0x0];
 	
-	#ifdef __DEBUG__
+	//#ifdef __DEBUG__
 	printf("\n");
 	NSLog(@"Header: 0x%x, swapped: 0x%x", mapHeader.map_id, EndianSwap32(mapHeader.map_id));
-	#endif
+	//#endif
 	
 	/* LETS SEE WHAT DIS IS */
 	isPPC = [self checkIsPPC];
@@ -128,7 +132,10 @@
 	
 	BOOL tmpPPC = isPPC;
 	
-	if (mapHeader.map_id == 0x18309 || mapHeader.map_id == 0x0)
+	int super_mode = 0;
+	
+	NSLog(@"MAP ID: %d", (int)mapHeader.map_id);
+	if (mapHeader.map_id == 0x18309 || mapHeader.map_id == 50028 || mapHeader.map_id == 0x0 || super_mode)
 	{
 		mapHeader.version = 0x06000000;
 		isPPC = NO;
@@ -141,9 +148,9 @@
 	}
 	else
 	{
-		#ifdef __DEBUG__
+
 		NSLog(@"Were Halo Full");
-		#endif
+
 		[self readLong:&mapHeader.version];
 		[self readLong:&mapHeader.map_length];
 		[self readLong:&mapHeader.zeros];
@@ -155,6 +162,7 @@
 		[self readBlockOfData:&mapHeader.builddate size_of_buffer:0x20];
 		isPPC = tmpPPC;
 		[self readLong:&mapHeader.maptype];
+        
 	}
 	
 	#ifdef __DEBUG__
@@ -205,17 +213,23 @@
 		vehi_count = 0,
 		scen_count = 0,
 		itmc_count = 0,
+		mach_count = 0,
 		mod2_count = 0,
 		bitm_count = 0,
 		nextOffset,
 		scenario_offset,
+		globals_offset,
 		itmc_counter = 0,
 		scen_counter = 0,
 		mod2_counter = 0,
-		bitm_counter = 0;
+		bitm_counter = 0,
+		mach_counter = 0;
 		
+	NSMutableArray *mach_offsets = [[NSMutableArray alloc] init];
+	
 	for (i = 0; i < indexHead.tagcount; i++)
 	{
+		int r = 1;
 		tempTag = [[MapTag alloc] initWithDataFromFile:self];
 		nextOffset = [self currentOffset];
 		
@@ -228,6 +242,15 @@
 		{
 			[self skipBytes:IndexTagSize];
 			scenario_offset = [self currentOffset];
+			// I'll load the scenario later
+			[tagArray addObject:tempTag];
+			[self seekToAddress:nextOffset];
+		}
+		else if (memcmp([tempTag tagClassHigh], (isPPC ? "matg" : "gtam"), 4) == 0)
+		{
+			NSLog(@"GLOBALS ARRAY");
+			[self skipBytes:IndexTagSize];
+			globals_offset = [self currentOffset];
 			// I'll load the scenario later
 			[tagArray addObject:tempTag];
 			[self seekToAddress:nextOffset];
@@ -259,6 +282,15 @@
 			
 			[self seekToAddress:nextOffset];
 		}
+		else if (memcmp([tempTag tagClassHigh], (isPPC ? "mach" : "hcam"), 4) == 0)
+		{
+			mach_count++;
+			[tagArray addObject:tempTag];
+			[mach_offsets addObject:tempTag];
+			[self seekToAddress:nextOffset];
+			
+			r=0;
+		}
 		else
 		{
 			if (memcmp([tempTag tagClassHigh], (isPPC ? "vehi" : "ihev"), 4) == 0)
@@ -282,8 +314,11 @@
 		// Here is where we'd add text to a view, mmk?
 		
 		// Now we release our temporary tag
-		[tempTag release];
+		if (r)
+			[tempTag release];
 	}
+	
+	NSLog(@"Machines: %d", mach_count);
 	
 	// Its texture manager time!
 	[_texManager setCapacity:bitm_count];
@@ -298,13 +333,15 @@
 	modTagLookupDict = [[NSMutableDictionary alloc] initWithCapacity:mod2_count];
 	bitmTagList = [[NSMutableArray alloc] initWithCapacity:bitm_count];
 	bitmTagLookupDict = [[NSMutableDictionary alloc] initWithCapacity:bitm_count];
-	
+	machList = [[NSMutableArray alloc] initWithCapacity:itmc_count];
+	machLookupDict = [[NSMutableDictionary alloc] initWithCapacity:itmc_count];
 	/*
 		Second pass here to create some arrays
 	*/
 	[self seekToAddress:(mapHeader.offsetToIndex + 0x28)];
 	for (i = 0; i < indexHead.tagcount; i++)
 	{
+		int r = 1;
 		tempTag = [[MapTag alloc] initWithDataFromFile:self];
 		
 		if (memcmp([tempTag tagClassHigh],(isPPC ? "itmc" : "cmti"),4) == 0)
@@ -312,6 +349,13 @@
 			[itmcLookupDict setObject:[NSNumber numberWithLong:[tempTag idOfTag]] forKey:[NSNumber numberWithInt:itmc_counter]];
 			[itmcList addObject:[tempTag tagName]];
 			itmc_counter++;
+		}
+		else if (memcmp([tempTag tagClassHigh],(isPPC ? "mach" : "hcam"),4) == 0)
+		{
+			[machLookupDict setObject:[NSNumber numberWithLong:[tempTag idOfTag]] forKey:[NSNumber numberWithInt:mach_counter]];
+			[machList addObject:[tempTag tagName]];
+			mach_counter++;
+			r=0;
 		}
 		else if (memcmp([tempTag tagClassHigh], (isPPC ? "scen" : "necs"), 4) == 0)
 		{
@@ -336,21 +380,24 @@
 			bitm_counter++;
 		}
 		
-		[tempTag release];
+		if (r)
+			[tempTag release];
 	}
 	// Next we load the scenario
 	
-	
+	NSLog(@"Loading map...");
 	[self seekToAddress:scenario_offset];
 	mapScenario = [[Scenario alloc] initWithMapFile:self];
+	//NSLog([tagArray description]);
 	[mapScenario setTagLength:[[tagArray objectAtIndex:0] tagLength]];
-	#ifdef __DEBUG__
+	NSLog(@"Tag length set.");
+#ifdef __DEBUG__
 	if ([mapScenario loadScenario])
 		NSLog(@"Scenario Loaded!");
 	#else
 	[mapScenario loadScenario];
 	#endif
-	//[mapScenario pairModelsWithSpawn];
+	[mapScenario pairModelsWithSpawn];
 	[tagArray replaceObjectAtIndex:0 withObject:mapScenario];
 	
 	// Then we load the BSP
@@ -358,7 +405,40 @@
 	[bspHandler loadVisibleBspInfo:[mapScenario header].StructBsp version:mapHeader.version];
 	[bspHandler setActiveBsp:0];
 	
-	#ifdef __DEBUG__
+	
+	if ([mapScenario mach_ref_count] < mach_counter)
+	{
+		int response = NSRunAlertPanel(@"Machines detected", @"Swordedit has detected machinery tags which are not referenced in the scenario. Would you like to rebuild references?", @"No", @"OK", nil);
+		if (response != NSOKButton)
+		{
+		
+		//	[mapScenario resetMachineReferences];
+			
+			NSLog(@"CREATING MACHINE REFERENCES");
+			//CREATE THE MACHINE REFERENCES
+			NSLog(@"Total machines... %d", [mach_offsets count]);
+			for (i=0; i<[mach_offsets count];i++)
+			{
+				MapTag *tag = [mach_offsets objectAtIndex:i];
+				TAG_REFERENCE machine;
+				
+				machine.tag[0] = [[tag stringTagClassHigh] characterAtIndex:0];
+				machine.tag[1] = [[tag stringTagClassHigh] characterAtIndex:1];
+				machine.tag[2] = [[tag stringTagClassHigh] characterAtIndex:2];
+				machine.tag[3] = [[tag stringTagClassHigh] characterAtIndex:3];
+				
+				machine.NamePtr = [tag stringOffset];
+				machine.TagId = [tag idOfTag];
+				
+				NSLog(@"Creating reference %d", i);
+				
+				[mapScenario createMachineReference:machine];
+			}
+			
+		}
+	}
+	
+	
 	NSLog(@"BSPs are loaded!");
 	printf("\n");
 	
@@ -366,8 +446,8 @@
 	NSLog(@"Vehicle spawn count: %d", [mapScenario vehicle_spawn_count]);
 	NSLog(@"Item spawn count: %d", [mapScenario item_spawn_count]);
 	NSLog(@"Player spawn count: %d", [mapScenario player_spawn_count]);
-	#endif
-	
+	NSLog(@"Machine spawn count: %d", [mapScenario mach_spawn_count]);
+	//NSLog([machLookupDict description]);
 	// Now lets load all of the bitmaps for shit
 	[self loadAllBitmaps];
 	
@@ -396,6 +476,10 @@
 - (void)skipBytes:(long)bytesToSkip
 {
 	fseek(mapFile, (ftell(mapFile) + bytesToSkip), SEEK_SET);
+}
+- (void)reverseBytes:(long)bytesToSkip
+{
+	fseek(mapFile, (ftell(mapFile) - bytesToSkip), SEEK_SET);
 }
 - (void)swapBufferEndian32:(void *)buffer size:(int)size
 {
@@ -739,13 +823,55 @@
 	[self readLong:&ref.TagId];
 	return ref;
 }
+
+- (NSMutableArray*)bitmsTagForShaderId:(long)shaderId //FUNCTION WHICH FINDS MULTIPLE BITMAPS
+{
+	long currentOffset = [self currentOffset];
+	
+	// ok, so lets lookup the shader tag
+	MapTag *tempShaderTag = [[self tagForId:shaderId] retain]; // Now we have the shader! Yay!
+	[self seekToAddress:[tempShaderTag offsetInMap]];
+	
+	[tempShaderTag release];
+	
+	NSMutableArray *bitmaps = [[NSMutableArray alloc] init];
+	
+	long bitm = 'bitm', tempInt;
+	int x;
+	x = 0;
+	
+	int cso = currentOffset;
+	while (x < 1000)
+	{
+		[self readLong:&tempInt];
+		x++;
+		cso+=4;
+		
+		if (tempInt == bitm)
+		{
+			[self skipBytes:8];
+			
+			long identOfBitm;
+			[self readLong:&identOfBitm];
+			
+			
+			if (identOfBitm != 0xFFFFFFFF)
+			{
+				[bitmaps addObject:[self tagForId:identOfBitm]];
+			}
+			[self reverseBytes:8];
+		}
+	}
+	[self seekToAddress:currentOffset];
+	return bitmaps;
+}
+
 - (id)bitmTagForShaderId:(long)shaderId
 {
 	long currentOffset = [self currentOffset];
 	
 	// ok, so lets lookup the shader tag
 	MapTag *tempShaderTag = [[self tagForId:shaderId] retain]; // Now we have the shader! Yay!
-	
 	[self seekToAddress:[tempShaderTag offsetInMap]];
 	
 	[tempShaderTag release];
@@ -764,8 +890,11 @@
 		long identOfBitm;
 		[self readLong:&identOfBitm];
 		[self seekToAddress:currentOffset];
+		
+		
 		return (identOfBitm != 0xFFFFFFFF) ? [self tagForId:identOfBitm] : nil;
 	}
+	
 	[self seekToAddress:currentOffset];
 	return nil;
 }
@@ -994,5 +1123,31 @@
 	NSLog(@"Or hur!?");
 	[mapScenario saveScenario];
 	NSLog(@"Asdf.");
+	
+	
+	//bspHandler
+	
+	
+	//WRITE THE BSP MESH
+	[[bspHandler mesh] writePcSubmeshes];
+	//[self writeAnyDataAtAddress:scnr size:[self tagLength] address:[self offsetInMap]];
 }
+@synthesize mapFile;
+@synthesize bitmapFilePath;
+@synthesize bitmapsFile;
+@synthesize mapScenario;
+@synthesize bspHandler;
+@synthesize _texManager;
+@synthesize _magic;
+@synthesize tagArray;
+@synthesize tagLookupDict;
+@synthesize itmcList;
+@synthesize itmcLookupDict;
+@synthesize scenList;
+@synthesize scenLookupDict;
+@synthesize scenNameLookupDict;
+@synthesize modTagList;
+@synthesize modTagLookupDict;
+@synthesize bitmTagList;
+@synthesize bitmTagLookupDict;
 @end

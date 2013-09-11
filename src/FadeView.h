@@ -49,6 +49,12 @@
 - (id)delegate;
 - (void)setDelegate:(id)delegate;
 
+@property (retain,getter=image) NSImage *_fadeImage;
+@property (getter=alpha) double _fadeAlpha;
+@property (getter=fadeDuration) NSTimeInterval _fadeDuration;
+@property (getter=fadeInterval,setter=setFadeInterval:) NSTimeInterval _fadeInterval;
+@property (retain) NSTimer *_fadeTimer;
+@property (assign,getter=delegate,setter=setDelegate:) id _delegate;
 @end
 
 

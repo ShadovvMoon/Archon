@@ -62,6 +62,7 @@
 	
 	[super dealloc];
 }
+
 - (void)addTexture:(BitmapTag *)bitm
 {
 	[_textures addObject:bitm];
@@ -72,6 +73,7 @@
 	
 	_textureCounter++;
 }
+
 - (void)loadTextureOfIdent:(long)ident subImage:(int)index
 {
 	
@@ -216,4 +218,10 @@
 	[mapBitmap release];
 	[lightmapBitmap release];
 }
+@synthesize _textures;
+@synthesize _textureLookupByID;
+@synthesize _glTextureNameLookup;
+@synthesize _glTextureNames;
+@synthesize _glTextureTable;
+@synthesize _textureCounter;
 @end

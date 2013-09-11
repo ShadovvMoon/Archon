@@ -246,7 +246,7 @@ typedef enum
 										y:[_scenario spawns][[notificationObject selectedRow]].coord[1]
 										z:[_scenario spawns][[notificationObject selectedRow]].coord[2]];
 		}
-		[(RenderView *)_updateDelegate processSelection:(s_playerspawn * 10000 + [notificationObject selectedRow])];
+		[(RenderView *)_updateDelegate processSelection:(s_playerspawn * MAX_SCENARIO_OBJECTS + [notificationObject selectedRow])];
 		
 		[self loadPlayerSpawnData:[notificationObject selectedRow]];
 	}
@@ -258,7 +258,7 @@ typedef enum
 										y:[_scenario scen_spawns][[notificationObject selectedRow]].coord[1]
 										z:[_scenario scen_spawns][[notificationObject selectedRow]].coord[2]];
 		}
-		[(RenderView *)_updateDelegate processSelection:(s_scenery * 10000 + [notificationObject selectedRow])];
+		[(RenderView *)_updateDelegate processSelection:(s_scenery * MAX_SCENARIO_OBJECTS + [notificationObject selectedRow])];
 		[self loadScenerySpawnData:[notificationObject selectedRow]];
 	}
 	else if (notificationObject == ng_listTable)
@@ -269,7 +269,7 @@ typedef enum
 										y:[_scenario netgame_flags][[notificationObject selectedRow]].coord[1]
 										z:[_scenario netgame_flags][[notificationObject selectedRow]].coord[2]];
 		}
-		[(RenderView *)_updateDelegate processSelection:(s_netgame * 10000 + [notificationObject selectedRow])];
+		[(RenderView *)_updateDelegate processSelection:(s_netgame * MAX_SCENARIO_OBJECTS + [notificationObject selectedRow])];
 		[self loadNetgameFlagData:[notificationObject selectedRow]];
 	}
 	else if (notificationObject == v_spawnListTable)
@@ -280,7 +280,7 @@ typedef enum
 											y:[_scenario vehi_spawns][[notificationObject selectedRow]].coord[1]
 											z:[_scenario vehi_spawns][[notificationObject selectedRow]].coord[2]];
 		}
-		[(RenderView *)_updateDelegate processSelection:(s_vehicle * 10000 + [notificationObject selectedRow])];
+		[(RenderView *)_updateDelegate processSelection:(s_vehicle * MAX_SCENARIO_OBJECTS + [notificationObject selectedRow])];
 		[self loadVehicleSpawnData:[notificationObject selectedRow]];
 	}
 	else if (notificationObject == m_spawnListTable)
@@ -291,7 +291,7 @@ typedef enum
 											y:[_scenario mach_spawns][[notificationObject selectedRow]].coord[1]
 											z:[_scenario mach_spawns][[notificationObject selectedRow]].coord[2]];
 		}
-		[(RenderView *)_updateDelegate processSelection:(s_machine * 10000 + [notificationObject selectedRow])];
+		[(RenderView *)_updateDelegate processSelection:(s_machine * MAX_SCENARIO_OBJECTS + [notificationObject selectedRow])];
 		[self loadMachineSpawn:[notificationObject selectedRow]];
 	}
 }
@@ -425,8 +425,8 @@ typedef enum
 - (void)loadFocusedItemData:(unsigned int)selectFocus
 {
 	@try {
-		unsigned int	type = (selectFocus / 10000),
-		index = (selectFocus % 10000);
+		unsigned int	type = (selectFocus / MAX_SCENARIO_OBJECTS),
+		index = (selectFocus % MAX_SCENARIO_OBJECTS);
 		if (index < 0)
 			return;
 		
@@ -613,4 +613,96 @@ typedef enum
 /*
 	Data creation / updating / saving
 */
+@synthesize _contentView;
+@synthesize spawnEditorTable;
+@synthesize _fadeView;
+@synthesize currentView;
+@synthesize scenRefView;
+@synthesize inactiveSceneryRef;
+@synthesize activeSceneryRef;
+@synthesize activateScen;
+@synthesize deactivateScen;
+@synthesize scenSpawnView;
+@synthesize s_spawnListTable;
+@synthesize s_spawnCreate;
+@synthesize s_spawnCreateWhereClicked;
+@synthesize s_spawnDelete;
+@synthesize s_possibleSwaps;
+@synthesize s_bspIndex;
+@synthesize s_spawnXCoord;
+@synthesize s_spawnYCoord;
+@synthesize s_spawnZCoord;
+@synthesize s_spawnYaw;
+@synthesize s_spawnPitch;
+@synthesize s_spawnRoll;
+@synthesize s_spawnAuto;
+@synthesize s_spawnEasy;
+@synthesize s_spawnNormal;
+@synthesize s_spawnHard;
+@synthesize playerSpawnView;
+@synthesize p_spawnListTable;
+@synthesize p_spawnTeam;
+@synthesize p_spawnBSPIndex;
+@synthesize p_spawnType1;
+@synthesize p_spawnType2;
+@synthesize p_spawnType3;
+@synthesize p_spawnType4;
+@synthesize p_spawnXCoord;
+@synthesize p_spawnYCoord;
+@synthesize p_spawnZCoord;
+@synthesize p_spawnRot;
+@synthesize p_spawnCreate;
+@synthesize p_spawnCreateWhereClicked;
+@synthesize p_spawnDelete;
+@synthesize vehicleSpawnView;
+@synthesize v_spawnListTable;
+@synthesize v_spawnCreate;
+@synthesize v_spawnCreateWhereClicked;
+@synthesize v_spawnDelete;
+@synthesize v_spawnXCoord;
+@synthesize v_spawnYCoord;
+@synthesize v_spawnZCoord;
+@synthesize v_spawnRot;
+@synthesize machineRefView;
+@synthesize m_inactiveMachineRef;
+@synthesize m_activeMachineRef;
+@synthesize m_activateMachine;
+@synthesize m_deactivateMachine;
+@synthesize machineSpawnView;
+@synthesize m_spawnListTable;
+@synthesize m_spawnXCoord;
+@synthesize m_spawnYCoord;
+@synthesize m_spawnZCoord;
+@synthesize m_spawnYaw;
+@synthesize m_spawnPitch;
+@synthesize m_spawnRoll;
+@synthesize m_spawnAuto;
+@synthesize m_spawnEasy;
+@synthesize m_spawnNormal;
+@synthesize m_spawnHard;
+@synthesize m_spawnInitiallyOpen;
+@synthesize m_spawnInitiallyOff;
+@synthesize m_spawnChangeOnlyOnce;
+@synthesize m_spawnPositionReversed;
+@synthesize m_spawnUsableAnySide;
+@synthesize m_spawnNotOperateAuto;
+@synthesize m_spawnOneSided;
+@synthesize m_spawnNeverAppearsLocked;
+@synthesize m_spawnOpenMeleeAttack;
+@synthesize netgameFlagView;
+@synthesize ng_listTable;
+@synthesize ng_spawnXCoord;
+@synthesize ng_spawnYCoord;
+@synthesize ng_spawnZCoord;
+@synthesize ng_spawnRot;
+@synthesize ng_type;
+@synthesize ng_teamIndex;
+@synthesize ng_createNew;
+@synthesize ng_createNewWhereClicked;
+@synthesize ng_deleteSelected;
+@synthesize _mapfile;
+@synthesize _scenario;
+@synthesize _updateDelegate;
+@synthesize fromDelegate;
+@synthesize spawnEditorOptions;
 @end

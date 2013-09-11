@@ -32,4 +32,10 @@
 - (void)deleteTextureOfTag:(long)ident;
 - (void)activateTextureOfIdent:(long)ident subImage:(int)subImage useAlphas:(BOOL)useAlphas;
 - (void)activateTextureAndLightmap:(long)ident lightmap:(long)lightmap subImage:(int)subImage;
+@property (retain) NSMutableArray *_textures;
+@property (retain) NSMutableDictionary *_textureLookupByID;
+@property unsigned int *_glTextureNameLookup;
+@property GLuint *_glTextureNames;
+@property GLuint **_glTextureTable;
+@property int _textureCounter;
 @end

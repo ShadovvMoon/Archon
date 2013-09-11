@@ -131,6 +131,7 @@
 	[_mapfile skipBytes:(9 * sizeof(unsigned long))];
 	
 	[self LoadMaterialMeshHeaders];
+	[self LoadCollisionMeshHeaders];
 	[self LoadPcSubmeshes];
 }
 - (void)LoadPcSubmeshes
@@ -147,10 +148,11 @@
 		// In Bob's words, "Allocate vertex and index arrays"
 		pPcSubMesh->pIndex = malloc(pPcSubMesh->IndexCount * sizeof(TRI_INDICES));
 		pPcSubMesh->pVert = malloc(pPcSubMesh->VertCount * sizeof(UNCOMPRESSED_BSP_VERT));
+		pPcSubMesh->pCompVert = malloc(pPcSubMesh->VertCount * sizeof(COMPRESSED_BSP_VERT));
 		pPcSubMesh->pLightmapVert = malloc(pPcSubMesh->VertCount * sizeof(UNCOMPRESSED_LIGHTMAP_VERT));
 		
 		[_mapfile seekToAddress:pPcSubMesh->header.PcVertexDataOffset];
-		
+		//NSLog(@"%d", pPcSubMesh->header.PcVertexDataOffset);
 		for (v = 0; v < pPcSubMesh->VertCount; v++)
 			pPcSubMesh->pVert[v] = [_bspParent readUncompressedBspVert]; 
 		for (v = 0; v < pPcSubMesh->VertCount; v++)
@@ -163,9 +165,63 @@
 		// In bob's words, "Update the map extents for analysis
 		for (x = 0; x < pPcSubMesh->VertCount; x++)
 			[self UpdateBoundingBox:i pCoord:pPcSubMesh->pVert[x].vertex_k version:7];
+		
+		
+	
+		
+		
+		
 		pPcSubMesh->RenderTextureIndex = [[_mapfile bitmTagForShaderId:pPcSubMesh->header.ShaderTag.TagId] idOfTag];
 	}
 }
+
+-(void)writePcSubmeshes
+{
+	int i, v, x;
+	SUBMESH_INFO *pPcSubMesh;
+	for (i =0; i < m_SubMeshCount; i++)
+	{
+		pPcSubMesh = &m_pMesh[i];
+		pPcSubMesh->VertCount = pPcSubMesh->header.VertexCount1;
+		pPcSubMesh->IndexCount = pPcSubMesh->header.VertIndexCount;
+
+		int address = pPcSubMesh->header.PcVertexDataOffset;
+		for (v = 0; v < pPcSubMesh->VertCount; v++)
+		{
+			[_mapfile writeAnyDataAtAddress:&(pPcSubMesh->pVert[v]) size:sizeof(UNCOMPRESSED_BSP_VERT) address:address];
+			address+=sizeof(UNCOMPRESSED_BSP_VERT);
+		}
+		for (v = 0; v < pPcSubMesh->VertCount; v++)
+		{
+			[_mapfile writeAnyDataAtAddress:&(pPcSubMesh->pLightmapVert[v]) size:sizeof(UNCOMPRESSED_LIGHTMAP_VERT) address:address];
+			address+=sizeof(UNCOMPRESSED_LIGHTMAP_VERT);
+		}
+
+		address = pPcSubMesh->header.VertIndexOffset;
+		for (v = 0; v < pPcSubMesh->IndexCount; v++)
+		{
+			[_mapfile writeAnyDataAtAddress:&(pPcSubMesh->pIndex[v]) size:6 address:address];
+			address+=6;
+		}
+	}
+
+		unsigned long offset;
+		int j;
+		int cv=0;
+		for (i = 0; i < m_BspHeader.CollBspHeader.chunkcount; i++)
+		{
+			for (j = 0; j < m_pCollisions[i].Material.chunkcount; j++)
+			{
+				offset = (m_pCollisions[i].Material.offset + (16 * j));
+				[_mapfile writeAnyDataAtAddress:&coll_verts[cv].x size:4 address:offset];
+				[_mapfile writeAnyDataAtAddress:&coll_verts[cv].y size:4 address:offset+4];
+				[_mapfile writeAnyDataAtAddress:&coll_verts[cv].z size:4 address:offset+8];
+				cv++;
+			}
+		}
+	
+}
+
 - (void)LoadPcSubmeshTextures
 {
 	int i;
@@ -173,16 +229,233 @@
 	if (texturesLoaded)
 		return;
 	
+	NSLog(@"SUbmeshes: %d", m_SubMeshCount);
+	
 	for (i = 0; i < m_SubMeshCount; i++)
 	{
-		m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
-		//m_pMesh[i].DefaultBitmapIndex = m_BspHeader.LightmapsTag.TagId;
+		
+		int gm = 1;
+		if (gm)
+		{
+		
+			m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
+			//m_pMesh[i].DefaultBitmapIndex = m_BspHeader.LightmapsTag.TagId;
+			
+			[_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
+			//[_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:0];
+			
+			/*
+			NSMutableArray *bitmaps = [_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId];
+			NSLog(@"%d", [bitmaps count]);
+			if ([bitmaps count] > 0)
+			{
+				m_pMesh[i].DefaultBitmapIndex = [[bitmaps objectAtIndex:0] idOfTag];
+				[_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
+				w
+				int i;
+				for (i=0;i<[bitmaps count]; i++)
+				{
+					NSLog(@"BLAAAHHH %@", [[bitmaps objectAtIndex:i] tagName]);
+					[_texManager loadTextureOfIdent:[[bitmaps objectAtIndex:i] idOfTag] subImage:0];
+				}
+			}
+			else
+			{
+				m_pMesh[i].DefaultBitmapIndex  = 0xFFFFFFFFF;
+			}
+			*/
+			
+		}
+		else
+		{
+		
+		//m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
+		m_pMesh[i].DefaultBitmapIndex = m_BspHeader.LightmapsTag.TagId;
 		
 		[_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
 		//[_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:0];
+		
+		
+		}
+		
 	}
 	texturesLoaded = TRUE;
 }
+
+
+
+
+
+
+//OFFSETS
+//9DC68
+//F4F10 FOUND!
+//164578
+
+
+
+
+- (void)LoadCollisionMeshHeaders
+{
+	int am = 0;
+	int pla = 0;
+	
+		if (!am)
+		{
+			if (!pla)
+			{
+				
+			unsigned long offset;
+			int x, i, j, hdr_count;
+			
+			m_pCollisions = malloc(sizeof(BSP_COLLISION) * m_BspHeader.CollBspHeader.chunkcount);
+			
+			[_mapfile seekToAddress:m_BspHeader.CollBspHeader.offset];
+			int col_mesh_count = 0;
+			for (x = 0; x< m_BspHeader.CollBspHeader.chunkcount; x++)
+			{
+				[_mapfile readShort:&m_pCollisions[x].LightmapIndex];
+				[_mapfile readShort:&m_pCollisions[x].unk1];
+				[_mapfile skipBytes:0x54-4];
+				m_pCollisions[x].Material = [_mapfile readBspReflexive:_bspMagic]; //Verticies
+				col_mesh_count += m_pCollisions[x].Material.chunkcount;
+			}
+			coll_count = col_mesh_count;
+			coll_verts = malloc(col_mesh_count * sizeof(vert));
+			hdr_count = 0;
+			for (i = 0; i < m_BspHeader.CollBspHeader.chunkcount; i++)
+			{
+				for (j = 0; j < m_pCollisions[i].Material.chunkcount; j++)
+				{
+					offset = (m_pCollisions[i].Material.offset + (16 * j));
+					[_mapfile seekToAddress:offset];
+					
+					
+					long x;
+					
+					
+					[_mapfile readFloat:&(coll_verts[hdr_count].x)];
+					
+					[_mapfile readFloat:&coll_verts[hdr_count].y];
+					
+					[_mapfile readFloat:&coll_verts[hdr_count].z];
+					[_mapfile readFloat:&coll_verts[hdr_count].edge];
+					
+					
+					hdr_count++;
+				}
+			}
+			}
+			else
+			{
+				unsigned long offset;
+				int x, i, j, hdr_count;
+				
+				m_pCollisions = malloc(sizeof(BSP_COLLISION) * m_BspHeader.CollBspHeader.chunkcount);
+				
+				[_mapfile seekToAddress:m_BspHeader.CollBspHeader.offset];
+				int col_mesh_count = 0;
+				for (x = 0; x< m_BspHeader.CollBspHeader.chunkcount; x++)
+				{
+					[_mapfile readShort:&m_pCollisions[x].LightmapIndex];
+					[_mapfile readShort:&m_pCollisions[x].unk1];
+					[_mapfile skipBytes:0x0C-4];
+					m_pCollisions[x].Material = [_mapfile readBspReflexive:_bspMagic]; //Verticies
+					col_mesh_count += m_pCollisions[x].Material.chunkcount;
+				}
+				coll_count = col_mesh_count;
+				coll_verts = malloc(col_mesh_count * sizeof(vert));
+				hdr_count = 0;
+				for (i = 0; i < m_BspHeader.CollBspHeader.chunkcount; i++)
+				{
+					for (j = 0; j < m_pCollisions[i].Material.chunkcount; j++)
+					{
+						offset = (m_pCollisions[i].Material.offset + (16 * j));
+						[_mapfile seekToAddress:offset];
+						
+						
+						long x;
+						
+						
+						
+						[_mapfile readLong:&(coll_verts[hdr_count].x)];
+						
+						[_mapfile readLong:&coll_verts[hdr_count].z];
+						[_mapfile readLong:&coll_verts[hdr_count].edge];
+						[_mapfile readLong:&coll_verts[hdr_count].y];
+						
+						
+						
+						
+						hdr_count++;
+					}
+				}
+			}
+		}
+		else
+		{
+			int i, v, x;
+			SUBMESH_INFO *pPcSubMesh;
+			[self ResetBoundingBox];
+			
+			int size;
+			for (i =0; i < m_SubMeshCount; i++)
+			{
+				pPcSubMesh = &m_pMesh[i];
+				pPcSubMesh->VertCount = pPcSubMesh->header.VertexCount1;
+				size+=(pPcSubMesh->VertCount);
+			}
+			
+			coll_count=size;
+			coll_verts = malloc(size*sizeof(COMPRESSED_BSP_VERT));
+			
+			for (i =0; i < m_SubMeshCount; i++)
+			{
+				pPcSubMesh = &m_pMesh[i];
+				pPcSubMesh->VertCount = pPcSubMesh->header.VertexCount1;
+				pPcSubMesh->IndexCount = pPcSubMesh->header.VertIndexCount;
+				
+				// In Bob's words, "Allocate vertex and index arrays"
+				pPcSubMesh->pIndex = malloc(pPcSubMesh->IndexCount * sizeof(TRI_INDICES));
+				pPcSubMesh->pVert = malloc(pPcSubMesh->VertCount * sizeof(UNCOMPRESSED_BSP_VERT));
+				pPcSubMesh->pCompVert = malloc(pPcSubMesh->VertCount * sizeof(COMPRESSED_BSP_VERT));
+				pPcSubMesh->pLightmapVert = malloc(pPcSubMesh->VertCount * sizeof(UNCOMPRESSED_LIGHTMAP_VERT));
+				
+				[_mapfile seekToAddress:pPcSubMesh->header.VertexDataOffset];
+				
+				for (v = 0; v < pPcSubMesh->VertCount; v++)
+					pPcSubMesh->pVert[v] = [_bspParent readUncompressedBspVert]; 
+				for (v = 0; v < pPcSubMesh->VertCount; v++)
+					pPcSubMesh->pLightmapVert[v] = [_bspParent readUncompressedLightmapVert]; 
+				
+				[_mapfile seekToAddress:pPcSubMesh->header.CompVert_Reflexive];
+				for (v = 0; v < pPcSubMesh->VertCount; v++)
+				{
+					COMPRESSED_BSP_VERT verts = [_bspParent readCompressedBspVert]; 
+					coll_verts[v].x= verts.vertex_k[0];
+					coll_verts[v].y= verts.vertex_k[1];
+					coll_verts[v].z= verts.vertex_k[2];
+				}
+			
+				// OH GEE
+				// In bob's words, "Update the map extents for analysis
+		
+			}
+		}
+		
+	
+}
+
+-(int)coll_count
+{
+	return coll_count;
+}
+
+-(vert*)collision_verticies
+{
+	return coll_verts;
+}
+
 - (void)LoadMaterialMeshHeaders
 {
 	unsigned long offset;
@@ -216,12 +489,14 @@
 			m_pMesh[hdr_count].header.VertexDataOffset -= _bspMagic;
 			m_pMesh[hdr_count].header.PcVertexDataOffset -= _bspMagic;
 			m_pMesh[hdr_count].header.VertIndexOffset = ((sizeof(TRI_INDICES) * m_pMesh[hdr_count].header.VertIndexOffset)
-															+ m_BspHeader.SubmeshTriIndices.offset);
+														 + m_BspHeader.SubmeshTriIndices.offset);
 			m_pMesh[hdr_count].LightmapIndex = m_pLightmaps[i].LightmapIndex;
 			hdr_count++;
 		}
 	}
 }
+
+
 - (void)getMapCentroid:(float *)center_x center_y:(float *)center_y center_z:(float *)center_z
 {
 	if (m_CentroidCount == 0)
@@ -392,4 +667,17 @@ ExportPcMeshToObj(CString path)
   OutFile.Close();
 }
 */
+@synthesize _mapfile;
+@synthesize _bspParent;
+@synthesize _texManager;
+@synthesize m_SubMeshCount;
+@synthesize _bspMagic;
+@synthesize m_pMesh;
+@synthesize m_pWeather;
+@synthesize m_pLightmaps;
+@synthesize m_pClusters;
+@synthesize texturesLoaded;
+@synthesize m_CentroidCount;
+@synthesize m_activeBsp;
+@synthesize m_TriTotal;
 @end
