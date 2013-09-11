@@ -11,7 +11,18 @@
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
 
-#define MAX_SCENARIO_OBJECTS 1000000
+#define MAX_SCENARIO_OBJECTS 1000
+//#define fasterRendering 1
+
+#define VBO 1
+//#define VBO2 1
+
+bool newR;
+bool drawO ;
+
+
+bool useNewRenderer();
+bool drawObjects();
 
 typedef struct 
 {
@@ -315,23 +326,52 @@ typedef struct scenery_reference
 // vehicles
 typedef struct 
 {
+    /*short numid;
+     short flag;
+     short not_placed;
+     short desired_permutation;
+     float coord[3];
+     float rotation[3];
+     
+     long unknown1[5];
+     float body_vitality;
+     //short unknown2;
+     unsigned long flags;
+     unsigned long unknown3[2];
+     char mpTeamIndex[2];
+     long mpSpawnFlags;
+     
+     short unknown2[11];
+     
+     // Not part of the in-map data
+     long modelIdent;
+     bool isSelected;
+     bool isMoving;*/
+    
+    
 	short numid;
 	short flag;
 	short not_placed;
 	short desired_permutation;
 	float coord[3];
 	float rotation[3];
-	
-	long unknown1[0xA];
-	float body_vitality;
-	//short unknown2;
-	short flags;
-	long unknown3[2];
-	char mpTeamIndex;
-	char secondPosMPTeamIndex;
-	short mpSpawnFlags;
-	
 	unsigned long unknown2[22];
+    
+    /*
+    short numid;
+    short flag;
+    short not_placed;
+    short desired_permutation;
+    float coord[3];
+    float rotation[3];
+    unsigned long unknown1[10];
+    float body_vitality; //72
+    short flags; //76
+    short unknown3[5]; //78
+    short mpTeamIndex; //88
+    short mpSpawnFlags; //90
+    unsigned long unknown2[7];
+*/
 	
 	// Not part of the in-map data
 	long modelIdent;
@@ -340,6 +380,12 @@ typedef struct
 } vehicle_spawn;
 // Need to check this out
 #define VEHICLE_SPAWN_CHUNK 0x78
+
+typedef struct bipd_reference
+{
+	TAG_REFERENCE bipd_ref;
+	unsigned long zero[8];
+} bipd_reference;
 
 typedef struct vehicle_reference
 {
@@ -351,7 +397,17 @@ typedef struct vehicle_reference
 // MP Equipment
 typedef struct mp_equipment
 {
-	unsigned long unknown[16];
+    unsigned long bitmask32;
+    
+    short type1; // Enum16
+	short type2; // Enum16
+	short type3; // Enum16
+	short type4; // Enum16
+    
+    short team_index;
+    short spawn_time;
+    
+	unsigned long unknown[12];
 	float coord[3];
 	float yaw;
 	TAG_REFERENCE itmc;
@@ -739,11 +795,24 @@ typedef struct
 }BSP_COLLISION;
 typedef struct
 {
-	float x, y, z;
+	short x, y, z;
 	float edge;
 	
 	int isSelected;
 }vert;
+
+
+
+
+typedef struct
+{
+	short plane, left_child, right_child;
+	int isSelected;
+}node;
+
+
+
+
 typedef struct
 {
   short SkyIndex;

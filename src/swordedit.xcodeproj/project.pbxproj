@@ -12,13 +12,10 @@
 		1406E5A510F93FBB004A983D /* SelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E5A410F93FBB004A983D /* SelectView.m */; };
 		142F1A0910F8765100E69B8D /* BGHUDAppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */; };
 		142F1A2F10F8765A00E69B8D /* BGHUDAppKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */; };
-		14388B8E151879F2003DE7CD /* squish.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 14388B8D151879F2003DE7CD /* squish.framework */; };
-		14388B8F15187A02003DE7CD /* squish.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 14388B8D151879F2003DE7CD /* squish.framework */; };
 		143B86B712A24D3B0092D35E /* scenery.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86B612A24D3B0092D35E /* scenery.seo */; };
 		143B86EA12A25A0A0092D35E /* machine.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86E912A25A0A0092D35E /* machine.seo */; };
 		144893AD10FA90130026A004 /* relaunch in Resources */ = {isa = PBXBuildFile; fileRef = 144893AC10FA90130026A004 /* relaunch */; };
 		1448949510FAAAE30026A004 /* swordedit.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1448949410FAAAE30026A004 /* swordedit.icns */; };
-		1497F237115DB811006D2CA6 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1497F236115DB811006D2CA6 /* Security.framework */; };
 		5C00A8C50DD51D8100C2253D /* AboutBox.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C00A8C40DD51D8100C2253D /* AboutBox.m */; };
 		5C00A9130DD5210200C2253D /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C00A9120DD5210200C2253D /* Credits.rtf */; };
 		5C00A9200DD5215E00C2253D /* AboutBox.nib in Resources */ = {isa = PBXBuildFile; fileRef = 5C00A91E0DD5215E00C2253D /* AboutBox.nib */; };
@@ -49,6 +46,15 @@
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		AD79512F1763266E0029CCFE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD79512E1763266E0029CCFE /* Security.framework */; };
+		AD795131176326910029CCFE /* squish.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD795130176326910029CCFE /* squish.framework */; };
+		AD795132176326A10029CCFE /* squish.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = AD795130176326910029CCFE /* squish.framework */; };
+		AD9CA5BA176D8E03004B109A /* NonKeyPanels.m in Sources */ = {isa = PBXBuildFile; fileRef = AD9CA5B9176D8E03004B109A /* NonKeyPanels.m */; };
+		ADD558011765866D0023C115 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD558001765866D0023C115 /* Main.xib */; };
+		ADE09D77176C0CDD007B74E3 /* player_spawn_blue.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D73176C0CDD007B74E3 /* player_spawn_blue.seo */; };
+		ADE09D78176C0CDD007B74E3 /* item.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D74176C0CDD007B74E3 /* item.seo */; };
+		ADE09D79176C0CDD007B74E3 /* vehicle.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D75176C0CDD007B74E3 /* vehicle.seo */; };
+		ADE09D7A176C0CDD007B74E3 /* player_spawn_red.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D76176C0CDD007B74E3 /* player_spawn_red.seo */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -68,7 +74,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				142F1A2F10F8765A00E69B8D /* BGHUDAppKit.framework in Copy Frameworks */,
-				14388B8F15187A02003DE7CD /* squish.framework in Copy Frameworks */,
+				AD795132176326A10029CCFE /* squish.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -87,12 +93,10 @@
 		1406E5A410F93FBB004A983D /* SelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SelectView.m; sourceTree = "<group>"; };
 		142F19C110F8722100E69B8D /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = BGHUDAppKit.framework; sourceTree = "<group>"; };
-		14388B8D151879F2003DE7CD /* squish.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = squish.framework; sourceTree = "<group>"; };
 		143B86B612A24D3B0092D35E /* scenery.seo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file; path = scenery.seo; sourceTree = "<group>"; };
 		143B86E912A25A0A0092D35E /* machine.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = machine.seo; sourceTree = "<group>"; };
 		144893AC10FA90130026A004 /* relaunch */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = relaunch; sourceTree = "<group>"; };
 		1448949410FAAAE30026A004 /* swordedit.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = swordedit.icns; sourceTree = "<group>"; };
-		1497F236115DB811006D2CA6 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Security.framework; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -153,6 +157,15 @@
 		5CEC7B9A0DE24E8300C33BFB /* GeneralMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeneralMath.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* swordedit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = swordedit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD79512E1763266E0029CCFE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = ../../../../../../../System/Library/Frameworks/Security.framework; sourceTree = "<group>"; };
+		AD795130176326910029CCFE /* squish.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = squish.framework; path = "../swordedit 2 2/squish.framework"; sourceTree = "<group>"; };
+		AD9CA5B8176D8E03004B109A /* NonKeyPanels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NonKeyPanels.h; sourceTree = "<group>"; };
+		AD9CA5B9176D8E03004B109A /* NonKeyPanels.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NonKeyPanels.m; sourceTree = "<group>"; };
+		ADD558001765866D0023C115 /* Main.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Main.xib; sourceTree = "<group>"; };
+		ADE09D73176C0CDD007B74E3 /* player_spawn_blue.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = player_spawn_blue.seo; sourceTree = "<group>"; };
+		ADE09D74176C0CDD007B74E3 /* item.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = item.seo; sourceTree = "<group>"; };
+		ADE09D75176C0CDD007B74E3 /* vehicle.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = vehicle.seo; sourceTree = "<group>"; };
+		ADE09D76176C0CDD007B74E3 /* player_spawn_red.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = player_spawn_red.seo; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,8 +176,8 @@
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				5C675B960CD4219D00F664DE /* OpenGL.framework in Frameworks */,
 				142F1A0910F8765100E69B8D /* BGHUDAppKit.framework in Frameworks */,
-				1497F237115DB811006D2CA6 /* Security.framework in Frameworks */,
-				14388B8E151879F2003DE7CD /* squish.framework in Frameworks */,
+				AD79512F1763266E0029CCFE /* Security.framework in Frameworks */,
+				AD795131176326910029CCFE /* squish.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,6 +189,8 @@
 			children = (
 				1406E5A310F93FBB004A983D /* SelectView.h */,
 				1406E5A410F93FBB004A983D /* SelectView.m */,
+				AD9CA5B8176D8E03004B109A /* NonKeyPanels.h */,
+				AD9CA5B9176D8E03004B109A /* NonKeyPanels.m */,
 				1406E51410F93B28004A983D /* Selection.h */,
 				1406E51510F93B28004A983D /* Selection.m */,
 				1406E43910F921C3004A983D /* Utility.h */,
@@ -241,6 +256,10 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				ADE09D73176C0CDD007B74E3 /* player_spawn_blue.seo */,
+				ADE09D74176C0CDD007B74E3 /* item.seo */,
+				ADE09D75176C0CDD007B74E3 /* vehicle.seo */,
+				ADE09D76176C0CDD007B74E3 /* player_spawn_red.seo */,
 				143B86E912A25A0A0092D35E /* machine.seo */,
 				143B86B612A24D3B0092D35E /* scenery.seo */,
 				1448949410FAAAE30026A004 /* swordedit.icns */,
@@ -249,6 +268,7 @@
 				5C00A9120DD5210200C2253D /* Credits.rtf */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
+				ADD558001765866D0023C115 /* Main.xib */,
 				29B97318FDCFA39411CA2CEA /* MainMenu.nib */,
 			);
 			name = Resources;
@@ -257,8 +277,8 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				14388B8D151879F2003DE7CD /* squish.framework */,
-				1497F236115DB811006D2CA6 /* Security.framework */,
+				AD795130176326910029CCFE /* squish.framework */,
+				AD79512E1763266E0029CCFE /* Security.framework */,
 				142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
@@ -490,10 +510,15 @@
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				5C00A9130DD5210200C2253D /* Credits.rtf in Resources */,
 				5C00A9200DD5215E00C2253D /* AboutBox.nib in Resources */,
+				ADE09D7A176C0CDD007B74E3 /* player_spawn_red.seo in Resources */,
+				ADE09D79176C0CDD007B74E3 /* vehicle.seo in Resources */,
+				ADE09D77176C0CDD007B74E3 /* player_spawn_blue.seo in Resources */,
 				144893AD10FA90130026A004 /* relaunch in Resources */,
 				1448949510FAAAE30026A004 /* swordedit.icns in Resources */,
 				143B86B712A24D3B0092D35E /* scenery.seo in Resources */,
 				143B86EA12A25A0A0092D35E /* machine.seo in Resources */,
+				ADE09D78176C0CDD007B74E3 /* item.seo in Resources */,
+				ADD558011765866D0023C115 /* Main.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -528,6 +553,7 @@
 				5CB4D5F00E69A6C400784930 /* Preferences.m in Sources */,
 				5CB4D6120E69A7B000784930 /* LoadWindow.m in Sources */,
 				5CC6F9010E92ACE50087C4FA /* FadeView.m in Sources */,
+				AD9CA5BA176D8E03004B109A /* NonKeyPanels.m in Sources */,
 				1406E43B10F921C3004A983D /* Utility.m in Sources */,
 				1406E51610F93B28004A983D /* Selection.m in Sources */,
 				1406E5A510F93FBB004A983D /* SelectView.m in Sources */,
@@ -574,13 +600,17 @@
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_2)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../swordedit 2 2\"",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/../../../Library/Frameworks\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/../../../Library/Frameworks\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_CPP_RTTI = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
@@ -588,7 +618,9 @@
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				PRODUCT_NAME = swordedit;
+				SDKROOT = macosx10.8;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = YES;
 			};
@@ -597,22 +629,23 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_2)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../swordedit 2 2\"",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/../../../Library/Frameworks\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/../../../Library/Frameworks\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
+				GCC_ENABLE_CPP_RTTI = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					build/squish.framework/,
@@ -624,7 +657,9 @@
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				PRODUCT_NAME = swordedit;
+				SDKROOT = macosx10.8;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

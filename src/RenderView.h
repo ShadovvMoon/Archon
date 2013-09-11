@@ -102,6 +102,12 @@
 	IBOutlet NSTextField *s_xRotText;
 	IBOutlet NSTextField *s_yRotText;
 	IBOutlet NSTextField *s_zRotText;
+    
+    IBOutlet NSTextField *s_xText;
+	IBOutlet NSTextField *s_yText;
+	IBOutlet NSTextField *s_zText;
+    
+    IBOutlet NSTextField *fps;
 	
 	// Spawn creation related
 	IBOutlet NSPopUpButton *s_spawnTypePopupButton;
@@ -112,6 +118,9 @@
 	IBOutlet SpawnEditorController *_spawnEditor;
 	/* End Scenario Editing Related */
 	
+    IBOutlet NSButton *rendererSwitch;
+    IBOutlet NSButton *renderObject;
+    
 	NSUserDefaults *prefs;
 	
 	bool shouldDraw;
@@ -119,6 +128,7 @@
 	bool FullScreen;
 	bool first;
 	
+    
 	BOOL _useAlphas;
 	int _LOD;
 	float playercoords[200];
@@ -158,7 +168,8 @@
 	float acceleration;
 	int accelerationCounter;
 	int is_css;
-	
+	int ignoreCSS;
+    
 	NSMutableArray *new_characters;
 	NSPoint prevDown;
 	NSPoint prevRightDown;
@@ -177,11 +188,13 @@
 	float s_acceleration;
 	int isfull;
 	int should_update;
-	
+	uint64_t        previous;
+    
 	// Render settings
 	float _lineWidth;
 	double selectDistance;
 	
+    IBOutlet NSPopUpButton *renderGametype;
 	IBOutlet NSButton *msel;
 	
 	IBOutlet NSPanel *camera;
@@ -206,11 +219,25 @@
 	IBOutlet NSButton *player_13;
 	IBOutlet NSButton *player_14;
 	IBOutlet NSButton *player_15;
-	
+	IBOutlet NSButton *first_person_mode;
 	IBOutlet NSSlider *duplicate_amount;
-	
+	IBOutlet NSPopUpButton *createType;
+    int indexHighlight;
+    int indexMesh;
+    
+    
+    IBOutlet NSPanel *settings_Window_Object;
+    
 	SUBMESH_INFO *pMesh;
+    NSPopover *popover;
+    NSViewController *c;
+    IBOutlet NSView *settingsView;
+    
+    BOOL duplicatedAlready;
 }
+
+-(IBAction)reloadBitmapsForMap:(id)sender;
+-(IBAction)openSettingsPopup:(id)sender;
 /* Begin Renderview-Specific Functions */
 - (id)initWithFrame: (NSRect) frame;
 - (void)initGL;

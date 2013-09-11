@@ -96,7 +96,7 @@
 		glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][index]);
 		glTexImage2D(GL_TEXTURE_2D,
 					0,
-					col,
+					4,
 					[tmpBitm textureSizeForImageIndex:index].width,
 					[tmpBitm textureSizeForImageIndex:index].height,
 					0,
@@ -180,6 +180,7 @@
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	}
 	
+    
 	glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
 	glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
 				

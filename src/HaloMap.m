@@ -20,6 +20,9 @@
 #define EndianSwap32(x) (((x & 0xFF000000) >> 24) | ((x & 0x00FF0000) >> 8) | ((x & 0x0000FF00) << 8) | ((x & 0x000000FF) << 24))
 #define EndianSwap16(x) (((x & 0x00FF) << 8) | ((x & 0xFF00) >> 8))
 
+
+
+
 @implementation HaloMap
 - (id)init
 {
@@ -95,6 +98,11 @@
 		2 = The map name is invalid
 		3 = Could not open map
 */
+
+-(ModelTag*)bipd
+{
+    return bipd;
+}
 - (int)loadMap
 {
 	// Quick hack
@@ -260,6 +268,17 @@
 			[self skipBytes:IndexTagSize];
 			ModelTag *tempModel = [[ModelTag alloc] initWithMapFile:self texManager:_texManager];
 			[tagArray addObject:tempModel];
+            
+            if ([[tempTag tagName] rangeOfString:@"sky"].location != NSNotFound)
+            {
+                NSLog([tempTag tagName]);
+                NSLog(@"FOUND SKY");
+                bipd = tempModel;
+                [bipd loadAllBitmaps];
+                [bipd retain];
+            }
+            
+            
 			[tempModel releaseGeometryObjects];
 			[tempModel release];
 			
@@ -449,7 +468,9 @@
 	NSLog(@"Machine spawn count: %d", [mapScenario mach_spawn_count]);
 	//NSLog([machLookupDict description]);
 	// Now lets load all of the bitmaps for shit
-	[self loadAllBitmaps];
+    
+    if ([self respondsToSelector:@selector(loadAllBitmaps)])
+        [self loadAllBitmaps];
 	
 	//NSLog(@"LOGGING THE TARG INFO");
 	//NSLog([tagArray description]);
@@ -947,6 +968,7 @@
 	int x;
 	long tempIdent;
 	
+    bipd_reference *bipd_ref = [mapScenario bipd_references];
 	vehicle_reference *vehi_ref = [mapScenario vehi_references];
 	scenery_reference *scen_ref = [mapScenario scen_references];
 	mp_equipment *mp_equip = [mapScenario item_spawns];
@@ -959,6 +981,11 @@
 		if ([self isTag:vehi_ref[x].vehi_ref.TagId])
 			[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:vehi_ref[x].vehi_ref.TagId]] loadAllBitmaps];
 	}
+    for (x = 0; x < [mapScenario bipd_ref_count]; x++)
+	{
+		if ([self isTag:bipd_ref[x].bipd_ref.TagId])
+			[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:bipd_ref[x].bipd_ref.TagId]] loadAllBitmaps];
+	}
 	for (x = 0; x < [mapScenario scen_ref_count]; x++)
 	{
 		if ([self isTag:scen_ref[x].scen_ref.TagId])
@@ -968,7 +995,10 @@
 				[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:scen_ref[x].scen_ref.TagId]] loadAllBitmaps];
 		}
 	}
-	//[(ModelTag *)[self tagForId:[mapScenario sky][0].modelIdent] loadAllBitmaps];
+    if ([self isTag:[mapScenario sky][0].modelIdent])
+    {
+	[(ModelTag *)[self tagForId:[mapScenario sky][0].modelIdent] loadAllBitmaps];
+    }
 	for (x = 0; x < [mapScenario item_spawn_count]; x++)
 	{
 		[self seekToAddress:([[self tagForId:mp_equip[x].itmc.TagId] offsetInMap] + 0x8C)];
@@ -1129,7 +1159,7 @@
 	
 	
 	//WRITE THE BSP MESH
-	[[bspHandler mesh] writePcSubmeshes];
+	//[[bspHandler mesh] writePcSubmeshes];
 	//[self writeAnyDataAtAddress:scnr size:[self tagLength] address:[self offsetInMap]];
 }
 @synthesize mapFile;

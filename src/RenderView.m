@@ -22,17 +22,82 @@
 #import "unistd.h"
 #import "math.h"
 
+
+#include <assert.h>
+#include <CoreServices/CoreServices.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#include <unistd.h>
+
+
+/* create a matrix that will project the desired shadow */
+void
+shadowmatrix(GLfloat shadowMat[4][4],
+             GLfloat groundplane[4],
+             GLfloat lightpos[4])
+{
+    GLfloat dot;
+    
+    /* find dot product between light position vector and ground plane normal */
+    dot = groundplane[0] * lightpos[0] +
+    groundplane[1] * lightpos[1] +
+    groundplane[2] * lightpos[2] +
+    groundplane[3] * lightpos[3];
+    
+    shadowMat[0][0] = dot - lightpos[0] * groundplane[0];
+    shadowMat[1][0] = 0.f - lightpos[0] * groundplane[1];
+    shadowMat[2][0] = 0.f - lightpos[0] * groundplane[2];
+    shadowMat[3][0] = 0.f - lightpos[0] * groundplane[3];
+    
+    shadowMat[0][1] = 0.f - lightpos[1] * groundplane[0];
+    shadowMat[1][1] = dot - lightpos[1] * groundplane[1];
+    shadowMat[2][1] = 0.f - lightpos[1] * groundplane[2];
+    shadowMat[3][1] = 0.f - lightpos[1] * groundplane[3];
+    
+    shadowMat[0][2] = 0.f - lightpos[2] * groundplane[0];
+    shadowMat[1][2] = 0.f - lightpos[2] * groundplane[1];
+    shadowMat[2][2] = dot - lightpos[2] * groundplane[2];
+    shadowMat[3][2] = 0.f - lightpos[2] * groundplane[3];
+    
+    shadowMat[0][3] = 0.f - lightpos[3] * groundplane[0];
+    shadowMat[1][3] = 0.f - lightpos[3] * groundplane[1];
+    shadowMat[2][3] = 0.f - lightpos[3] * groundplane[2];
+    shadowMat[3][3] = dot - lightpos[3] * groundplane[3];
+    
+}
+
 /*
 	TODO:
 		Fucking lookup selection lookup table is being fed very large values for some reason. Something to do with the names, have to check it out.
 */
 
+bool useNewRenderer()
+{
+    return newR;
+}
+
+bool drawObjects()
+{
+    return drawO;
+}
+
 @implementation RenderView
-/* 
+/* w
 *
 *		Begin RenderView Functions 
 *
 */
+
+-(IBAction)changeRenderer:(id)sender
+{
+    newR = [sender state];
+}
+
+-(IBAction)changeDrawObjects:(id)sender
+{
+    drawO = [sender state];
+}
+
 - (void)writeUnicodeStringFromString:(NSString *)string
 							 address:(vm_address_t)address
 					  requiredLength:(int)requiredLength
@@ -336,15 +401,138 @@
 	//[_camera PositionCamera:(x + 0.01f) positionY:(y + 0.01f) positionZ:(z + 1.0f) viewX:1.0f viewY:1.0f viewZ:(z + 1.0f) upVectorX:0.0f upVectorY:0.0f upVectorZ:1.0f];
 }
 
+#include <assert.h>
+#include <CoreServices/CoreServices.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#include <unistd.h>
+
 -(void)renderTimer:(id)object
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	//NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	//NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
+    
+    //Calculate fps
+
+    int averageFPS = 100;
+    int fpsCap = 30;
+    
+    uint64_t        start;
+    uint64_t        end;
+    
+    
+    uint64_t        start2;
+    uint64_t        end2;
+    uint64_t        elapsed2;
+    
+    uint64_t        elapsed;
+    Nanoseconds     elapsedNano;
+    
+    uint64_t        required = ((1000000000.0)/ fpsCap); 
+    
+    while(1)
+    {
+
+
+        
+        
+            
+            
+            
+            start = mach_absolute_time();
+        
+        
+            //Cap FPS at 30
+        
+            int i;
+            for (i=0; i < averageFPS; i++)
+            {
+                [self performSelectorOnMainThread:@selector(timerTick:) withObject:nil waitUntilDone:YES];
+            }
+        
+            end = mach_absolute_time();
+            elapsed = end - start;
+        
+            double fps = ((1000000000.0 * averageFPS)/ elapsed);
+            [fpsText performSelectorOnMainThread:@selector(setStringValue:) withObject:[NSString stringWithFormat:@"FPS: %f", fps] waitUntilDone:YES];
+            
+        
+        //NSLog(@"%f", fps);
+         
+    }
+    
 	//[runLoop run];
-	[pool release];
+	//[pool release];
 }
 
 
+-(IBAction)openSettingsPopup:(id)sender
+{
+    if (popover)
+    {
+        [popover close];
+        popover = nil;
+    }
+    if (c)
+    {
+        [c release];
+        c=nil;
+        return;
+    }
+    popover = [[NSPopover alloc] init];
+    [popover setAnimates:YES];
+    [popover setAppearance:NSPopoverAppearanceMinimal];
+    
+    
+    
+    c = [[NSViewController alloc] init];
+    c.view = settingsView;
+    
+    [popover setContentViewController:c];
+    [popover setContentSize:c.view.frame.size];
+    
+    
+    [popover showRelativeToRect:NSMakeRect([sender frame].size.width/2-0.5, 20, 1, 1) ofView:sender preferredEdge:NSMaxYEdge];
+}
+-(IBAction)reloadBitmapsForMap:(id)sender
+{
+    // First, we must create an NSOpenGLPixelFormatAttribute
+	NSOpenGLPixelFormat *nsglFormat;
+	NSOpenGLPixelFormatAttribute attr[] =
+	{
+		NSOpenGLPFADoubleBuffer,
+		NSOpenGLPFAAccelerated,
+		NSOpenGLPFAColorSize,
+		BITS_PER_PIXEL,
+		NSOpenGLPFADepthSize,
+		DEPTH_SIZE,
+		0
+	};
+    
+    [self setPostsFrameChangedNotifications: YES];
+	
+	// Next, we initialize the NSOpenGLPixelFormat itself
+    nsglFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
+	
+	// Check for errors in the creation of the NSOpenGLPixelFormat
+    // If we could not create one, return nil (the OpenGL is not initialized, and
+    // we should send an error message to the user at this point)
+    //if(!nsglFormat) { NSLog(@"Invalid format... terminating."); return nil; }
+	
+	// Now we create the the CocoaGL instance, using our initial frame and the NSOpenGLPixelFormat
+    //self = [super initWithFrame:frame pixelFormat:nsglFormat];
+    //[nsglFormat release];
+	
+	// If there was an error, we again should probably send an error message to the user
+    //if(!self) { NSLog(@"Self not created... terminating."); return nil; }
+	
+	// Now we set this context to the current context (means that its now drawable)
+    [[self openGLContext] makeCurrentContext];
+	
+	// Finally, we call the initGL method (no need to make this method too long or complex)
+    [self initGL];
+    //glFlush();
+}
 - (void)awakeFromNib
 {
 	
@@ -372,9 +560,12 @@
 	
 	[[self window] setFrame:NSMakeRect(0, 0, [[NSScreen mainScreen] frame].size.width, [[NSScreen mainScreen] frame].size.height) display:YES];
 	
-	_fps = 130;
+	_fps = 30;
 	drawTimer = [[NSTimer scheduledTimerWithTimeInterval:(1.0/_fps) target:self selector:@selector(timerTick:) userInfo:nil repeats:YES] retain];
 	
+    //NSThread* timerThread = [[NSThread alloc] initWithTarget:self selector:@selector(renderTimer:) object:nil]; //Create a new thread
+	//[timerThread start];
+
 	prefs = [NSUserDefaults standardUserDefaults];
 	[self loadPrefs];
 	
@@ -383,10 +574,10 @@
 	_camera = [[Camera alloc] init];
 	acceleration = 0;
 	cameraMoveSpeed = 0.5;
-	maxRenderDistance = 300.0f;
+	maxRenderDistance = 3000000.0f;
 	
 	selectDistance = 300.0f;
-	rendDistance = 300.0;
+	rendDistance = 3000000.0f;
 	
 	meshColor.blue = 1.0;
 	meshColor.green = 0.1;
@@ -394,6 +585,9 @@
 	meshColor.color_count = 0;
 	
 	color_index = alphaIndex;
+    drawO = true;
+    newR = true;
+   
 	
 	currentRenderStyle = textured_tris;
 	
@@ -439,8 +633,7 @@
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
 	[NSApp setDelegate:self];
-	//NSThread* timerThread = [[NSThread alloc] initWithTarget:self selector:@selector(renderTimer:) object:nil]; //Create a new thread
-	//[timerThread start]; 
+	
 	
 	[NSTimer scheduledTimerWithTimeInterval:2 target:self selector:@selector(updateQuickLink:) userInfo:nil repeats:YES];
 
@@ -519,7 +712,7 @@
 	gluPerspective(45.0f,
 					(sceneBounds.width / sceneBounds.height),
 					0.1f,
-					400.0f);
+					4000000.0f);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
@@ -568,6 +761,25 @@
 	[machine orderFront:nil];
 }
 
+- (void)scrollWheel:(NSEvent*)theEvent
+{
+    
+    if ([s_xRotation floatValue]+[theEvent scrollingDeltaY] < 0)
+    {
+        [s_xRotation setFloatValue:360+[s_xRotation floatValue]+[theEvent scrollingDeltaY]];
+    }
+    else if ([s_xRotation floatValue]+[theEvent scrollingDeltaY] > 360)
+    {
+        [s_xRotation setFloatValue:[s_xRotation floatValue]+[theEvent scrollingDeltaY]-360];
+    }
+    else
+        [s_xRotation setFloatValue:[s_xRotation floatValue]+[theEvent scrollingDeltaY]];
+   
+    [self rotateFocusedItem:[s_xRotation floatValue] y:[s_yRotation floatValue] z:[s_zRotation floatValue]];
+    
+    NSLog(@"test");
+}
+
 
 - (void)keyDown:(NSEvent *)theEvent
 {
@@ -580,7 +792,8 @@
 		[self buttonPressed:b_deleteSelected];
 		
 	}
-	else {
+	else
+    {
 		
 	
 
@@ -716,6 +929,7 @@
 }
 - (void)mouseUp:(NSEvent *)theEvent
 {
+    
 }
 - (void)mouseDown:(NSEvent *)event
 {
@@ -723,7 +937,7 @@
     
     
     
-    
+    duplicatedAlready = NO;
     
 	
 	
@@ -734,104 +948,102 @@
 	if (_mode == select && _mapfile)
 	{
 		
-		if ([msel state])
-		{
-			
-		event = [[self window] nextEventMatchingMask:(NSLeftMouseDraggedMask | NSLeftMouseUpMask)];
-		NSPoint graphicOrigin = [NSEvent mouseLocation];
-			
-		NSPoint en = graphicOrigin;
-		
-		
-		CGFloat w = 0.0;
-		CGFloat h = 0.0;
-		while ([event type]!=NSLeftMouseUp)
-		{
-			
-			event = [[self window] nextEventMatchingMask:(NSLeftMouseDraggedMask | NSLeftMouseUpMask)];
-			NSPoint graphicOrigin = [NSEvent mouseLocation];
-
-			
-			if (en.x < graphicOrigin.x)
-			{
-				w = graphicOrigin.x - en.x;
-				
-				if (en.y < graphicOrigin.y)
-				{
-					h = graphicOrigin.y - en.y;
-					
-					[selee setFrame:NSMakeRect(en.x, en.y, w, h) display:YES];
-				}
-				else
-				{
-					h =  en.y - graphicOrigin.y;
-					
-					[selee setFrame:NSMakeRect(en.x, graphicOrigin.y, w, h) display:YES];
-				}
-				
-			}
-			else
-			{
-				
-				w = en.x - graphicOrigin.x;
-				
-				if (en.y < graphicOrigin.y)
-				{
-					h = graphicOrigin.y - en.y;
-					
-					[selee setFrame:NSMakeRect(graphicOrigin.x, en.y, w, h) display:YES];
-				}
-				else
-				{
-					
-					h =  en.y - graphicOrigin.y;
-					
-					[selee setFrame:NSMakeRect(graphicOrigin.x, graphicOrigin.y, w, h) display:YES];
-				}
-				
-			}
-			
-			[selee orderFront:nil];
-			
-		}			
-			
-		int tx = [selee frame].origin.x;
-		int ty = [selee frame].origin.y;
-			
-		int wx =   [[self window] frame].origin.x;
-		int wy =  [[self window] frame].origin.y;
-
-		tx -= wx;
-		ty -= wy;
-		
-		if (w < 1.0f)
-		{
-			w = 1.0f;
-			
-			tx = local_point.x;
-			ty = local_point.y;
-		}
-		
-		if (h < 1.0f)
-		{
-			h = 1.0f;
-			
-			tx = local_point.x;
-			ty = local_point.y;
-		}
-		
-		
-		NSPoint sp = NSMakePoint(tx, ty);
-		[self trySelection:sp shiftDown:(([event modifierFlags] & NSShiftKeyMask) != 0) width:w height:h];
 	
-		[selee close];
 			
-		}
-		else
-		{
-			float selection_size = 1.0f;
-			[self trySelection:local_point shiftDown:(([event modifierFlags] & NSShiftKeyMask) != 0) width:selection_size height:selection_size ];
-		}
+            event = [[self window] nextEventMatchingMask:(NSLeftMouseDraggedMask | NSLeftMouseUpMask)];
+            NSPoint graphicOrigin = [NSEvent mouseLocation];
+                
+            NSPoint en = graphicOrigin;
+            
+            
+            CGFloat w = 0.0;
+            CGFloat h = 0.0;
+        
+            if ([msel state])
+            {
+            while ([event type]!=NSLeftMouseUp)
+            {
+                
+                event = [[self window] nextEventMatchingMask:(NSLeftMouseDraggedMask | NSLeftMouseUpMask)];
+                NSPoint graphicOrigin = [NSEvent mouseLocation];
+
+                
+                if (en.x < graphicOrigin.x)
+                {
+                    w = graphicOrigin.x - en.x;
+                    
+                    if (en.y < graphicOrigin.y)
+                    {
+                        h = graphicOrigin.y - en.y;
+                        
+                        [selee setFrame:NSMakeRect(en.x, en.y, w, h) display:YES];
+                    }
+                    else
+                    {
+                        h =  en.y - graphicOrigin.y;
+                        
+                        [selee setFrame:NSMakeRect(en.x, graphicOrigin.y, w, h) display:YES];
+                    }
+                    
+                }
+                else
+                {
+                    
+                    w = en.x - graphicOrigin.x;
+                    
+                    if (en.y < graphicOrigin.y)
+                    {
+                        h = graphicOrigin.y - en.y;
+                        
+                        [selee setFrame:NSMakeRect(graphicOrigin.x, en.y, w, h) display:YES];
+                    }
+                    else
+                    {
+                        
+                        h =  en.y - graphicOrigin.y;
+                        
+                        [selee setFrame:NSMakeRect(graphicOrigin.x, graphicOrigin.y, w, h) display:YES];
+                    }
+                    
+                }
+                
+                [selee orderFront:nil];
+                
+            }
+            }
+        
+            int tx = [selee frame].origin.x;
+            int ty = [selee frame].origin.y;
+                
+            int wx =   [[self window] frame].origin.x;
+            int wy =  [[self window] frame].origin.y;
+
+            tx -= wx;
+            ty -= wy;
+        
+            if (w < 1.0f)
+            {
+                w = 1.0f;
+                
+                tx = local_point.x;
+                ty = local_point.y;
+            }
+            
+            if (h < 1.0f)
+            {
+                h = 1.0f;
+                
+                tx = local_point.x;
+                ty = local_point.y;
+            }
+            
+            
+            NSPoint sp = NSMakePoint(tx, ty);
+            [self trySelection:sp shiftDown:(([event modifierFlags] & NSShiftKeyMask) != 0) width:w height:h];
+        
+            [selee close];
+			
+		
 
 		//[sel release];
 	}
@@ -847,34 +1059,86 @@
 	//	[_camera HandleMouseMove:(dragPoint.x - prevDown.x) dy:(dragPoint.y - prevDown.y)];
 	if (_mode == translate)
 	{
-		if ([wall state])
-		{
-			
-			if (dup >= [duplicate_amount doubleValue])
-			{
-				unsigned int type, index, nameLookup;
-				
-				if (!selections || [selections count] == 0)
-					return;
-				
-				nameLookup = [[selections objectAtIndex:0] unsignedIntValue];
-				type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
-				index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+        if ([theEvent modifierFlags] & NSShiftKeyMask)
+        {
+            if (!duplicatedAlready)
+            {
+                
+                //if (dup >= [duplicate_amount doubleValue])
+                //{
+                    unsigned int type, index, nameLookup;
+                    
+                    if (!selections || [selections count] == 0)
+                        return;
+                    
+                    nameLookup = [[selections objectAtIndex:0] unsignedIntValue];
+                    type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+                    index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
 
-				
-				[_scenario duplicateScenarioObjectLocation:type index:index coord:1];
-				_selectFocus = [[selections objectAtIndex:0] longValue];
-				dup=0;
-			}
-			else
-			{
-				dup++;
-			}
+                    [selections removeAllObjects];
+                    [selections addObject:[NSNumber numberWithLong:[_scenario duplicateScenarioObject:type index:index]]];
+                    _selectFocus = [[selections objectAtIndex:0] longValue];
+                
+                    //dup=0;
+                //}
+                //else
+                //{
+                    //dup++;
+                //}
+                
+                duplicatedAlready = YES;
 
-		}
+            }
+        }
         
         //[self performTranslation:dragPoint zEdit:(([theEvent modifierFlags] & NSControlKeyMask) != 0)];
 		[self performTranslation:dragPoint zEdit:(([theEvent modifierFlags] & NSControlKeyMask) != 0)];
+    
+        
+        // Now lets apply the transformations.
+        unsigned int	i,
+        nameLookup,
+        type,
+        index;
+        for (i = 0; i < [selections count]; i++)
+        {
+            nameLookup = [[selections objectAtIndex:i] unsignedIntValue];
+            type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+            index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+            
+            switch (type)
+            {
+                case s_scenery:
+                    [self setPositionSliders:[_scenario scen_spawns][index].coord[0] y:[_scenario scen_spawns][index].coord[1] z:[_scenario scen_spawns][index].coord[2]];
+                    break;
+                case s_vehicle:
+                    [self setPositionSliders:[_scenario vehi_spawns][index].coord[0] y:[_scenario vehi_spawns][index].coord[1] z:[_scenario vehi_spawns][index].coord[2]];
+                    break;
+                case s_playerspawn:
+                {
+                    float *gg = (float*)[self coordtoGround:(float*)[_scenario spawns][index].coord];
+                    if (gg[0] != 0.0)
+                    {
+                        [_scenario spawns][index].coord[0] = gg[0];
+                        [_scenario spawns][index].coord[1] = gg[1];
+                        [_scenario spawns][index].coord[2] = gg[2];
+                    }
+                    [self setPositionSliders:[_scenario spawns][index].coord[0] y:[_scenario spawns][index].coord[1] z:[_scenario spawns][index].coord[2]];
+                    break;
+                }
+                case s_netgame:
+                    [self setPositionSliders:[_scenario netgame_flags][index].coord[0] y:[_scenario netgame_flags][index].coord[1] z:[_scenario netgame_flags][index].coord[2]];
+                    break;
+                case s_item:
+                    [self setPositionSliders:[_scenario item_spawns][index].coord[0] y:[_scenario item_spawns][index].coord[1] z:[_scenario item_spawns][index].coord[2]];
+                    break;
+                case s_machine:
+                    [self setPositionSliders:[_scenario mach_spawns][index].coord[0] y:[_scenario mach_spawns][index].coord[1] z:[_scenario mach_spawns][index].coord[2]];
+                    break;
+            }
+        }
+        
+        
 	}
 	else if (_mode == rotate)
 	{
@@ -884,6 +1148,7 @@
 		[_camera HandleMouseMove:(dragPoint.x - prevDown.x) dy:(dragPoint.y - prevDown.y)];
 	prevDown = dragPoint;
 }
+
 
 
 
@@ -911,8 +1176,19 @@
 }
 - (void)timerTick:(NSTimer *)timer
 {
-	// In here we handle a few things, mmk?
-	acceleration = (int)[cspeed doubleValue];
+    
+    
+    uint64_t current = mach_absolute_time();
+    
+    // In here we handle a few things, mmk?
+	acceleration = 0;//(int)[cspeed doubleValue] * (current - previous) / 1000000000.0;
+    
+    
+
+    
+    
+    
+	float adjustment = ((current - previous) / 10000000.0);
 	
 	int x;
 	BOOL key_is_down = NO;
@@ -925,26 +1201,128 @@
 			switch (move_keys_down[x].direction)
 			{
 				case forward:
-					[_camera MoveCamera:(cameraMoveSpeed + acceleration)];
+					[_camera MoveCamera:([cspeed doubleValue] * adjustment)];
 					break;
 				case back:
-					[_camera MoveCamera:(-1 * (cameraMoveSpeed + acceleration))];
+					[_camera MoveCamera:(-1 * ([cspeed doubleValue] * adjustment))];
 					break;
 				case left:
-					[_camera StrafeCamera:(-1 * (cameraMoveSpeed + acceleration))];
+					[_camera StrafeCamera:(-1.0 * ([cspeed doubleValue] * adjustment))];
 					break;
 				case right:
-					[_camera StrafeCamera:(cameraMoveSpeed + acceleration)];
+					[_camera StrafeCamera:([cspeed doubleValue] * adjustment)];
 					break;
 				case down:
-					[_camera LevitateCamera:(-1 * (cameraMoveSpeed + acceleration))]; 
+					[_camera LevitateCamera:(-1 * ([cspeed doubleValue] * adjustment))]; 
 					break;
 				case up:
-					[_camera LevitateCamera:(cameraMoveSpeed + acceleration)];
+                {
+                    unsigned int	i,
+                    nameLookup,
+                    type,
+                    index;
+                    
+                    for (i = 0; i < [selections count]; i++)
+                    {
+                        nameLookup = [[selections objectAtIndex:i] unsignedIntValue];
+                        type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+                        index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+                        
+                        
+                        
+                        switch (type)
+                        {
+                            case s_vehicle:
+                            {
+                                float *gg = (float*)[self coordtoGround:(float*)[_scenario vehi_spawns][index].coord];
+                                if (gg[0] != 0.0)
+                                {
+                                    [_scenario vehi_spawns][index].coord[0] = gg[0];
+                                    [_scenario vehi_spawns][index].coord[1] = gg[1];
+                                    [_scenario vehi_spawns][index].coord[2] = gg[2];
+                                }
+                                break;
+                            }
+                            case s_scenery:
+                            {
+                                float *gg = (float*)[self coordtoGround:(float*)[_scenario scen_spawns][index].coord];
+                                if (gg[0] != 0.0)
+                                {
+                                    [_scenario scen_spawns][index].coord[0] = gg[0];
+                                    [_scenario scen_spawns][index].coord[1] = gg[1];
+                                    [_scenario scen_spawns][index].coord[2] = gg[2];
+                                }
+                                break;
+                            }
+                            case s_playerspawn:
+                            {
+                                float *gg = (float*)[self coordtoGround:(float*)[_scenario spawns][index].coord];
+                                if (gg[0] != 0.0)
+                                {
+                                    [_scenario spawns][index].coord[0] = gg[0];
+                                    [_scenario spawns][index].coord[1] = gg[1];
+                                    [_scenario spawns][index].coord[2] = gg[2];
+                                }
+                                break;
+                            }
+                            case s_netgame:
+                            {
+                                float *gg = (float*)[self coordtoGround:(float*)[_scenario netgame_flags][index].coord];
+                                if (gg[0] != 0.0)
+                                {
+                                    [_scenario netgame_flags][index].coord[0] = gg[0];
+                                    [_scenario netgame_flags][index].coord[1] = gg[1];
+                                    [_scenario netgame_flags][index].coord[2] = gg[2];
+                                }
+                                break;
+                            }
+                            case s_item:
+                            {
+                                float *gg = (float*)[self coordtoGround:(float*)[_scenario item_spawns][index].coord];
+                                if (gg[0] != 0.0)
+                                {
+                                    [_scenario item_spawns][index].coord[0] = gg[0];
+                                    [_scenario item_spawns][index].coord[1] = gg[1];
+                                    [_scenario item_spawns][index].coord[2] = gg[2];
+                                }
+                                break;
+                            }
+                            case s_machine:
+                            {
+                                float *gg = (float*)[self coordtoGround:(float*)[_scenario mach_spawns][index].coord];
+                                if (gg[0] != 0.0)
+                                {
+                                    [_scenario mach_spawns][index].coord[0] = gg[0];
+                                    [_scenario mach_spawns][index].coord[1] = gg[1];
+                                    [_scenario mach_spawns][index].coord[2] = gg[2];
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    //Drop the current selection to the ground
+					//[_camera LevitateCamera:([cspeed doubleValue] * adjustment)];
 					break;
+                }
 			}
 		}
 	}
+    previous = current;
+    
+    if ([first_person_mode state])
+    {
+        [cspeed setDoubleValue:0.04];
+        _camera.position[2]=_camera.position[2]-0.65;
+        float *gg = (float*)[self coordtoGround:(float*)_camera.position];
+        if (gg[0] != 0.0)
+        {
+            _camera.position[0] = gg[0];
+            _camera.position[1] = gg[1];
+            _camera.position[2] = gg[2]+0.65;
+        }
+    }
+   
 	if (key_is_down)
 	{
 		
@@ -1025,9 +1403,10 @@
 	return 4;
 }
 
-- (void)drawRect:(NSRect)rect
-{	
-	glLoadIdentity();
+
+-(void)drawView
+{
+    glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	[_camera Look];
@@ -1042,8 +1421,6 @@
 			[self renderVisibleBSP:FALSE];
 		}
 		
-	
-		
 		if (_scenario)
 		{
 			[self renderAllMapObjects];
@@ -1051,6 +1428,13 @@
 	}
 	
 	[[self openGLContext] flushBuffer];
+}
+
+
+- (void)drawRect:(NSRect)rect
+{
+    [self drawView];
+    //[NSThread sleepForTimeInterval:0.01];
 }
 - (void)loadPrefs
 {
@@ -1113,6 +1497,8 @@
 		[bspNumbersButton addItemWithTitle:[[NSNumber numberWithInt:i+1] stringValue]];
 	[mapBSP GetActiveBspCentroid:&x center_y:&y center_z:&z];
 	
+    [self recenterCamera:self];
+    
 	if ([[[NSUserDefaults standardUserDefaults]objectForKey:@"automatic"] isEqualToString:@"NO"])
 	{
 		[self recenterCamera:self];
@@ -1185,7 +1571,8 @@
 			bsp_points[b].index = 0;
 			bsp_points[b].amindex = i;
             bsp_points[b].isSelected = NO;
-			
+		
+            
 			coord = (float *)(pMesh->pVert[pMesh->pIndex[i].tri_ind[1]].vertex_k);
 			bsp_points[b+1].coord[0]= coord[0];
 			bsp_points[b+1].coord[1]= coord[1];
@@ -1285,6 +1672,7 @@
 			if ((currentRenderStyle == point) || (currentRenderStyle == wireframe) || (currentRenderStyle == flat_shading))
 				[self setNextMeshColor];
 			
+            currentRenderStyle = textured_tris;
 			switch (currentRenderStyle)
 			{
 				case point:
@@ -1299,6 +1687,9 @@
 					break;
 				case textured_tris:
 					[self renderBSPAsTexturedAndLightmaps:i];
+                    //[self renderHighlighted:indexMesh];
+                    //glLineWidth(1.0f);
+					//[self renderBSPAsWireframe:i];
 					//[self renderBSPAsPoints:i];
 					glLineWidth(2.0f);
 					glColor3f(0.5f, 0.5f, 0.5f);
@@ -1323,7 +1714,7 @@
 	
 	BspMesh *mesh = [mapBSP mesh];
 	
-	for (i = 0; i < [mesh  coll_count]; i++)
+	for (i = 0; i < [mesh coll_count]; i++)
 	{
 		vert *v = [mesh collision_verticies];
 		
@@ -1369,6 +1760,23 @@
 	}
 	glEnd();
 }
+- (void)renderHighlighted:(int)mesh_index
+{
+	SUBMESH_INFO *pMesh;
+	int i;
+	
+	pMesh = [mapBSP GetActiveBspPCSubmesh:mesh_index];
+	//NSLog(@"%d %d", indexMesh, indexHighlight);
+	glBegin(GL_TRIANGLE_STRIP);
+	[self setNextMeshColor];
+	i=indexHighlight;
+    glVertex3fv((float *)(pMesh->pVert[pMesh->pIndex[i].tri_ind[0]].vertex_k));
+    glVertex3fv((float *)(pMesh->pVert[pMesh->pIndex[i].tri_ind[1]].vertex_k));
+    glVertex3fv((float *)(pMesh->pVert[pMesh->pIndex[i].tri_ind[2]].vertex_k));
+
+	glEnd();
+}
+
 - (void)renderBSPAsFlatShadedPolygon:(int)mesh_index
 {
 	SUBMESH_INFO *pMesh;
@@ -1377,7 +1785,7 @@
 	pMesh = [mapBSP GetActiveBspPCSubmesh:mesh_index];
 	
 	glBegin(GL_TRIANGLES);
-	[self setNextMeshColor];
+	//[self setNextMeshColor];
 	for (i = 0; i < pMesh->IndexCount; i++)
 	{
 		glVertex3fv((float *)(pMesh->pVert[pMesh->pIndex[i].tri_ind[0]].vertex_k));
@@ -1389,15 +1797,30 @@
 
 -(void)renderSkybox
 {
+    NSLog(@"Rendering skyboxes");
+    
 	SkyBox *skies;
 	skies = [_scenario sky];
 
-	float pos[3];
+	float pos[6];
 	pos[0] = 0;
 	pos[1] = 0;
 	pos[2] = 0;
-	
-	[[_mapfile tagForId:skies[0].modelIdent] drawAtPoint:pos lod:_LOD isSelected:FALSE useAlphas:_useAlphas];
+	pos[3] = 0;
+	pos[4] = 0;
+	pos[5] = 0;
+    
+    
+    
+    
+    [[_mapfile bipd] drawAtPoint:pos lod:_LOD isSelected:YES useAlphas:NO];
+    
+    BOUNDING_BOX*bb = [[_mapfile bipd] bounding_box];
+    if (bb != NULL)
+        NSLog(@"Determining bounding box %f %f %f %f %f %f", bb->min[0], bb->min[1], bb->min[2], bb->max[0], bb->max[1], bb->max[2]);
+
+    
+	//[[_mapfile tagForId:skies[0].modelIdent] drawAtPoint:pos lod:_LOD isSelected:YES useAlphas:_useAlphas];
 }
 
 - (void)renderBSPAsTexturedAndLightmaps:(int)mesh_index
@@ -1406,7 +1829,8 @@
 	
 	if (pMesh->ShaderIndex == -1)
 	{
-		glColor3f(0.1f, 0.1f, 0.1f);
+		//glColor3f(0.1f, 0.1f, 0.1f);
+        glColor3f(1.0f, 1.0f, 1.0f);
 	}
 	else
 	{
@@ -1428,6 +1852,11 @@
 		
 		glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
 		
+        
+
+        
+        
+        
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			
@@ -1435,6 +1864,9 @@
 		glDisable(GL_BLEND);
 		
 	}
+    
+    
+    
 }
 - (void)drawAxes
 {
@@ -1521,11 +1953,14 @@
 }
 - (void)renderAllMapObjects
 {
-	
+	/*double time = mach_absolute_time();
+     NSLog(@"%fd", (mach_absolute_time()-time)/100000000.0);*/
+    
 	
 	int x, i, name = 1;
 	float pos[6], distanceTo;
 	
+    vehicle_reference *vehi_refs;
 	vehicle_spawn *vehi_spawns;
 	scenery_spawn *scen_spawns;
 	mp_equipment *equipSpawns;
@@ -1533,14 +1968,16 @@
 	encounter *encounters;
 	SkyBox *skies;
 	player_spawn *spawns;
-	
+	bipd_reference *bipd_refs;
+    
 	glInitNames();
 	glPushName(0);
 	
 	// This one does its own namings
 	[self renderNetgameFlags:&name];
 	
-	
+	bipd_refs = [_scenario bipd_references];
+    vehi_refs = [_scenario vehi_references];
 	vehi_spawns = [_scenario vehi_spawns];
 	scen_spawns = [_scenario scen_spawns];
 	equipSpawns = [_scenario item_spawns];
@@ -1548,10 +1985,28 @@
 	mach_spawns = [_scenario mach_spawns];
 	encounters = [_scenario encounters];
 	skies = [_scenario sky];
-	
+    
+    //--------------------------------
+    //The copyright for the following code is owned by Samuel Colbran (Samuco).
+    //The copyright for other smaller segments that are not identified by these comments are also owned by Samuel Colbran (Samuco).
+    //--------------------------------
+    
+    ModelTag *bipd = [_mapfile tagForId:[_scenario baseModelIdent:bipd_refs[0].bipd_ref.TagId]];
+
 	glColor4f(0.0f,0.0f,0.0f,1.0f);
 	
+    BOOL ignoreDrawing = FALSE;
+    //rendDistance = 50;
+    
+    if (!ignoreDrawing)
+    {
 
+    if (useNewRenderer())
+    {
+        
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    }
 	for (x = 0; x < [_scenario player_spawn_count]; x++)
 	{
 		// Lookup goes hur
@@ -1560,9 +2015,131 @@
 		glLoadName(name);
 		name++;
 		if (spawns[x].bsp_index == activeBSPNumber)
-			[self renderPlayerSpawn:spawns[x].coord team:spawns[x].team_index isSelected:spawns[x].isSelected];
+        {
+            if (useNewRenderer())
+            {
+                if (bipd && [bipd respondsToSelector:@selector(drawAtPoint:lod:isSelected:useAlphas:)])
+                {
+                    
+                    int type1 = spawns[x].type1;
+          
+                    
+                    int showType = [[renderGametype selectedItem] tag];
+                    
+                    //This visbility is a mess xD
+                    BOOL visible = FALSE;
+                    if (showType == 12)
+                        visible = TRUE;
+                    else if (showType == 13)
+                    {
+                        if (type1 != 1)
+                            visible = TRUE;
+                    }
+                    else if (showType == 14)
+                    {
+                        if (type1 != 1 && type1 != 5)
+                            visible = TRUE;
+                    }
+                    else
+                    {
+                        if (type1 == showType)
+                            visible = TRUE;
+                        else if (type1 == 12)
+                            visible = TRUE;
+                        else if (type1 == 13)
+                        {
+                            if (showType != 1)
+                                visible = TRUE;
+                        }
+                        else if (type1 == 14)
+                        {
+                            if (showType != 1 && showType != 5)
+                                visible = TRUE;
+                        }
+                    }
+                    
+                    int team = spawns[x].team_index;
+                    if (type1 != 1)
+                    {
+                        glColor4f(1.0,1.0,1.0, 1.0);
+                        if (spawns[x].isSelected)
+                        {
+                            glColor4f(1.0,1.0,0.0, 1.0);
+                        }
+                    }
+                    else
+                    {
+                        if (team == 0)
+                        {
+                            glColor4f(1.0,0.3,0.3, 1.0);
+                            
+                            if (spawns[x].isSelected)
+                            {
+                                glColor4f(1.0,0.8,0.0, 1.0);
+                            }
+                        }
+                        else if (team == 1)
+                        {
+                            glColor4f(0.3,0.3,1.0, 1.0);
+                            if (spawns[x].isSelected)
+                            {
+                                glColor4f(0.0,1.0,1.0, 1.0);
+                            }
+                        }
+                        else if (team == 5)
+                            glColor4f(1.0,1.0,0.0, 1.0);
+                        else if (team == 3)
+                            glColor4f(0.0,1.0,0.0, 1.0);
+                        else if (team == 2)
+                            glColor4f(1.0,1.0,0.0, 1.0);
+                        else if (team == 9)
+                            glColor4f(0.0,1.0,1.0, 1.0);
+                        else
+                            if (spawns[x].isSelected)
+                            {
+                                glColor4f(1.0,1.0,0.0, 1.0);
+                            }
+                    }
+                    
+                    
+                    
+                    
+                    if (visible)
+                    {
+                        for (i = 0; i < 3; i++)
+                            pos[i] = spawns[x].coord[i];
+                        pos[3] = 0;
+                        pos[4] = pos[5] = 0.0f;
+                        distanceTo = [self distanceToObject:pos];
+                        if (distanceTo < rendDistance || spawns[x].isSelected)
+                            [bipd drawAtPoint:spawns[x].coord lod:5 isSelected:NO useAlphas:_useAlphas distance:distanceTo];
+                    }
+                }
+                else
+                {
+                    [self renderPlayerSpawn:spawns[x].coord team:spawns[x].team_index isSelected:spawns[x].isSelected];
+                }
+                
+            }
+            else
+            {
+                [self renderPlayerSpawn:spawns[x].coord team:spawns[x].team_index isSelected:spawns[x].isSelected];
+            }
+        }
 	}
-	for (x = 0; x < bsp_point_count; x++)
+        
+    if (useNewRenderer())
+    {
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
+    }
+        
+    
+    
+	/*for (x = 0; x < bsp_point_count; x++)
 	{
 		// Lookup goes hur
 		if (_lookup)
@@ -1570,7 +2147,8 @@
 		glLoadName(name);
 		name++;
 		[self renderPoint:bsp_points[x].coord isSelected:bsp_points[x].isSelected];
-	}
+	}*/
+    /*
 	for (x = 0; x < [[mapBSP mesh] coll_count]; x++)
 	{
 		// Lookup goes hur
@@ -1584,37 +2162,19 @@
 		pos[2]=[[mapBSP mesh] collision_verticies][x].z;
 		
 		//NSLog(@"%f", pos[0]);
-		/*
-		SUBMESH_INFO *pMesh;
-		int i;
-		
-
-		glBegin(GL_TRIANGLES);
-		[self setNextMeshColor];
-		pos[0]=[[mapBSP mesh] collision_verticies][x].x;
-		pos[1]=[[mapBSP mesh] collision_verticies][x].y;
-		pos[2]=[[mapBSP mesh] collision_verticies][x].z;
-		
-		
-			glVertex3fv(pos);
-		
-		pos[0]=[[mapBSP mesh] collision_verticies][x+1].x;
-		pos[1]=[[mapBSP mesh] collision_verticies][x+1].y;
-		pos[2]=[[mapBSP mesh] collision_verticies][x+1].z;
-		
-		
-			glVertex3fv(pos);
-		
-		
-		pos[0]=[[mapBSP mesh] collision_verticies][x+2].x;
-		pos[1]=[[mapBSP mesh] collision_verticies][x+2].y;
-		pos[2]=[[mapBSP mesh] collision_verticies][x+2].z;
-			glVertex3fv(pos);
-		glEnd();*/
+	
 		
 		
 		[self renderCP:pos isSelected:[[mapBSP mesh] collision_verticies][x].isSelected];
 	}
+     */
+        
+    //--------------------------------
+    //END CODE
+    //--------------------------------
+    
+        
+    glColor4f(0.0f,0.0f,0.0f,1.0f);
 	for (i=0; i < [_scenario encounter_count]; i++)
 	{
 		player_spawn *encounter_spawns;
@@ -1632,6 +2192,21 @@
 				[self renderPlayerSpawn:encounter_spawns[x].coord team:1 isSelected:encounter_spawns[x].isSelected];
 		}
 	}
+}
+
+    
+    
+if (drawObjects())
+{
+    if (useNewRenderer())
+    {
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glColor3f(1.0f,1.0f,1.0f);
+    }
+    
+    glColor4f(1.0f,1.0f,1.0f,1.0f);
+    
 	for (x = 0; x < [_scenario item_spawn_count]; x++)
 	{
 		// Lookup goes hur
@@ -1649,9 +2224,12 @@
 			pos[4] = pos[5] = 0.0f;
 			distanceTo = [self distanceToObject:pos];
 			if (distanceTo < rendDistance || equipSpawns[x].isSelected)
-				[[_mapfile tagForId:equipSpawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:equipSpawns[x].isSelected useAlphas:_useAlphas];
+				[[_mapfile tagForId:equipSpawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:equipSpawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
 		}
 	}
+    
+
+    
 	for (x = 0; x < [_scenario mach_spawn_count]; x++)
 	{
 		if (_lookup)
@@ -1663,9 +2241,12 @@
 			distanceTo = [self distanceToObject:pos];
 			
 			if ((distanceTo < rendDistance || mach_spawns[x].isSelected) && mach_spawns[x].desired_permutation == activeBSPNumber)
-				[[_mapfile tagForId:[_scenario mach_references][mach_spawns[x].numid].modelIdent] drawAtPoint:mach_spawns[x].coord lod:_LOD isSelected:mach_spawns[x].isSelected useAlphas:_useAlphas];
+				[[_mapfile tagForId:[_scenario mach_references][mach_spawns[x].numid].modelIdent] drawAtPoint:mach_spawns[x].coord lod:_LOD isSelected:mach_spawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
 		}
 	}
+    
+        
+
 	for (x = 0; x < [_scenario vehicle_spawn_count]; x++)
 	{
 		// Lookup goes hur
@@ -1681,18 +2262,22 @@
 				pos[i] = vehi_spawns[x].coord[i];
 			for (i = 3; i < 6; i++)
 				pos[i] = vehi_spawns[x].rotation[i - 3];
+            
 			distanceTo = [self distanceToObject:pos];
-
 			if ((distanceTo < rendDistance || vehi_spawns[x].isSelected) && vehi_spawns[x].desired_permutation == activeBSPNumber)
-				[[_mapfile tagForId:vehi_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:vehi_spawns[x].isSelected useAlphas:_useAlphas];
+				[[_mapfile tagForId:vehi_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:vehi_spawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
 		}
 	}
+
+    
+    
 	for (x = 0; x < [_scenario scenery_spawn_count]; x++)
 	{	
 		// Lookup goes hur
 		if (_lookup)
 			_lookup[name] = (long)(s_scenery * MAX_SCENARIO_OBJECTS + x);
 		glLoadName(name);
+        
 		name++;
 		if ([_mapfile isTag:scen_spawns[x].modelIdent])
 		{
@@ -1703,28 +2288,43 @@
 			distanceTo = [self distanceToObject:pos];
 
 			if ((distanceTo < rendDistance || scen_spawns[x].isSelected) && scen_spawns[x].desired_permutation == activeBSPNumber)
-				[[_mapfile tagForId:scen_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:scen_spawns[x].isSelected useAlphas:_useAlphas];
+				[[_mapfile tagForId:scen_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:scen_spawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
 		}
-	}		
+	}
+
+    
+    
 	for (x = 0; x < 1; x++)
-	{	
+	{
 		// Lookup goes hur
 
 		if ([_mapfile isTag:skies[x].modelIdent])
 		{
+            
 			pos[0]=0;
 			pos[1]=0;
-			pos[2]=0;
+			pos[2]=0;//-10000;
 			pos[3]=0;
 			pos[4]=0;
 			pos[5]=0;
 
 			distanceTo = [self distanceToObject:pos];
-			
-			if ((distanceTo < rendDistance))
-				[[_mapfile tagForId:skies[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:YES useAlphas:_useAlphas];
+			[[_mapfile tagForId:skies[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:NO useAlphas:_useAlphas distance:0];
 		}
-	}	
+	}
+    
+
+    if (useNewRenderer())
+    {
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
+    }
+}
+
+
 }
 
 
@@ -1859,6 +2459,12 @@
 
 - (void)renderPlayerSpawn:(float *)coord team:(int)team isSelected:(BOOL)isSelected
 {
+    
+    
+    
+    
+    
+    
 	if (team == 0)
 		glColor3f(1.0,0.0,0.0);
 	else if (team == 1)
@@ -2005,6 +2611,7 @@
 	glEnd();
 	glPopMatrix();
 }
+
 
 - (void)renderBox:(float *)coord rotation:(float *)rotation color:(float *)color selected:(BOOL)selected
 {
@@ -2334,10 +2941,63 @@
 				break;
 			case teleporter_entrance:
 				color[0] = 1.0f; color[1] = 1.0f; color[2] = 0.2f;
+                
+                BOOL found = false;
+                multiplayer_flags mp_exit;
+                int a;
+                for (a = 0; a < [_scenario multiplayer_flags_count]; a++)
+                {
+                    if (a == i)
+                        continue;
+                    
+                    if (mp_flags[a].type == teleporter_exit)
+                    {
+                        if (mp_flags[a].team_index == mp_flags[i].team_index)
+                        {
+                            found = true;
+                            mp_exit = mp_flags[a];
+                            break;
+                        }
+                    }
+                        
+                }
+                
+                if (found)
+                {
+                    //Connect these two objects with a line.
+                    //mp_flags[i].coord
+                    //mp_flags[i+1].coord
+  
+                    
+                    
+                    float *coord = mp_flags[i].coord;
+                    float *coord2 = mp_exit.coord;
+                    
+                    glLineWidth(0.1f);
+                    glBegin(GL_LINES);
+                    {
+                        // Now to try some other stuffs! Bwahaha!
+                        // set these lines to white
+                        
+                        
+                        // pointer arrow
+                        glColor3f(1.0f,0.5f,0.5f);
+                        glVertex3f(coord[0],coord[1],coord[2]);
+                        glVertex3f(coord2[0],coord2[1],coord2[2]);
+                    }
+                    glEnd();
+                 
+                    
+                    
+                }
+                
 				[self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
 				break;
 			case teleporter_exit:
 				color[0] = 0.2f; color[1] = 1.0f; color[2] = 1.0f;
+                
+                //mp_flags[i].team_index
+                
 				[self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
 				break;
 			case hill_flag:
@@ -2381,6 +3041,7 @@
 	else if ((sender == s_xRotation) || (sender == s_yRotation) || (sender == s_zRotation))
 	{
 		[self rotateFocusedItem:[s_xRotation floatValue] y:[s_yRotation floatValue] z:[s_zRotation floatValue]];
+        [self setNeedsDisplay:YES];
 	}
 	else if ((sender == s_xRotText) || (sender == s_yRotText) || (sender == s_zRotText))
 	{
@@ -2388,6 +3049,10 @@
 		[s_yRotation setFloatValue:[[s_yRotText stringValue] floatValue]];
 		[s_zRotation setFloatValue:[[s_zRotText stringValue] floatValue]];
 		[self rotateFocusedItem:[s_xRotText floatValue] y:[s_yRotText floatValue] z:[s_zRotText floatValue]];
+	}
+    else if ((sender == s_xText) || (sender == s_yText) || (sender == s_zText))
+	{
+		[self moveFocusedItem:[s_xText floatValue] y:[s_yText floatValue] z:[s_zText floatValue]];
 	}
 }
 
@@ -2770,7 +3435,19 @@
 		if (_mapfile)
 		{
 			[self deselectAllObjects];
-			[self processSelection:(unsigned int)[_scenario createTeleporterPair:[_camera vView]]];
+            
+            if ([[[createType selectedItem] title] isEqualToString:@"Teleporter Pair"])
+                [self processSelection:(unsigned int)[_scenario createTeleporterPair:[_camera vView]]];
+            else if ([[[createType selectedItem] title] isEqualToString:@"Scenery"])
+                [self processSelection:(unsigned int)[_scenario createSkull:[_camera vView]]];
+            else if ([[[createType selectedItem] title] isEqualToString:@"Vehicle"])
+                [self processSelection:(unsigned int)[_scenario createVehicle:[_camera vView]]];
+            else if ([[[createType selectedItem] title] isEqualToString:@"Item"])
+                [self processSelection:(unsigned int)[_scenario createItem:[_camera vView]]];
+            else if ([[[createType selectedItem] title] isEqualToString:@"Red Spawn"])
+                [self processSelection:(unsigned int)[_scenario createRedSpawn:[_camera vView]]];
+            else if ([[[createType selectedItem] title] isEqualToString:@"Machine"])
+                [self processSelection:(unsigned int)[_scenario createMachine:[_camera vView]]];
 		}
 	}
 	else if (sender == s_skullCreateButton)
@@ -2878,19 +3555,24 @@
 				[_scenario item_spawns][index].modelIdent = [_scenario itmcModelForId:[_scenario item_spawns][index].itmc.TagId];
 				break;
 			case s_machine:
+                NSLog(@"%d", [sender indexOfSelectedItem]);
 				[_scenario mach_spawns][index].numid = [sender indexOfSelectedItem];
 				break;
 			case s_vehicle:
 				NSLog(@"Change vehicle ref");
-				numid = &[_scenario vehi_spawns][index].numid;
+				numid = [_scenario vehi_spawns][index].numid;
 				
 				//Switch the types of vehicles
-				long original_mt = [_scenario vehi_references][*numid].vehi_ref.TagId;
-				long new_mt = [_scenario vehi_references][[sender indexOfSelectedItem]].vehi_ref.TagId;
+				//long original_mt = [_scenario vehi_references][*numid].vehi_ref.TagId;
+				//long new_mt = [_scenario vehi_references][[sender indexOfSelectedItem]].vehi_ref.TagId;
 				
-				[_scenario vehi_references][*numid].vehi_ref.TagId = new_mt;
-				[_scenario vehi_references][[sender indexOfSelectedItem]].vehi_ref.TagId = original_mt;
-				
+				//[_scenario vehi_references][*numid].vehi_ref.TagId = new_mt;
+				//[_scenario vehi_references][[sender indexOfSelectedItem]].vehi_ref.TagId = original_mt;
+                
+                [_scenario vehi_spawns][index].numid = [sender indexOfSelectedItem];
+				[_scenario vehi_spawns][index].modelIdent = [_scenario baseModelIdent:[_scenario vehi_references][[sender indexOfSelectedItem]].vehi_ref.TagId];
+                
+                //[_scenario pairModelsWithSpawn];
 				break;
 		}
 		[self fillSelectionInfo];
@@ -2913,6 +3595,8 @@
 
 
 	}
+    
+    //[self loadPrefs];
 }
 - (void)lookAtFocusedItem
 {
@@ -2983,7 +3667,6 @@
 }
 - (IBAction)setCameraSpawn:(id)sender
 {
-	
 	NSData *camDat = [NSData dataWithBytes:&camCenter[0] length:12];
 	[prefs setObject:camDat forKey:[[_mapfile mapName] stringByAppendingFormat:@"camDat_0%d", activeBSPNumber]];
 	//[prefs setObject:camDat forKey:[[[_mapfile mapName] stringByAppendingString:@"camDat_0"] stringByAppendingString:[[NSNumber numberWithInt:activeBSPNumber] stringValue]]];
@@ -3004,6 +3687,19 @@
 	for (i = 0; i < 6; i++)
 		move_keys_down[i].isDown = NO;
 }
+- (void)setPositionSliders:(float)x y:(float)y z:(float)z
+{
+	[s_xText setStringValue:[NSString stringWithFormat:@"%f",x]];
+	[s_yText setStringValue:[NSString stringWithFormat:@"%f",y]];
+	[s_zText setStringValue:[NSString stringWithFormat:@"%f",z]];
+	
+	[s_xText setEnabled:YES];
+	[s_yText setEnabled:YES];
+	[s_zText setEnabled:YES];
+	[s_xText setEditable:YES];
+	[s_yText setEditable:YES];
+	[s_zText setEditable:YES];
+}
 - (void)setRotationSliders:(float)x y:(float)y z:(float)z
 {
 	x = fabs(piradToDeg(x));
@@ -3018,6 +3714,10 @@
 	[s_yRotText setStringValue:[NSString stringWithFormat:@"%f",y]];
 	[s_zRotText setStringValue:[NSString stringWithFormat:@"%f",z]];
 	
+    [s_xRotation setEnabled:YES];
+	[s_yRotation setEnabled:YES];
+	[s_zRotation setEnabled:YES];
+    
 	[s_xRotText setEnabled:YES];
 	[s_yRotText setEnabled:YES];
 	[s_zRotText setEnabled:YES];
@@ -3100,6 +3800,248 @@
 	
 }
 
+float dp(float*v1,float*v2)
+{
+    return (float)((float)v1[0]*(float)v2[0] + (float)v1[1]*(float)v2[1]);// + (float)v1[2]*(float)v2[2]);
+}
+
+// Start Code
+// must include at least these
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define SAME_CLOCKNESS 1
+#define DIFF_CLOCKNESS 0
+
+typedef struct fpoint_tag
+{
+    float x;
+    float y;
+    float z;
+} fpoint;
+
+fpoint pt1 = {0.0, 0.0, 0.0};
+fpoint pt2 = {0.0, 3.0, 3.0};
+fpoint pt3 = {2.0, 0.0, 0.0};
+fpoint linept = {0.0, 0.0, 6.0};
+fpoint vect = {0.0, 2.0, -4.0};
+fpoint pt_int = {0.0, 0.0, 0.0};
+
+int check_same_clock_dir(fpoint pt1, fpoint pt2, fpoint pt3, fpoint norm)
+{
+    float testi, testj, testk;
+    float dotprod;
+    // normal of trinagle
+    testi = (((pt2.y - pt1.y)*(pt3.z - pt1.z)) - ((pt3.y - pt1.y)*(pt2.z - pt1.z)));
+    testj = (((pt2.z - pt1.z)*(pt3.x - pt1.x)) - ((pt3.z - pt1.z)*(pt2.x - pt1.x)));
+    testk = (((pt2.x - pt1.x)*(pt3.y - pt1.y)) - ((pt3.x - pt1.x)*(pt2.y - pt1.y)));
+    
+    // Dot product with triangle normal
+    dotprod = testi*norm.x + testj*norm.y + testk*norm.z;
+    
+    //answer
+    if(dotprod < 0)
+        return DIFF_CLOCKNESS;
+    else
+        return SAME_CLOCKNESS;
+}
+
+int check_intersect_tri(fpoint pt1, fpoint pt2, fpoint pt3, fpoint linept, fpoint vect, fpoint* pt_int)
+{
+    float V1x, V1y, V1z;
+    float V2x, V2y, V2z;
+    fpoint norm;
+    float dotprod;
+    float t;
+    
+    // vector form triangle pt1 to pt2
+    V1x = pt2.x - pt1.x;
+    V1y = pt2.y - pt1.y;
+    V1z = pt2.z - pt1.z;
+    
+    // vector form triangle pt2 to pt3
+    V2x = pt3.x - pt2.x;
+    V2y = pt3.y - pt2.y;
+    V2z = pt3.z - pt2.z;
+    
+    // vector normal of triangle
+    norm.x = V1y*V2z-V1z*V2y;
+    norm.y = V1z*V2x-V1x*V2z;
+    norm.z = V1x*V2y-V1y*V2x;
+    
+    // dot product of normal and line's vector if zero line is parallel to triangle
+    dotprod = norm.x*vect.x + norm.y*vect.y + norm.z*vect.z;
+    
+    //if(dotprod < 0)
+    //{
+        //Find point of intersect to triangle plane.
+        //find t to intersect point
+        t = -(norm.x*(linept.x-pt1.x)+norm.y*(linept.y-pt1.y)+norm.z*(linept.z-pt1.z))/
+        (norm.x*vect.x+norm.y*vect.y+norm.z*vect.z);
+        
+        // if ds is neg line started past triangle so can't hit triangle.
+        if(t < 0) return 0;
+            
+        pt_int->x = linept.x + vect.x*t;
+        pt_int->y = linept.y + vect.y*t;
+        pt_int->z = linept.z + vect.z*t;
+        
+       
+        if(check_same_clock_dir(pt1, pt2, *pt_int, norm) == SAME_CLOCKNESS)
+        {
+            if(check_same_clock_dir(pt2, pt3, *pt_int, norm) == SAME_CLOCKNESS)
+            {
+                if(check_same_clock_dir(pt3, pt1, *pt_int, norm) == SAME_CLOCKNESS)
+                {
+                    // answer in pt_int is insde triangle
+                    return 1;
+                }
+            }
+        }
+    //}
+    return 0;
+}
+
+-(float*)coordtoGround:(float*)pos
+{
+    SUBMESH_INFO *pMesh2;
+	int a;
+	int i;
+    
+    float *closest;
+    BOOL found = NO;
+    BOOL collison = NO;
+    float closestDistance = 1000;
+    
+    int mesh_count = [mapBSP GetActiveBspSubmeshCount];
+    for (a = 0; a < mesh_count; a++)
+    {
+        
+        pMesh2 = [mapBSP GetActiveBspPCSubmesh:a];
+        
+        //Find the closest x,y coordinate for this.
+        for (i = 0; i < pMesh2->IndexCount; i++)
+        {
+            float *pt1 = ((pMesh2->pVert[pMesh2->pIndex[i].tri_ind[0]].vertex_k));
+            float *pt2 = ((float *)(pMesh2->pVert[pMesh2->pIndex[i].tri_ind[1]].vertex_k));
+            float *pt3 = ((float *)(pMesh2->pVert[pMesh2->pIndex[i].tri_ind[2]].vertex_k));
+            
+            if (pt1[0] == pt2[0] || pt1[1] == pt2[1])
+            {
+                continue;
+            }
+            
+            
+            
+            fpoint fpt1 = {pt1[0], pt1[1], pt1[2]};
+            fpoint fpt2 = {pt2[0], pt2[1], pt2[2]};
+            fpoint fpt3 = {pt3[0], pt3[1], pt3[2]};
+            fpoint fpt4 = {pos[0], pos[1], pos[2]+100};
+            fpoint v = {0,0,-1};
+            fpoint* pt_int = malloc(sizeof(fpoint));
+            
+            
+             
+            
+           
+            
+            //Is our point on this plane (x,y) wise
+            float *v0 = malloc(sizeof(float)*3);
+            v0[0]=pt3[0]-pt1[0];
+            v0[1]=pt3[1]-pt1[1];
+            v0[2]=pt3[2]-pt1[2];
+            
+            float *v1 = malloc(sizeof(float)*3);
+            v1[0]=pt2[0]-pt1[0];
+            v1[1]=pt2[1]-pt1[1];
+            v1[2]=pt2[2]-pt1[2];
+            
+            float *v2 = malloc(sizeof(float)*3);
+            v2[0]=pos[0]-pt1[0];
+            v2[1]=pos[1]-pt1[1];
+            v2[2]=pos[2]-pt1[2];
+            
+            float dot00 = dp(v0,v0);
+            float dot01 = dp(v0,v1);
+            float dot02 = dp(v0,v2);
+            float dot11 = dp(v1,v1);
+            float dot12 = dp(v1,v2);
+            
+            float invDenom = 1/(dot00 * dot11 - dot01 * dot01);
+            float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+            float v32 = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+            free(v0);
+            free(v1);
+            free(v2);
+            
+            if ((u >= 0) && (v32 >= 0) && (u + v32 < 1))
+            {
+               
+                
+                float dist1 = (float)sqrt(powf(pos[0] - pt1[0],2) + powf(pos[1] - pt1[1], 2) + powf(pos[2] - pt1[2], 2));
+                float dist2 = (float)sqrt(powf(pos[0] - pt2[0],2) + powf(pos[1] - pt2[1], 2) + powf(pos[2] - pt2[2], 2));
+                float dist3 = (float)sqrt(powf(pos[0] - pt3[0],2) + powf(pos[1] - pt3[1], 2) + powf(pos[2] - pt3[2], 2));
+                
+                
+                float total = dist1+dist2+dist3;
+                dist1=total-dist1;
+                dist2=total-dist2;
+                dist3=total-dist3;
+                total = dist1+dist2+dist3;
+                
+                float z=((dist3/total)*pt3[2]+(dist2/total)*pt2[2]+(dist1/total)*pt1[2]);
+                
+                if (check_intersect_tri(fpt1, fpt2, fpt3, fpt4, v, pt_int))
+                {
+                    indexMesh = a;
+                    indexHighlight = i;
+                    //NSLog(@"Intersect");
+                    //float z = ;
+                    //float dist = (float)sqrt(powf(pos[0] - pos[0],2) + powf(pos[1] - pos[1], 2) + powf(pos[2] - z, 2));
+                    //if (dist < closestDistance)
+                    //{
+                    
+                    if (pt_int->z > pos[2] && pt_int->z - pos[2] > 0.3)
+                    {
+                        collison = YES;
+                    }
+                    
+                    float dist = (float)sqrt(powf(pos[0] - pt_int->x,2) + powf(pos[1] - pt_int->y, 2) + powf(pos[2] - pt_int->z, 2));
+                    if (dist < closestDistance)
+                    {
+                        closestDistance = dist;
+                        
+                        //Inside triangle
+                        closest = malloc(sizeof(float)*3);
+                        closest[0]=pt_int->x;
+                        closest[1]=pt_int->y;
+                        closest[2]=pt_int->z;
+                        //}
+                        //return closest;
+                        found = YES;
+                    }
+                }
+            }
+              
+             
+        }
+    }
+	
+    if (found)
+        return closest;
+    if (collison)
+        return pos;
+    
+    float *ret = malloc(sizeof(float)*3);
+    ret[0]=0;
+    ret[1]=0;
+    ret[2]=0;
+    
+    return ret;
+}
+
 - (void)trySelection:(NSPoint)downPoint shiftDown:(BOOL)shiftDown width:(CGFloat)w height:(CGFloat)h
 {
 	_lookup = NULL;
@@ -3155,10 +4097,11 @@
 	
 	gluPickMatrix((GLdouble)downPoint.x + w / 2,(GLdouble)downPoint.y + h / 2,w,h,viewport);
 	
-	gluPerspective(45.0f,(GLfloat)(viewport[2] - viewport[0])/(GLfloat)(viewport[3] - viewport[1]),0.1f,1000.0f);
+	gluPerspective(45.0f,(GLfloat)(viewport[2] - viewport[0])/(GLfloat)(viewport[3] - viewport[1]),0.1f,4000000.0f);
 	
 	glMatrixMode(GL_MODELVIEW);
-	
+	glColor4f(1.0f,1.0f,1.0f,1.0f);
+        
 	// This kick starts names
 	[self renderAllMapObjects];
 	
@@ -3179,7 +4122,7 @@
 	type = (long)(tableVal / 10000);
 	index = (tableVal % 10000);
 	*/
-	
+        ignoreCSS = 0;
 		for (i = 0; i < hits; i++)
 		{
 			
@@ -3350,6 +4293,195 @@
 	[selections removeAllObjects];
 	[selectedSwapButton removeAllItems];
 }
+
+#define kBitmask @"Bitmask"
+#define kPopup @"Popup"
+#define kName @"Name"
+#define kType @"Type"
+#define kData @"Data"
+#define kSelection @"Selection"
+#define kPointer @"Pointer"
+
+-(IBAction)updateValueForUserInterface:(NSPopUpButton*)sender
+{
+    if ([selections count] == 1)
+    {
+        unsigned int nameLookup,
+        type,
+        index;
+        
+        nameLookup = [[selections objectAtIndex:0] unsignedIntValue];
+		type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+		index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+		
+		long *pointer = [[sender toolTip] longLongValue];
+        (*pointer) = (short)[sender indexOfItem:[sender selectedItem]];
+    }
+}
+
+-(IBAction)updateValueForBITMASKUserInterface:(NSPopUpButton*)sender
+{
+    //pointer|new value
+    if ([selections count] == 1)
+    {
+        unsigned int nameLookup,
+        type,
+        index;
+        
+        nameLookup = [[selections objectAtIndex:0] unsignedIntValue];
+		type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+		index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+		
+        NSString *str = [sender toolTip];
+        int d = (int)[[str substringFromIndex:[str rangeOfString:@"|"].location+1] intValue];
+        
+        long *pointer = [[str substringToIndex:[str rangeOfString:@"|"].location] longLongValue];
+        short cVal = *pointer;
+        
+        //((sel>>(31-val)) & 1)
+        
+        if (cVal & (int)pow(2, (31-d)))
+        {
+            NSLog(@"Removing %ld %d %d", pointer, cVal, d);
+            (*pointer) = (int)cVal & ~ (int)pow(2, (31-d));
+        }
+        else
+        {
+            NSLog(@"Adding %ld %d %d", pointer, cVal, d);
+            (*pointer) = (int)cVal | (int)pow(2, (31-d)); //Add a value
+        }
+    }
+}
+
+
+char *int2bin(int a, char *buffer, int buf_size) {
+    buffer += (buf_size - 1);
+    
+    for (int i = 31; i >= 0; i--) {
+        *buffer-- = (a & 1) + '0';
+        
+        a >>= 1;
+    }
+    
+    return buffer;
+}
+
+#define BUF_SIZE 33
+
+
+-(void)createUserInterfaceForSettings:(NSArray*)settings;
+{
+    
+    
+    float maxWidth = 100;
+    float border = 20;
+    float elementHeight = 22;
+    
+    float totalHeight = border;
+    
+    NSArray *subviews = [[settings_Window_Object contentView] subviews];
+    int i;
+    for (i=0; i < [subviews count]; i++)
+    {
+        [[subviews objectAtIndex:i] removeFromSuperview];
+    }
+    
+    [settings_Window_Object setFrame:NSMakeRect([settings_Window_Object frame].origin.x, settings_Window_Object.frame.origin.y, settings_Window_Object.frame.size.width, 2*border + (elementHeight+10)*([settings count])) display:YES];
+    float y = [[settings_Window_Object contentView] bounds].size.height - border;
+    
+    
+    
+    for(i=0; i < [settings count]; i++)
+    {
+        float x = border;
+        
+        NSDictionary *data = [settings objectAtIndex:i];
+        NSString *text = [data objectForKey:kName];
+
+        y-=elementHeight;
+        
+        NSTextField *title = [[NSTextField alloc] initWithFrame:NSMakeRect(x, y, maxWidth, elementHeight)];
+        [title setStringValue:text];
+        [title sizeToFit];
+        
+        [title setBordered:NO];
+        [title setEditable:NO];
+        [title setSelectable:NO];
+        [title setBackgroundColor:[NSColor clearColor]];
+        
+        x+=maxWidth;
+        
+        //Add the appropriate value
+        if ([[data objectForKey:kType] isEqualToString:kPopup])
+        {
+            NSPopUpButton *button = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(x, y, [settings_Window_Object frame].size.width-border-x, elementHeight)];
+            
+            NSArray *kdata = [data objectForKey:kData];
+            [button addItemsWithTitles:kdata];
+            
+            NSLog(@"%@: %d", text, [[data objectForKey:kSelection] intValue]);
+        
+            if ([[data objectForKey:kSelection] intValue] > 0 && [[data objectForKey:kSelection] intValue] < [kdata count])
+                [button selectItemAtIndex:[[data objectForKey:kSelection] intValue]];
+            
+            [button setTarget:self];
+            [button setAction:@selector(updateValueForUserInterface:)];
+            
+            if ([data objectForKey:kPointer])
+                [button setToolTip:[NSString stringWithFormat:@"%ld", [[data objectForKey:kPointer] longValue]]];
+            
+            [[settings_Window_Object contentView] addSubview:button];
+        }
+        else if ([[data objectForKey:kType] isEqualToString:kBitmask])
+        {
+            NSButton *button = [[NSButton alloc] initWithFrame:NSMakeRect(x, y, [settings_Window_Object frame].size.width-border-x, elementHeight)];
+            [button setButtonType:NSSwitchButton];
+            [button setTitle:@""];
+            
+            
+            int val = [[data objectForKey:kData] intValue];
+            int sel = [[data objectForKey:kSelection] intValue];
+            
+
+      
+            //NSLog(@"%@: %d %d %d %d", text, val, sel, sel&val, ((sel>>(31-val)) & 1));
+            
+            
+        
+            if ((sel>>(31-val)) & 1)
+            {
+                [button setState:1];
+            }
+            
+            [button setTarget:self];
+            [button setAction:@selector(updateValueForBITMASKUserInterface:)];
+            
+            
+            if ([data objectForKey:kPointer])
+                [button setToolTip:[NSString stringWithFormat:@"%ld|%d", [[data objectForKey:kPointer] longValue], (int)val]];
+            
+            
+            [[settings_Window_Object contentView] addSubview:button];
+        }
+        
+        [[settings_Window_Object contentView] addSubview:title];
+        
+        totalHeight+=elementHeight+10;
+        y-=10;
+    }
+    totalHeight+=border;
+    
+    [[settings_Window_Object contentView] setNeedsDisplay:YES];
+    
+    //Type0 Popup
+    //Type1 Popup
+    //Type2 Popup
+    //Type3 Popup
+    //Team Index Popup
+    
+    //settings_Window_Object
+}
+
 - (void)processSelection:(unsigned int)tableVal
 {
 	[spawne setAlphaValue:1.0];
@@ -3375,29 +4507,48 @@
 		case s_scenery:
 			if (_selectType == s_all || _selectType == s_scenery)
 			{
-				
-				if (is_css)
+				/*
+                if (ignoreCSS)
+                {
+                    [self deselectAllObjects];
+                    break;
+                }
+				else if (is_css)
 				{
 					if (NSRunAlertPanel(@"Cascading Server Side (CSS)", @"If you move this object (scenery), other players will not be able to see it without the mod. Lag may occur when players collide with it.", @"Cancel", @"Continue", nil) == NSOKButton)
 					{
+                        ignoreCSS = 1;
 						[self deselectAllObjects];
 						break;
 					}
-				else {
+				else
+                {
 					is_css = NO;
-					}
+                }
 				}
-				
+				*/
+                
 				[_scenario scen_spawns][index].isSelected = YES;
 				mapIndex = [_scenario scen_references][[_scenario scen_spawns][index].numid].scen_ref.TagId;
 				[self setRotationSliders:[_scenario scen_spawns][index].rotation[0] y:[_scenario scen_spawns][index].rotation[1] z:[_scenario scen_spawns][index].rotation[2]];
-				
+				[self setPositionSliders:[_scenario scen_spawns][index].coord[0] y:[_scenario scen_spawns][index].coord[1] z:[_scenario scen_spawns][index].coord[2]];
 				[selectedSwapButton addItemsWithTitles:(NSArray *)[_scenario scenTagArray]];
 			}
 			break;
 		case s_playerspawn:
 			if (_selectType == s_all || _selectType == s_playerspawn)
 			{
+                
+                NSArray *gametypeList = @[@"None", @"CTF", @"Slayer", @"Oddball", @"King of the Hill", @"Race", @"Terminator", @"Stub", @"Ignored 1", @"Ignored 2", @"Ignored 3", @"Ignored 4", @"All Games", @"All except CTF", @"All except Race and CTF"];
+                NSArray *settings = @[@{kName:@"Gametype 1", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario spawns][index].type1], kPointer:[NSNumber numberWithLong:&([_scenario spawns][index].type1)]},
+                                      @{kName:@"Gametype 2", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario spawns][index].type2], kPointer:[NSNumber numberWithLong:&([_scenario spawns][index].type2)]},
+                                      @{kName:@"Gametype 3", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario spawns][index].type3], kPointer:[NSNumber numberWithLong:&([_scenario spawns][index].type3)]},
+                                      @{kName:@"Gametype 4", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario spawns][index].type4], kPointer:[NSNumber numberWithLong:&([_scenario spawns][index].type4)]},
+                                      @{kName:@"Team Index", kType:kPopup, kData:@[@"Red", @"Blue"], kSelection:[NSNumber numberWithShort:[_scenario spawns][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario spawns][index].team_index)]}];
+                
+                [self performSelectorOnMainThread:@selector(createUserInterfaceForSettings:) withObject:settings waitUntilDone:YES];
+      
+                
 				[_scenario spawns][index].isSelected = YES;
 				switch ([_scenario spawns][index].team_index)
 				{
@@ -3409,6 +4560,7 @@
 						break;
 				}
 				[self setRotationSliders:[_scenario spawns][index].rotation y:0 z:0];
+                [self setPositionSliders:[_scenario spawns][index].coord[0] y:[_scenario spawns][index].coord[1] z:[_scenario spawns][index].coord[2]];
 				overrideString = TRUE;
 			}
 			break;
@@ -3426,6 +4578,7 @@
 						break;
 				}
 				[self setRotationSliders:[_scenario encounters][index].start_locs[0].rotation y:0 z:0];
+                [self setPositionSliders:[_scenario encounters][index].start_locs[0].coord[0] y:[_scenario encounters][index].start_locs[0].coord[1] z:[_scenario encounters][index].start_locs[0].coord[2]];
 				overrideString = TRUE;
 			}
 			break;
@@ -3435,37 +4588,57 @@
 				map_objects[index].isSelected = YES;
 				[selectedType setStringValue:[NSString stringWithFormat:@"%d",map_objects[index].address]];
 				[self setRotationSliders:0 y:0 z:0];
+                //[self setPositionSliders:[_scenario scen_spawns][index].coord[0] y:[_scenario scen_spawns][index].coord[1] z:[_scenario scen_spawns][index].coord[2]];
 			}
 			break;
 		case s_vehicle:
 			if (_selectType == s_all || _selectType == s_vehicle)
 			{
+                //88 //56
+                
+                short *pointer;
+                pointer = &([_scenario vehi_spawns][index].unknown2[14]);
+                pointer = pointer + 1;
+                
+                NSArray *settings = @[@{kName:@"Team Index", kType:kPopup, kData:@[@"Red", @"Blue"], kSelection:[NSNumber numberWithShort:[_scenario vehi_spawns][index].unknown2[14]], kPointer:[NSNumber numberWithLong:&([_scenario vehi_spawns][index].unknown2[14])]},
+                                      @{kName:@"CTF", kType:kBitmask, kData:[NSNumber numberWithInteger:30], kSelection:[NSNumber numberWithInteger:*pointer], kPointer:[NSNumber numberWithLong:pointer]},
+                                      @{kName:@"Slayer", kType:kBitmask, kData:[NSNumber numberWithInteger:31], kSelection:[NSNumber numberWithInteger:*pointer], kPointer:[NSNumber numberWithLong:pointer]},
+                                      @{kName:@"King", kType:kBitmask, kData:[NSNumber numberWithInteger:29], kSelection:[NSNumber numberWithInteger:*pointer], kPointer:[NSNumber numberWithLong:pointer]},
+                                      @{kName:@"Oddball", kType:kBitmask, kData:[NSNumber numberWithInteger:28], kSelection:[NSNumber numberWithInteger:*pointer], kPointer:[NSNumber numberWithLong:pointer]}];
+                [self performSelectorOnMainThread:@selector(createUserInterfaceForSettings:) withObject:settings waitUntilDone:YES];
+                
 				[_scenario vehi_spawns][index].isSelected = YES;
 				mapIndex = [_scenario vehi_references][[_scenario vehi_spawns][index].numid].vehi_ref.TagId;
 				[self setRotationSliders:[_scenario vehi_spawns][index].rotation[0] y:[_scenario vehi_spawns][index].rotation[1] z:[_scenario vehi_spawns][index].rotation[2]];
-				
+				[self setPositionSliders:[_scenario vehi_spawns][index].coord[0] y:[_scenario vehi_spawns][index].coord[1] z:[_scenario vehi_spawns][index].coord[2]];
 				[selectedSwapButton addItemsWithTitles:(NSArray *)[_scenario vehiTagArray]];
 			}
 			break;
 		case s_machine:
 			if (_selectType == s_all || _selectType == s_machine)
 			{
+                
+                
 				[_scenario mach_spawns][index].isSelected = YES;
 				mapIndex = [_scenario mach_references][[_scenario mach_spawns][index].numid].machTag.TagId;
 				[self setRotationSliders:[_scenario mach_spawns][index].rotation[0] y:[_scenario mach_spawns][index].rotation[1] z:[_scenario mach_spawns][index].rotation[2]];
-			
+                [self setPositionSliders:[_scenario mach_spawns][index].coord[0] y:[_scenario mach_spawns][index].coord[1] z:[_scenario mach_spawns][index].coord[2]];
 				[selectedSwapButton addItemsWithTitles:(NSArray *)[_scenario machTagArray]];
 			}
 			break;
 		case s_netgame:
 			if (_selectType == s_all || _selectType == s_netgame)
 			{
+                NSArray *gametypeList = @[@"CTF Flag", @"CTF Vehicle", @"Oddball Spawn", @"Race Track", @"Race Vehicle", @"Vegas Bank", @"Teleport From", @"Teleport To", @"Hill Flag"];
+                NSArray *settings = @[@{kName:@"Type", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].type], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].type)]},
+                                      @{kName:@"Team Index", kType:kPopup, kData:@[@"Red", @"Blue", @"Yellow"], kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].team_index)]}];
+                [self performSelectorOnMainThread:@selector(createUserInterfaceForSettings:) withObject:settings waitUntilDone:YES];
+                
 				[_scenario netgame_flags][index].isSelected = YES;
 				switch ([_scenario netgame_flags][index].type)
 				{
 					case teleporter_entrance:
 						[selectedType setStringValue:@"Teleporter Entrance"];
-						
 						break;
 					case teleporter_exit:
 						[selectedType setStringValue:@"Teleporter Exit"];
@@ -3493,16 +4666,27 @@
 						break;
 				}
 				[self setRotationSliders:[_scenario netgame_flags][index].rotation y:0 z:0];
+                [self setPositionSliders:[_scenario netgame_flags][index].coord[0] y:[_scenario netgame_flags][index].coord[1] z:[_scenario netgame_flags][index].coord[2]];
 				overrideString = YES;
 			}
 			break;
 		case s_item:
 			if (_selectType == s_all || _selectType == s_item)
 			{
+                NSLog(@"%ld", [_scenario item_spawns][index].bitmask32);
+                NSArray *gametypeList = @[@"None", @"CTF", @"Slayer", @"Oddball", @"King of the Hill", @"Race", @"Terminator", @"Stub", @"Ignored 1", @"Ignored 2", @"Ignored 3", @"Ignored 4", @"All Games", @"All except CTF", @"All except Race and CTF"];
+                NSArray *settings = @[@{kName:@"Levitate", kType:kPopup, kData:@[@"No", @"Yes"], kSelection:[NSNumber numberWithShort:[_scenario item_spawns][index].bitmask32], kPointer:[NSNumber numberWithLong:&([_scenario item_spawns][index].bitmask32)]},
+                                      @{kName:@"Gametype 1", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario item_spawns][index].type1], kPointer:[NSNumber numberWithLong:&([_scenario item_spawns][index].type1)]},
+                                      @{kName:@"Gametype 2", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario item_spawns][index].type2], kPointer:[NSNumber numberWithLong:&([_scenario item_spawns][index].type2)]},
+                                      @{kName:@"Gametype 3", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario item_spawns][index].type3], kPointer:[NSNumber numberWithLong:&([_scenario item_spawns][index].type3)]},
+                                      @{kName:@"Gametype 4", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario item_spawns][index].type4], kPointer:[NSNumber numberWithLong:&([_scenario item_spawns][index].type4)]},
+                                      @{kName:@"Team Index", kType:kPopup, kData:@[@"Red", @"Blue"], kSelection:[NSNumber numberWithShort:[_scenario item_spawns][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario item_spawns][index].team_index)]}];
+                [self createUserInterfaceForSettings:settings];
+                
 				[_scenario item_spawns][index].isSelected = YES;
 				mapIndex = [_scenario item_spawns][index].itmc.TagId;
 				[self setRotationSliders:[_scenario item_spawns][index].yaw y:0 z:0];
-				
+				[self setPositionSliders:[_scenario item_spawns][index].coord[0] y:[_scenario item_spawns][index].coord[1] z:[_scenario item_spawns][index].coord[2]];
 				
 				[selectedSwapButton addItemsWithTitles:(NSArray *)[_mapfile itmcList]];
 			}
@@ -3513,7 +4697,7 @@
 				//LIVE
 				playercoords[(index * 8) + 4] = 1.0;
 				[self setRotationSliders:0 y:0 z:0];
-				
+				//[self setPositionSliders:[_scenario scen_spawns][index].coord[0] y:[_scenario scen_spawns][index].coord[1] z:[_scenario scen_spawns][index].coord[2]];
 				[selectedType setStringValue:[new_characters objectAtIndex:index]];
 			}
 			break;
@@ -3524,6 +4708,7 @@
 				
 				//LIVE
 				[self setRotationSliders:0 y:0 z:0];
+                //[self setPositionSliders:[_scenario scen_spawns][index].coord[0] y:[_scenario scen_spawns][index].coord[1] z:[_scenario scen_spawns][index].coord[2]];
 				[selectedName setStringValue:@"BSP Point"];
 			}
 			break;
@@ -3534,6 +4719,7 @@
 				
 				//LIVE
 				[self setRotationSliders:0 y:0 z:0];
+                //[self setPositionSliders:[_scenario scen_spawns][index].coord[0] y:[_scenario scen_spawns][index].coord[1] z:[_scenario scen_spawns][index].coord[2]];
 				[selectedName setStringValue:@"Collision Point"];
 			}
 			break;
@@ -3569,6 +4755,7 @@
 				mapIndex = [_scenario scen_references][[_scenario scen_spawns][index].numid].scen_ref.TagId;
 				[selectedName setStringValue:[[_mapfile tagForId:mapIndex] tagName]];
 				[self setRotationSliders:[_scenario scen_spawns][index].rotation[0] y:[_scenario scen_spawns][index].rotation[1] z:[_scenario scen_spawns][index].rotation[2]];
+                [self setPositionSliders:[_scenario scen_spawns][index].coord[0] y:[_scenario scen_spawns][index].coord[1] z:[_scenario scen_spawns][index].coord[2]];
 			}
 			break;
 		case s_item:
@@ -3577,6 +4764,7 @@
 				[_scenario item_spawns][index].isSelected = YES;
 				mapIndex = [_scenario item_spawns][index].itmc.TagId;
 				[self setRotationSliders:[_scenario item_spawns][index].yaw y:0 z:0];
+                [self setPositionSliders:[_scenario scen_spawns][index].coord[0] y:[_scenario scen_spawns][index].coord[1] z:[_scenario scen_spawns][index].coord[2]];
 			}
 			break;
 	}
@@ -3901,35 +5089,10 @@
 		}
 	}
 	
-	// Now lets apply the transformations.
-	/*for (i = 0; i < [selections count]; i++)
-	{
-		nameLookup = [[selections objectAtIndex:i] unsignedIntValue];
-		type = (unsigned int)(nameLookup / 10000);
-		index = (unsigned int)(nameLookup % 10000);
-		
-		switch (type)
-		{
-			case s_vehicle:
-				[self calculateTranslation:[_scenario vehi_spawns][index].coord move:move];
-				break;
-			case s_scenery:
-				[self calculateTranslation:[_scenario scen_spawns][index].coord move:move];
-				break;
-			case s_playerspawn:
-				[self calculateTranslation:[_scenario spawns][index].coord move:move];
-				break;
-			case s_netgame:
-				[self calculateTranslation:[_scenario netgame_flags][index].coord move:move];
-				break;
-			case s_item:
-				[self calculateTranslation:[_scenario item_spawns][index].coord move:move];
-				break;
-			case s_machine:
-				[self calculateTranslation:[_scenario mach_spawns][index].coord move:move];
-				break;
-		}
-	}*/
+    
+    
+    
+	
 	[_spawnEditor loadFocusedItemData:_selectFocus];
 }
 
@@ -4134,6 +5297,49 @@
 	coord[1] += move[1];
 	coord[2] += move[2];
 }
+
+- (void)moveFocusedItem:(float)x y:(float)y z:(float)z
+{
+	int type, index;
+	type = (_selectFocus / MAX_SCENARIO_OBJECTS);
+	index = (_selectFocus % MAX_SCENARIO_OBJECTS);
+	
+	switch (type)
+	{
+		case s_vehicle:
+			[_scenario vehi_spawns][index].coord[0] = x;
+			[_scenario vehi_spawns][index].coord[1] = y;
+			[_scenario vehi_spawns][index].coord[2] = z;
+			break;
+		case s_scenery:
+			[_scenario scen_spawns][index].coord[0] = x;
+			[_scenario scen_spawns][index].coord[1] = y;
+			[_scenario scen_spawns][index].coord[2] = z;
+			break;
+		case s_playerspawn:
+			[_scenario spawns][index].coord[0] = x;
+			[_scenario spawns][index].coord[1] = y;
+			[_scenario spawns][index].coord[2] = z;
+			break;
+		case s_netgame:
+			[_scenario netgame_flags][index].coord[0] = x;
+			[_scenario netgame_flags][index].coord[1] = y;
+			[_scenario netgame_flags][index].coord[2] = z;
+			break;
+		case s_item:
+			[_scenario item_spawns][index].coord[0] = x;
+			[_scenario item_spawns][index].coord[1] = y;
+			[_scenario item_spawns][index].coord[2] = z;
+			break;
+		case s_machine:
+			[_scenario mach_spawns][index].coord[0] = x;
+			[_scenario mach_spawns][index].coord[1] = y;
+			[_scenario mach_spawns][index].coord[2] = z;
+			break;
+	}
+	[_spawnEditor loadFocusedItemData:_selectFocus];
+}
+
 - (void)rotateFocusedItem:(float)x y:(float)y z:(float)z
 {
 	int type, index;

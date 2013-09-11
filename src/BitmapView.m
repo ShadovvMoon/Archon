@@ -59,7 +59,7 @@
 	gluPerspective(45.0f,
 					(sceneBounds.width / sceneBounds.height),
 					0.1f,
-					400.0f);
+					4000000.0f);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }

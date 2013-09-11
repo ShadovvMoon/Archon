@@ -41,7 +41,8 @@ enum MapFileReadResult
 	BSP *bspHandler;
 	
 	TextureManager *_texManager;
-
+    ModelTag *bipd;
+    
 	bool isPPC;
 
 	long _magic;
@@ -68,6 +69,7 @@ enum MapFileReadResult
 	NSMutableArray *bitmTagList;
 	NSMutableDictionary *bitmTagLookupDict;
 }
+-(ModelTag*)bipd;
 - (id)init;
 - (id)initWithMapfiles:(NSString *)mapfile bitmaps:(NSString *)bitmaps;
 - (void)destroy;

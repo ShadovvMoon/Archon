@@ -11,7 +11,7 @@
 			<object class="NSArray" key="dict.sortedKeys">
 				<bool key="EncodedWithXMLCoder">YES</bool>
 				<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-				<string>com.binarymethod.BGHUDAppKitPlugin</string>
+				<string>com.binarymethod.NSAppKitPlugin</string>
 			</object>
 			<object class="NSMutableArray" key="dict.values">
 				<bool key="EncodedWithXMLCoder">YES</bool>
@@ -40,7 +40,6 @@
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<string>com.binarymethod.BGHUDAppKitPlugin</string>
 			<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.Metadata">
@@ -93,7 +92,7 @@
 										<int key="NSvFlags">256</int>
 										<object class="NSMutableArray" key="NSSubviews">
 											<bool key="EncodedWithXMLCoder">YES</bool>
-											<object class="BGHUDBox" id="246368965">
+											<object class="NSBox" id="246368965">
 												<reference key="NSNextResponder" ref="282425764"/>
 												<int key="NSvFlags">274</int>
 												<object class="NSMutableArray" key="NSSubviews">
@@ -103,7 +102,7 @@
 														<int key="NSvFlags">256</int>
 														<object class="NSMutableArray" key="NSSubviews">
 															<bool key="EncodedWithXMLCoder">YES</bool>
-															<object class="BGHUDBox" id="551909992">
+															<object class="NSBox" id="551909992">
 																<reference key="NSNextResponder" ref="229647296"/>
 																<int key="NSvFlags">34</int>
 																<object class="NSMutableArray" key="NSSubviews">
@@ -119,7 +118,7 @@
 																				<string key="NSFrame">{{13, 40}, {66, 18}}</string>
 																				<reference key="NSSuperview" ref="1038967739"/>
 																				<bool key="NSEnabled">YES</bool>
-																				<object class="BGHUDButtonCell" key="NSCell" id="52504">
+																				<object class="NSButtonCell" key="NSCell" id="52504">
 																					<int key="NSCellFlags">-2080244224</int>
 																					<int key="NSCellFlags2">0</int>
 																					<string key="NSContents">Move</string>
@@ -151,7 +150,7 @@
 																				<string key="NSFrame">{{13, 16}, {66, 18}}</string>
 																				<reference key="NSSuperview" ref="1038967739"/>
 																				<bool key="NSEnabled">YES</bool>
-																				<object class="BGHUDButtonCell" key="NSCell" id="380956575">
+																				<object class="NSButtonCell" key="NSCell" id="380956575">
 																					<int key="NSCellFlags">67239424</int>
 																					<int key="NSCellFlags2">0</int>
 																					<string key="NSContents">Select</string>
@@ -174,7 +173,7 @@
 																				<string key="NSFrame">{{85, 38}, {120, 19}}</string>
 																				<reference key="NSSuperview" ref="1038967739"/>
 																				<bool key="NSEnabled">YES</bool>
-																				<object class="BGHUDButtonCell" key="NSCell" id="869133561">
+																				<object class="NSButtonCell" key="NSCell" id="869133561">
 																					<int key="NSCellFlags">67239424</int>
 																					<int key="NSCellFlags2">134217728</int>
 																					<string key="NSContents">Duplicate</string>
@@ -200,7 +199,7 @@
 																				<string key="NSFrame">{{85, 14}, {120, 19}}</string>
 																				<reference key="NSSuperview" ref="1038967739"/>
 																				<bool key="NSEnabled">YES</bool>
-																				<object class="BGHUDButtonCell" key="NSCell" id="973774843">
+																				<object class="NSButtonCell" key="NSCell" id="973774843">
 																					<int key="NSCellFlags">67239424</int>
 																					<int key="NSCellFlags2">134217728</int>
 																					<string key="NSContents">Center</string>
@@ -249,7 +248,7 @@
 																				<string key="NSFrame">{{211, 28}, {48, 18}}</string>
 																				<reference key="NSSuperview" ref="1038967739"/>
 																				<bool key="NSEnabled">YES</bool>
-																				<object class="BGHUDButtonCell" key="NSCell" id="804153711">
+																				<object class="NSButtonCell" key="NSCell" id="804153711">
 																					<int key="NSCellFlags">67239424</int>
 																					<int key="NSCellFlags2">0</int>
 																					<string key="NSContents">Wall</string>
@@ -277,7 +276,7 @@
 																				<string key="NSFrame">{{265, 27}, {43, 17}}</string>
 																				<reference key="NSSuperview" ref="1038967739"/>
 																				<bool key="NSEnabled">YES</bool>
-																				<object class="BGHUDSliderCell" key="NSCell" id="891775870">
+																				<object class="NSSliderCell" key="NSCell" id="891775870">
 																					<int key="NSCellFlags">-2079981824</int>
 																					<int key="NSCellFlags2">33685504</int>
 																					<string key="NSContents"/>
@@ -299,7 +298,7 @@
 																				<string key="NSFrame">{{561, 26}, {93, 19}}</string>
 																				<reference key="NSSuperview" ref="1038967739"/>
 																				<bool key="NSEnabled">YES</bool>
-																				<object class="BGHUDButtonCell" key="NSCell" id="184107233">
+																				<object class="NSButtonCell" key="NSCell" id="184107233">
 																					<int key="NSCellFlags">67239424</int>
 																					<int key="NSCellFlags2">134217728</int>
 																					<string key="NSContents">Fullscreen</string>
@@ -858,7 +857,7 @@
 							<string key="NSFrame">{{914, 36}, {120, 19}}</string>
 							<reference key="NSSuperview" ref="824288889"/>
 							<bool key="NSEnabled">YES</bool>
-							<object class="BGHUDButtonCell" key="NSCell" id="877834898">
+							<object class="NSButtonCell" key="NSCell" id="877834898">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">134217728</int>
 								<string key="NSContents">Spawn Settings...</string>
@@ -880,7 +879,7 @@
 							<string key="NSFrame">{{914, 11}, {120, 19}}</string>
 							<reference key="NSSuperview" ref="824288889"/>
 							<bool key="NSEnabled">YES</bool>
-							<object class="BGHUDButtonCell" key="NSCell" id="369812555">
+							<object class="NSButtonCell" key="NSCell" id="369812555">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">134217728</int>
 								<string key="NSContents">Spawn Creator...</string>
@@ -902,7 +901,7 @@
 							<string key="NSFrame">{{786, 11}, {120, 19}}</string>
 							<reference key="NSSuperview" ref="824288889"/>
 							<bool key="NSEnabled">YES</bool>
-							<object class="BGHUDButtonCell" key="NSCell" id="237281340">
+							<object class="NSButtonCell" key="NSCell" id="237281340">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">134217728</int>
 								<string key="NSContents">Rendering...</string>
@@ -924,7 +923,7 @@
 							<string key="NSFrame">{{786, 36}, {120, 19}}</string>
 							<reference key="NSSuperview" ref="824288889"/>
 							<bool key="NSEnabled">YES</bool>
-							<object class="BGHUDButtonCell" key="NSCell" id="548586783">
+							<object class="NSButtonCell" key="NSCell" id="548586783">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">134217728</int>
 								<string key="NSContents">Camera...</string>
@@ -946,7 +945,7 @@
 							<string key="NSFrame">{{658, 36}, {120, 19}}</string>
 							<reference key="NSSuperview" ref="824288889"/>
 							<bool key="NSEnabled">YES</bool>
-							<object class="BGHUDButtonCell" key="NSCell" id="399002673">
+							<object class="NSButtonCell" key="NSCell" id="399002673">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">134217728</int>
 								<string key="NSContents">Selection...</string>
@@ -968,7 +967,7 @@
 							<string key="NSFrame">{{-217, -28}, {214, 44}}</string>
 							<reference key="NSSuperview" ref="824288889"/>
 							<bool key="NSEnabled">YES</bool>
-							<object class="BGHUDButtonCell" key="NSCell" id="966377741">
+							<object class="NSButtonCell" key="NSCell" id="966377741">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">134217728</int>
 								<string key="NSContents">Delete</string>
@@ -994,7 +993,7 @@
 							<string key="NSFrame">{{658, 11}, {120, 19}}</string>
 							<reference key="NSSuperview" ref="824288889"/>
 							<bool key="NSEnabled">YES</bool>
-							<object class="BGHUDButtonCell" key="NSCell" id="1029538760">
+							<object class="NSButtonCell" key="NSCell" id="1029538760">
 								<int key="NSCellFlags">604110336</int>
 								<int key="NSCellFlags2">134217728</int>
 								<string key="NSContents">Machine...</string>
@@ -6625,7 +6624,7 @@
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
-						<object class="BGHUDBox" id="675982201">
+						<object class="NSBox" id="675982201">
 							<reference key="NSNextResponder" ref="89773525"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -6635,28 +6634,8 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDLabel" id="660031539">
-											<reference key="NSNextResponder" ref="645089198"/>
-											<int key="NSvFlags">268</int>
-											<string key="NSFrame">{{73, 69}, {299, 29}}</string>
-											<reference key="NSSuperview" ref="645089198"/>
-											<bool key="NSEnabled">YES</bool>
-											<object class="NSTextFieldCell" key="NSCell" id="383966060">
-												<int key="NSCellFlags">68288064</int>
-												<int key="NSCellFlags2">138413056</int>
-												<string key="NSContents">Loading Map...</string>
-												<object class="NSFont" key="NSSupport">
-													<string key="NSName">LucidaGrande</string>
-													<double key="NSSize">24</double>
-													<int key="NSfFlags">16</int>
-												</object>
-												<reference key="NSControlView" ref="660031539"/>
-												<reference key="NSBackgroundColor" ref="571043136"/>
-												<reference key="NSTextColor" ref="322857400"/>
-											</object>
-											<string key="themeKey">gradientTheme</string>
-										</object>
-										<object class="BGHUDProgressIndicator" id="275592648">
+										
+										<object class="NSProgressIndicator" id="275592648">
 											<reference key="NSNextResponder" ref="645089198"/>
 											<int key="NSvFlags">1292</int>
 											<object class="NSPSMatrix" key="NSDrawMatrix"/>
@@ -6734,7 +6713,7 @@
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
-						<object class="BGHUDBox" id="334321204">
+						<object class="NSBox" id="334321204">
 							<reference key="NSNextResponder" ref="59545224"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -6787,7 +6766,7 @@
 								<bytes key="NSRGB">MC4yMDAwMDAwMDMgMC4yMDAwMDAwMDMgMC4yMDAwMDAwMDMAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="124168560">
+						<object class="NSBox" id="124168560">
 							<reference key="NSNextResponder" ref="59545224"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -6834,7 +6813,7 @@
 							<reference key="color1" ref="638491248"/>
 							<reference key="color2" ref="733934607"/>
 						</object>
-						<object class="BGHUDBox" id="327135235">
+						<object class="NSBox" id="327135235">
 							<reference key="NSNextResponder" ref="59545224"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -6901,7 +6880,7 @@
 											<string key="NSFrame">{{108, 69}, {239, 17}}</string>
 											<reference key="NSSuperview" ref="892660826"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDSliderCell" key="NSCell" id="728198247">
+											<object class="NSSliderCell" key="NSCell" id="728198247">
 												<int key="NSCellFlags">-2079981824</int>
 												<int key="NSCellFlags2">33685504</int>
 												<string key="NSContents"/>
@@ -6923,7 +6902,7 @@
 											<string key="NSFrame">{{108, 42}, {239, 17}}</string>
 											<reference key="NSSuperview" ref="892660826"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDSliderCell" key="NSCell" id="12632832">
+											<object class="NSSliderCell" key="NSCell" id="12632832">
 												<int key="NSCellFlags">-2079981824</int>
 												<int key="NSCellFlags2">33685504</int>
 												<string key="NSContents"/>
@@ -6945,7 +6924,7 @@
 											<string key="NSFrame">{{108, 15}, {239, 17}}</string>
 											<reference key="NSSuperview" ref="892660826"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDSliderCell" key="NSCell" id="275702193">
+											<object class="NSSliderCell" key="NSCell" id="275702193">
 												<int key="NSCellFlags">-2079981824</int>
 												<int key="NSCellFlags2">33685504</int>
 												<string key="NSContents"/>
@@ -6967,7 +6946,7 @@
 											<string key="NSFrame">{{50, 43}, {47, 18}}</string>
 											<reference key="NSSuperview" ref="892660826"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDTextFieldCell" key="NSCell" id="4770563">
+											<object class="NSTextFieldCell" key="NSCell" id="4770563">
 												<int key="NSCellFlags">-1805517247</int>
 												<int key="NSCellFlags2">268437504</int>
 												<string key="NSContents">180</string>
@@ -6989,7 +6968,7 @@
 											<string key="NSFrame">{{50, 19}, {47, 18}}</string>
 											<reference key="NSSuperview" ref="892660826"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDTextFieldCell" key="NSCell" id="787780643">
+											<object class="NSTextFieldCell" key="NSCell" id="787780643">
 												<int key="NSCellFlags">-1805517247</int>
 												<int key="NSCellFlags2">268437504</int>
 												<string key="NSContents">180</string>
@@ -7047,7 +7026,7 @@
 								<bytes key="NSRGB">MC4yOTgwMzkyMjc3IDAuMjk4MDM5MjI3NyAwLjI5ODAzOTIyNzcAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="2608479">
+						<object class="NSBox" id="2608479">
 							<reference key="NSNextResponder" ref="59545224"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -7057,7 +7036,7 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDLabel" id="963603249">
+										<object class="NSLabel" id="963603249">
 											<reference key="NSNextResponder" ref="833729247"/>
 											<int key="NSvFlags">268</int>
 											<string key="NSFrame">{{4, 2}, {63, 14}}</string>
@@ -7074,7 +7053,7 @@
 											</object>
 											<string key="themeKey">gradientTheme</string>
 										</object>
-										<object class="BGHUDLabel" id="592788938">
+										<object class="NSLabel" id="592788938">
 											<reference key="NSNextResponder" ref="833729247"/>
 											<int key="NSvFlags">268</int>
 											<string key="NSFrame">{{199, 2}, {59, 13}}</string>
@@ -7095,7 +7074,7 @@
 											</object>
 											<string key="themeKey">gradientTheme</string>
 										</object>
-										<object class="BGHUDLabel" id="987093274">
+										<object class="NSLabel" id="987093274">
 											<reference key="NSNextResponder" ref="833729247"/>
 											<int key="NSvFlags">268</int>
 											<string key="NSFrame">{{243, 2}, {115, 13}}</string>
@@ -7158,7 +7137,7 @@
 								<bytes key="NSRGB">MC4yOTgwMzkyMjc3IDAuMjk4MDM5MjI3NyAwLjI5ODAzOTIyNzcAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="740313082">
+						<object class="NSBox" id="740313082">
 							<reference key="NSNextResponder" ref="59545224"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -7225,7 +7204,7 @@
 											<string key="NSFrame">{{66, 70}, {282, 19}}</string>
 											<reference key="NSSuperview" ref="937403551"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDTextFieldCell" key="NSCell" id="657336118">
+											<object class="NSTextFieldCell" key="NSCell" id="657336118">
 												<int key="NSCellFlags">-2075001280</int>
 												<int key="NSCellFlags2">272761856</int>
 												<string key="NSContents"/>
@@ -7242,7 +7221,7 @@
 											<string key="NSFrame">{{66, 44}, {282, 19}}</string>
 											<reference key="NSSuperview" ref="937403551"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDTextFieldCell" key="NSCell" id="549334337">
+											<object class="NSTextFieldCell" key="NSCell" id="549334337">
 												<int key="NSCellFlags">-2075001280</int>
 												<int key="NSCellFlags2">272761856</int>
 												<string key="NSContents"/>
@@ -7259,7 +7238,7 @@
 											<string key="NSFrame">{{63, 13}, {288, 26}}</string>
 											<reference key="NSSuperview" ref="937403551"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDPopUpButtonCell" key="NSCell" id="416127698">
+											<object class="NSPopUpButtonCell" key="NSCell" id="416127698">
 												<int key="NSCellFlags">-2076049856</int>
 												<int key="NSCellFlags2">2048</int>
 												<reference key="NSSupport" ref="394938749"/>
@@ -7343,7 +7322,7 @@
 								<bytes key="NSRGB">MC4yOTgwMzkyMjc3IDAuMjk4MDM5MjI3NyAwLjI5ODAzOTIyNzcAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="247383327">
+						<object class="NSBox" id="247383327">
 							<reference key="NSNextResponder" ref="59545224"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -7353,7 +7332,7 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDLabel" id="603718602">
+										<object class="NSLabel" id="603718602">
 											<reference key="NSNextResponder" ref="151377384"/>
 											<int key="NSvFlags">268</int>
 											<string key="NSFrame">{{4, 2}, {87, 14}}</string>
@@ -7376,7 +7355,7 @@
 											<string key="NSFrame">{{253, 0}, {108, 19}}</string>
 											<reference key="NSSuperview" ref="151377384"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDTextFieldCell" key="NSCell" id="340871246">
+											<object class="NSTextFieldCell" key="NSCell" id="340871246">
 												<int key="NSCellFlags">-2075001280</int>
 												<int key="NSCellFlags2">272761856</int>
 												<string key="NSContents"/>
@@ -7440,7 +7419,7 @@
 							<string key="NSFrame">{{51, 205}, {47, 22}}</string>
 							<reference key="NSSuperview" ref="59545224"/>
 							<bool key="NSEnabled">YES</bool>
-							<object class="BGHUDTextFieldCell" key="NSCell" id="384700356">
+							<object class="NSTextFieldCell" key="NSCell" id="384700356">
 								<int key="NSCellFlags">-1805517247</int>
 								<int key="NSCellFlags2">268437504</int>
 								<string key="NSContents">180</string>
@@ -7836,7 +7815,7 @@
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
-						<object class="BGHUDBox" id="714733704">
+						<object class="NSBox" id="714733704">
 							<reference key="NSNextResponder" ref="942155882"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -7846,7 +7825,7 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDBox" id="118251480">
+										<object class="NSBox" id="118251480">
 											<reference key="NSNextResponder" ref="467061733"/>
 											<int key="NSvFlags">12</int>
 											<object class="NSMutableArray" key="NSSubviews">
@@ -7881,7 +7860,7 @@
 															<string key="NSFrame">{{45, -8}, {288, 26}}</string>
 															<reference key="NSSuperview" ref="747413066"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDPopUpButtonCell" key="NSCell" id="15145782">
+															<object class="NSPopUpButtonCell" key="NSCell" id="15145782">
 																<int key="NSCellFlags">-2076049856</int>
 																<int key="NSCellFlags2">2048</int>
 																<reference key="NSSupport" ref="394938749"/>
@@ -7925,7 +7904,7 @@
 															<string key="NSFrame">{{66, 63}, {282, 19}}</string>
 															<reference key="NSSuperview" ref="747413066"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="240295270">
+															<object class="NSButtonCell" key="NSCell" id="240295270">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">134217728</int>
 																<string key="NSContents">Create Teleporter</string>
@@ -7947,7 +7926,7 @@
 															<string key="NSFrame">{{66, 41}, {282, 19}}</string>
 															<reference key="NSSuperview" ref="747413066"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="530640054">
+															<object class="NSButtonCell" key="NSCell" id="530640054">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">134217728</int>
 																<string key="NSContents">Create Scenery</string>
@@ -7969,7 +7948,7 @@
 															<string key="NSFrame">{{66, 19}, {282, 19}}</string>
 															<reference key="NSSuperview" ref="747413066"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="1066555122">
+															<object class="NSButtonCell" key="NSCell" id="1066555122">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">134217728</int>
 																<string key="NSContents">Create Machine</string>
@@ -8031,7 +8010,7 @@
 												<bytes key="NSRGB">MC4yOTgwMzkyMjc3IDAuMjk4MDM5MjI3NyAwLjI5ODAzOTIyNzcAA</bytes>
 											</object>
 										</object>
-										<object class="BGHUDBox" id="649469365">
+										<object class="NSBox" id="649469365">
 											<reference key="NSNextResponder" ref="467061733"/>
 											<int key="NSvFlags">12</int>
 											<object class="NSMutableArray" key="NSSubviews">
@@ -8041,7 +8020,7 @@
 													<int key="NSvFlags">256</int>
 													<object class="NSMutableArray" key="NSSubviews">
 														<bool key="EncodedWithXMLCoder">YES</bool>
-														<object class="BGHUDLabel" id="875836834">
+														<object class="NSLabel" id="875836834">
 															<reference key="NSNextResponder" ref="575597626"/>
 															<int key="NSvFlags">268</int>
 															<string key="NSFrame">{{4, 2}, {87, 14}}</string>
@@ -8172,7 +8151,7 @@
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
-						<object class="BGHUDBox" id="719630742">
+						<object class="NSBox" id="719630742">
 							<reference key="NSNextResponder" ref="1012555738"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -8225,7 +8204,7 @@
 								<bytes key="NSRGB">MC4yMDAwMDAwMDMgMC4yMDAwMDAwMDMgMC4yMDAwMDAwMDMAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="276577696">
+						<object class="NSBox" id="276577696">
 							<reference key="NSNextResponder" ref="1012555738"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -8257,7 +8236,7 @@
 											<string key="NSFrame">{{13, 54}, {59, 18}}</string>
 											<reference key="NSSuperview" ref="963379408"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDButtonCell" key="NSCell" id="904234641">
+											<object class="NSButtonCell" key="NSCell" id="904234641">
 												<int key="NSCellFlags">-2080244224</int>
 												<int key="NSCellFlags2">0</int>
 												<string key="NSContents">Alpha</string>
@@ -8280,7 +8259,7 @@
 											<string key="NSFrame">{{76, 54}, {64, 18}}</string>
 											<reference key="NSSuperview" ref="963379408"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDButtonCell" key="NSCell" id="663363643">
+											<object class="NSButtonCell" key="NSCell" id="663363643">
 												<int key="NSCellFlags">-2080244224</int>
 												<int key="NSCellFlags2">0</int>
 												<string key="NSContents">Colour</string>
@@ -8303,7 +8282,7 @@
 											<string key="NSFrame">{{57, 122}, {163, 17}}</string>
 											<reference key="NSSuperview" ref="963379408"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDSliderCell" key="NSCell" id="338606520">
+											<object class="NSSliderCell" key="NSCell" id="338606520">
 												<int key="NSCellFlags">67239424</int>
 												<int key="NSCellFlags2">131072</int>
 												<string key="NSContents"/>
@@ -8357,7 +8336,7 @@
 											<string key="NSFrame">{{57, 98}, {145, 15}}</string>
 											<reference key="NSSuperview" ref="963379408"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDSliderCell" key="NSCell" id="279706197">
+											<object class="NSSliderCell" key="NSCell" id="279706197">
 												<int key="NSCellFlags">67501824</int>
 												<int key="NSCellFlags2">131072</int>
 												<string key="NSContents"/>
@@ -8379,7 +8358,7 @@
 											<string key="NSFrame">{{243, 117}, {63, 18}}</string>
 											<reference key="NSSuperview" ref="963379408"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDButtonCell" key="NSCell" id="414963277">
+											<object class="NSButtonCell" key="NSCell" id="414963277">
 												<int key="NSCellFlags">67239424</int>
 												<int key="NSCellFlags2">0</int>
 												<string key="NSContents">Points</string>
@@ -8402,7 +8381,7 @@
 											<string key="NSFrame">{{243, 96}, {86, 18}}</string>
 											<reference key="NSSuperview" ref="963379408"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDButtonCell" key="NSCell" id="250055057">
+											<object class="NSButtonCell" key="NSCell" id="250055057">
 												<int key="NSCellFlags">67239424</int>
 												<int key="NSCellFlags2">0</int>
 												<string key="NSContents">Wireframe</string>
@@ -8425,7 +8404,7 @@
 											<string key="NSFrame">{{243, 75}, {107, 18}}</string>
 											<reference key="NSSuperview" ref="963379408"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDButtonCell" key="NSCell" id="1022434619">
+											<object class="NSButtonCell" key="NSCell" id="1022434619">
 												<int key="NSCellFlags">67239424</int>
 												<int key="NSCellFlags2">0</int>
 												<string key="NSContents">Shaded Faces</string>
@@ -8448,7 +8427,7 @@
 											<string key="NSFrame">{{243, 54}, {107, 18}}</string>
 											<reference key="NSSuperview" ref="963379408"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDButtonCell" key="NSCell" id="449467734">
+											<object class="NSButtonCell" key="NSCell" id="449467734">
 												<int key="NSCellFlags">67239424</int>
 												<int key="NSCellFlags2">0</int>
 												<string key="NSContents">Textured</string>
@@ -8560,7 +8539,7 @@
 											<string key="NSFrame">{{75, 9}, {148, 26}}</string>
 											<reference key="NSSuperview" ref="963379408"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDPopUpButtonCell" key="NSCell" id="1010240583">
+											<object class="NSPopUpButtonCell" key="NSCell" id="1010240583">
 												<int key="NSCellFlags">-2076049856</int>
 												<int key="NSCellFlags2">2048</int>
 												<reference key="NSSupport" ref="394938749"/>
@@ -8664,7 +8643,7 @@
 								<bytes key="NSRGB">MC4yOTgwMzkyMjc3IDAuMjk4MDM5MjI3NyAwLjI5ODAzOTIyNzcAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="518310036">
+						<object class="NSBox" id="518310036">
 							<reference key="NSNextResponder" ref="1012555738"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -8674,7 +8653,7 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDLabel" id="841586604">
+										<object class="NSLabel" id="841586604">
 											<reference key="NSNextResponder" ref="78190347"/>
 											<int key="NSvFlags">268</int>
 											<string key="NSFrame">{{4, 2}, {59, 14}}</string>
@@ -8737,7 +8716,7 @@
 								<bytes key="NSRGB">MC4yOTgwMzkyMjc3IDAuMjk4MDM5MjI3NyAwLjI5ODAzOTIyNzcAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="360395484">
+						<object class="NSBox" id="360395484">
 							<reference key="NSNextResponder" ref="1012555738"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -8753,7 +8732,7 @@
 											<string key="NSFrame">{{15, 15}, {333, 19}}</string>
 											<reference key="NSSuperview" ref="521030149"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDTextFieldCell" key="NSCell" id="785694701">
+											<object class="NSTextFieldCell" key="NSCell" id="785694701">
 												<int key="NSCellFlags">-2075001280</int>
 												<int key="NSCellFlags2">306316288</int>
 												<string key="NSContents"/>
@@ -8770,7 +8749,7 @@
 											<string key="NSFrame">{{15, 40}, {333, 19}}</string>
 											<reference key="NSSuperview" ref="521030149"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDButtonCell" key="NSCell" id="199690259">
+											<object class="NSButtonCell" key="NSCell" id="199690259">
 												<int key="NSCellFlags">67239424</int>
 												<int key="NSCellFlags2">134217728</int>
 												<string key="NSContents">Locate new...</string>
@@ -8833,7 +8812,7 @@
 								<bytes key="NSRGB">MC4yOTgwMzkyMjc3IDAuMjk4MDM5MjI3NyAwLjI5ODAzOTIyNzcAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="16058460">
+						<object class="NSBox" id="16058460">
 							<reference key="NSNextResponder" ref="1012555738"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -8843,7 +8822,7 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDLabel" id="767396117">
+										<object class="NSLabel" id="767396117">
 											<reference key="NSNextResponder" ref="710701292"/>
 											<int key="NSvFlags">268</int>
 											<string key="NSFrame">{{4, 2}, {63, 14}}</string>
@@ -8928,7 +8907,7 @@
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
-						<object class="BGHUDBox" id="419403651">
+						<object class="NSBox" id="419403651">
 							<reference key="NSNextResponder" ref="44481932"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -8938,7 +8917,7 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDBox" id="237328160">
+										<object class="NSBox" id="237328160">
 											<reference key="NSNextResponder" ref="510316098"/>
 											<int key="NSvFlags">12</int>
 											<object class="NSMutableArray" key="NSSubviews">
@@ -8970,7 +8949,7 @@
 															<string key="NSFrame">{{57, 50}, {291, 15}}</string>
 															<reference key="NSSuperview" ref="693065913"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDSliderCell" key="NSCell" id="283384049">
+															<object class="NSSliderCell" key="NSCell" id="283384049">
 																<int key="NSCellFlags">-2079981824</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents"/>
@@ -8992,7 +8971,7 @@
 															<string key="NSFrame">{{57, 25}, {291, 19}}</string>
 															<reference key="NSSuperview" ref="693065913"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="801909766">
+															<object class="NSButtonCell" key="NSCell" id="801909766">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">134217728</int>
 																<string key="NSContents">Reset Camera Position</string>
@@ -9100,7 +9079,7 @@
 								<bytes key="NSRGB">MC4yMDAwMDAwMDMgMC4yMDAwMDAwMDMgMC4yMDAwMDAwMDMAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="489982086">
+						<object class="NSBox" id="489982086">
 							<reference key="NSNextResponder" ref="44481932"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -9110,7 +9089,7 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDLabel" id="921788581">
+										<object class="NSLabel" id="921788581">
 											<reference key="NSNextResponder" ref="570930305"/>
 											<int key="NSvFlags">268</int>
 											<string key="NSFrame">{{4, 2}, {55, 14}}</string>
@@ -9195,7 +9174,7 @@
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
-						<object class="BGHUDBox" id="719842692">
+						<object class="NSBox" id="719842692">
 							<reference key="NSNextResponder" ref="683187885"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -9248,7 +9227,7 @@
 								<bytes key="NSRGB">MC4yMDAwMDAwMDMgMC4yMDAwMDAwMDMgMC4yMDAwMDAwMDMAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="115350624">
+						<object class="NSBox" id="115350624">
 							<reference key="NSNextResponder" ref="683187885"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -9264,7 +9243,7 @@
 											<string key="NSFrame">{{233, 22}, {117, 18}}</string>
 											<reference key="NSSuperview" ref="162424522"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDButtonCell" key="NSCell" id="328180524">
+											<object class="NSButtonCell" key="NSCell" id="328180524">
 												<int key="NSCellFlags">67239424</int>
 												<int key="NSCellFlags2">131072</int>
 												<string key="NSContents">Multiple Selection</string>
@@ -9335,7 +9314,7 @@
 											<string key="NSFrame">{{100, 43}, {251, 26}}</string>
 											<reference key="NSSuperview" ref="162424522"/>
 											<bool key="NSEnabled">YES</bool>
-											<object class="BGHUDPopUpButtonCell" key="NSCell" id="727188433">
+											<object class="NSPopUpButtonCell" key="NSCell" id="727188433">
 												<int key="NSCellFlags">-2076049856</int>
 												<int key="NSCellFlags2">2048</int>
 												<reference key="NSSupport" ref="394938749"/>
@@ -9485,7 +9464,7 @@
 								<bytes key="NSRGB">MC4yOTgwMzkyMjc3IDAuMjk4MDM5MjI3NyAwLjI5ODAzOTIyNzcAA</bytes>
 							</object>
 						</object>
-						<object class="BGHUDBox" id="958974682">
+						<object class="NSBox" id="958974682">
 							<reference key="NSNextResponder" ref="683187885"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -9495,7 +9474,7 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDLabel" id="766713058">
+										<object class="NSLabel" id="766713058">
 											<reference key="NSNextResponder" ref="758110085"/>
 											<int key="NSvFlags">268</int>
 											<string key="NSFrame">{{4, 2}, {55, 14}}</string>
@@ -9580,7 +9559,7 @@
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
-						<object class="BGHUDBox" id="570770763">
+						<object class="NSBox" id="570770763">
 							<reference key="NSNextResponder" ref="874510348"/>
 							<int key="NSvFlags">12</int>
 							<object class="NSMutableArray" key="NSSubviews">
@@ -9590,7 +9569,7 @@
 									<int key="NSvFlags">256</int>
 									<object class="NSMutableArray" key="NSSubviews">
 										<bool key="EncodedWithXMLCoder">YES</bool>
-										<object class="BGHUDBox" id="645988880">
+										<object class="NSBox" id="645988880">
 											<reference key="NSNextResponder" ref="107004491"/>
 											<int key="NSvFlags">12</int>
 											<object class="NSMutableArray" key="NSSubviews">
@@ -9606,7 +9585,7 @@
 															<string key="NSFrame">{{13, 185}, {233, 18}}</string>
 															<reference key="NSSuperview" ref="498333685"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="362140886">
+															<object class="NSButtonCell" key="NSCell" id="362140886">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents">Initially Open </string>
@@ -9629,7 +9608,7 @@
 															<string key="NSFrame">{{13, 145}, {233, 18}}</string>
 															<reference key="NSSuperview" ref="498333685"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="347770817">
+															<object class="NSButtonCell" key="NSCell" id="347770817">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents">Can Change Only Once</string>
@@ -9652,7 +9631,7 @@
 															<string key="NSFrame">{{13, 125}, {233, 18}}</string>
 															<reference key="NSSuperview" ref="498333685"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="80069511">
+															<object class="NSButtonCell" key="NSCell" id="80069511">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents">Position Reversed</string>
@@ -9675,7 +9654,7 @@
 															<string key="NSFrame">{{13, 105}, {233, 18}}</string>
 															<reference key="NSSuperview" ref="498333685"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="89118337">
+															<object class="NSButtonCell" key="NSCell" id="89118337">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents">Not Usable From Any Side</string>
@@ -9698,7 +9677,7 @@
 															<string key="NSFrame">{{13, 73}, {233, 18}}</string>
 															<reference key="NSSuperview" ref="498333685"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="846520613">
+															<object class="NSButtonCell" key="NSCell" id="846520613">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents">Does Not Operate Automatically</string>
@@ -9721,7 +9700,7 @@
 															<string key="NSFrame">{{13, 53}, {233, 18}}</string>
 															<reference key="NSSuperview" ref="498333685"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="351658469">
+															<object class="NSButtonCell" key="NSCell" id="351658469">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents">One-Sided</string>
@@ -9744,7 +9723,7 @@
 															<string key="NSFrame">{{13, 33}, {233, 18}}</string>
 															<reference key="NSSuperview" ref="498333685"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="669356183">
+															<object class="NSButtonCell" key="NSCell" id="669356183">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents">Never Appears Locked</string>
@@ -9767,7 +9746,7 @@
 															<string key="NSFrame">{{13, 13}, {233, 18}}</string>
 															<reference key="NSSuperview" ref="498333685"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="525795150">
+															<object class="NSButtonCell" key="NSCell" id="525795150">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents">Opened By Melee Attack</string>
@@ -9790,7 +9769,7 @@
 															<string key="NSFrame">{{13, 165}, {233, 18}}</string>
 															<reference key="NSSuperview" ref="498333685"/>
 															<bool key="NSEnabled">YES</bool>
-															<object class="BGHUDButtonCell" key="NSCell" id="386937655">
+															<object class="NSButtonCell" key="NSCell" id="386937655">
 																<int key="NSCellFlags">67239424</int>
 																<int key="NSCellFlags2">131072</int>
 																<string key="NSContents">Initially Off</string>
@@ -9853,7 +9832,7 @@
 												<bytes key="NSRGB">MC4yOTgwMzkyMjc3IDAuMjk4MDM5MjI3NyAwLjI5ODAzOTIyNzcAA</bytes>
 											</object>
 										</object>
-										<object class="BGHUDBox" id="665197147">
+										<object class="NSBox" id="665197147">
 											<reference key="NSNextResponder" ref="107004491"/>
 											<int key="NSvFlags">12</int>
 											<object class="NSMutableArray" key="NSSubviews">
@@ -9863,7 +9842,7 @@
 													<int key="NSvFlags">256</int>
 													<object class="NSMutableArray" key="NSSubviews">
 														<bool key="EncodedWithXMLCoder">YES</bool>
-														<object class="BGHUDLabel" id="60519061">
+														<object class="NSLabel" id="60519061">
 															<reference key="NSNextResponder" ref="726384639"/>
 															<int key="NSvFlags">268</int>
 															<string key="NSFrame">{{4, 2}, {87, 14}}</string>
@@ -16797,24 +16776,9 @@
 						<reference key="object" ref="675982201"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="660031539"/>
 							<reference ref="275592648"/>
 						</object>
 						<reference key="parent" ref="89773525"/>
-					</object>
-					<object class="IBObjectRecord">
-						<int key="objectID">2277</int>
-						<reference key="object" ref="660031539"/>
-						<object class="NSMutableArray" key="children">
-							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="383966060"/>
-						</object>
-						<reference key="parent" ref="675982201"/>
-					</object>
-					<object class="IBObjectRecord">
-						<int key="objectID">2278</int>
-						<reference key="object" ref="383966060"/>
-						<reference key="parent" ref="660031539"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">2279</int>
@@ -19281,99 +19245,76 @@
 					</object>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABCZAAAwmQAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABCZAAAwhAAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<boolean value="YES"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<boolean value="YES"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<boolean value="YES"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -19383,41 +19324,64 @@
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<boolean value="YES"/>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<boolean value="YES"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<boolean value="YES"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<boolean value="YES"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<boolean value="YES"/>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABCfAAAwhQAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>{{1045, 776}, {288, 23}}</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABCfAAAwbAAAA</bytes>
 					</object>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>{{1044, 646}, {288, 23}}</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABChAAAwmgAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>{{794, 620}, {365, 262}}</string>
@@ -19425,8 +19389,8 @@
 					<string>{{794, 620}, {365, 262}}</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>{{20, 575}, {365, 120}}</string>
@@ -19434,7 +19398,7 @@
 					<string>{{20, 575}, {365, 120}}</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>{{391, 396}, {1054, 469}}</string>
@@ -19451,20 +19415,20 @@
 					<string>{{127, 417}, {365, 281}}</string>
 					<boolean value="NO"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>{{716, 341}, {365, 95}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>{{716, 341}, {365, 95}}</string>
 					<boolean value="NO"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>{{329, 907}, {446, 150}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>{{329, 907}, {446, 150}}</string>
@@ -19472,29 +19436,29 @@
 					<boolean value="NO"/>
 					<string>{276, 378}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>{{329, 907}, {365, 97}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>{{329, 907}, {365, 97}}</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>{{419, 834}, {251, 143}}</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -19510,131 +19474,131 @@
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABEJIAAwlQAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABEJIAAweAAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>{{684, 1052}, {194, 73}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABChAAAwmgAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>{{95, 817}, {249, 246}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>{{95, 817}, {249, 246}}</string>
 					<boolean value="NO"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">AcBAAABBqAAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABBUAAAwqYAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABBkAAAwpwAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABBUAAAwt4AAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABBUAAAwrYAAA</bytes>
 					</object>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABBUAAAwo4AAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABBUAAAwvoAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABBUAAAwtIAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABBUAAAwqoAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABBUAAAwegAAA</bytes>
 					</object>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABEJUAAwcAAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<object class="NSAffineTransform">
 						<bytes key="NSTransformStruct">P4AAAL+AAABCjgAAwhAAAA</bytes>
 					</object>
-					<string>com.binarymethod.BGHUDAppKitPlugin</string>
+					<string>com.binarymethod.NSAppKitPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<boolean value="YES"/>
@@ -19672,7 +19636,7 @@
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>BGHUDTabView</string>
+					<string>NSTabView</string>
 					<object class="NSMutableDictionary">
 						<string key="NS.key.0">InitialTabViewItem</string>
 						<object class="IBInitialTabViewItemAttribute" key="NS.object.0">
@@ -19688,7 +19652,7 @@
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>BGHUDTabViewItem</string>
+					<string>NSTabViewItem</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -21815,75 +21779,75 @@
 			<object class="NSMutableArray" key="referencedPartialClassDescriptionsV3.2+">
 				<bool key="EncodedWithXMLCoder">YES</bool>
 				<object class="IBPartialClassDescription">
-					<string key="className">BGHUDBox</string>
+					<string key="className">NSBox</string>
 					<string key="superclassName">NSBox</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBFrameworkSource</string>
-						<string key="minorKey">BGHUDAppKit.framework/Headers/BGHUDBox.h</string>
+						<string key="minorKey">Cocoa.framework/Headers/NSBox.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">BGHUDButtonCell</string>
+					<string key="className">NSButtonCell</string>
 					<string key="superclassName">NSButtonCell</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBFrameworkSource</string>
-						<string key="minorKey">BGHUDAppKit.framework/Headers/BGHUDButtonCell.h</string>
+						<string key="minorKey">Cocoa.framework/Headers/NSButtonCell.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">BGHUDLabel</string>
+					<string key="className">NSLabel</string>
 					<string key="superclassName">NSTextField</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBFrameworkSource</string>
-						<string key="minorKey">BGHUDAppKit.framework/Headers/BGHUDLabel.h</string>
+						<string key="minorKey">Cocoa.framework/Headers/NSLabel.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">BGHUDPopUpButtonCell</string>
+					<string key="className">NSPopUpButtonCell</string>
 					<string key="superclassName">NSPopUpButtonCell</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBFrameworkSource</string>
-						<string key="minorKey">BGHUDAppKit.framework/Headers/BGHUDPopUpButtonCell.h</string>
+						<string key="minorKey">Cocoa.framework/Headers/NSPopUpButtonCell.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">BGHUDProgressIndicator</string>
+					<string key="className">NSProgressIndicator</string>
 					<string key="superclassName">NSProgressIndicator</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBFrameworkSource</string>
-						<string key="minorKey">BGHUDAppKit.framework/Headers/BGHUDProgressIndicator.h</string>
+						<string key="minorKey">Cocoa.framework/Headers/NSProgressIndicator.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">BGHUDSliderCell</string>
+					<string key="className">NSSliderCell</string>
 					<string key="superclassName">NSSliderCell</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBFrameworkSource</string>
-						<string key="minorKey">BGHUDAppKit.framework/Headers/BGHUDSliderCell.h</string>
+						<string key="minorKey">Cocoa.framework/Headers/NSSliderCell.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">BGHUDTabView</string>
+					<string key="className">NSTabView</string>
 					<string key="superclassName">NSTabView</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBFrameworkSource</string>
-						<string key="minorKey">BGHUDAppKit.framework/Headers/BGHUDTabView.h</string>
+						<string key="minorKey">Cocoa.framework/Headers/NSTabView.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">BGHUDTabViewItem</string>
+					<string key="className">NSTabViewItem</string>
 					<string key="superclassName">NSTabViewItem</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBFrameworkSource</string>
-						<string key="minorKey">BGHUDAppKit.framework/Headers/BGHUDTabViewItem.h</string>
+						<string key="minorKey">Cocoa.framework/Headers/NSTabViewItem.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">BGHUDTextFieldCell</string>
+					<string key="className">NSTextFieldCell</string>
 					<string key="superclassName">NSTextFieldCell</string>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBFrameworkSource</string>
-						<string key="minorKey">BGHUDAppKit.framework/Headers/BGHUDTextFieldCell.h</string>
+						<string key="minorKey">Cocoa.framework/Headers/NSTextFieldCell.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">

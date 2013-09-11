@@ -30,6 +30,17 @@
 	part *parts;
 	geometry me;
 	
+    
+    GLuint cubeVBO;
+	GLuint cubeIBO;
+    
+    int indexCount_R;
+    
+    float* normals;
+    float* vertex_array;
+    short* index_array;
+    float* texture_uv;
+    
 	BOOL texturesLoaded;
 }
 - (id)initWithMap:(HaloMap *)map parent:(ModelTag *)mTag;

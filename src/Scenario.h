@@ -41,6 +41,8 @@ enum
 	int current_ref;
 	/* Begin spawn related vars */
 	
+    int bipd_ref_count;
+    bipd_reference *bipd_references;
 	vehicle_reference *vehi_references;
 	vehicle_spawn *vehi_spawns;
 	int vehicle_spawn_count;
@@ -144,6 +146,7 @@ enum
 /* BEGIN DATA SET ACCESSORS */
 - (SCNR_HEADER)header;
 - (vehicle_reference *)vehi_references;
+- (bipd_reference*)bipd_references;
 - (vehicle_spawn *)vehi_spawns;
 - (scenery_reference *)scen_references;
 - (scenery_spawn *)scen_spawns;
@@ -159,6 +162,7 @@ enum
 /* BEGIN DATA TYPE COUNTER ACCESSORS */
 - (int)vehicle_spawn_count;
 - (int)vehi_ref_count;
+- (int)bipd_ref_count;
 - (int)scenery_spawn_count;
 - (int)scen_ref_count;
 - (int)item_spawn_count;

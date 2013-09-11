@@ -274,6 +274,7 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	header.StructBsp.offset += resolvedOffset;
 	
 	// I need to add on support for teleporters and for machines and other things hur
+    bipd_references = malloc(sizeof(bipd_reference) * header.BipedRef.chunkcount);
 	vehi_references = malloc(sizeof(vehicle_reference) * header.VehicleRef.chunkcount);
 	vehi_spawns = malloc(sizeof(vehicle_spawn) * header.Vehicle.chunkcount);
 	scen_references = malloc(sizeof(scenery_reference) * header.SceneryRef.chunkcount);
@@ -287,6 +288,7 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	mach_spawns = malloc(sizeof(machine_spawn) * header.Machine.chunkcount);
 	encounters = malloc(sizeof(encounter) * header.Encounters.chunkcount);
 	
+    memset(bipd_references,0,sizeof(bipd_reference) * header.BipedRef.chunkcount);
 	memset(vehi_references,0,sizeof(vehicle_reference) * header.VehicleRef.chunkcount);
 	memset(vehi_spawns, 0, sizeof(vehicle_spawn) * header.Vehicle.chunkcount);
 	memset(scen_references, 0, sizeof(scenery_reference) * header.SceneryRef.chunkcount);
@@ -300,7 +302,9 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	memset(device_groups, 0, sizeof(device_group) * header.DeviceGroups.chunkcount);
 	memset(encounters, 0, sizeof(encounter) * header.Encounters.chunkcount);
 	
-	
+	NSLog(@"BIPD PALETTE SIZE %d", header.BipedRef.chunkcount);
+  
+    
 	int x;
 	/* BEGIN VEHICLE SPAWNS */
 	positionInScenario = header.VehicleRef.offset;
@@ -311,6 +315,14 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	for (x = 0; x < header.Vehicle.chunkcount; x++)
 		vehi_spawns[x] = [self readVehicleSpawn];
 	vehicle_spawn_count = header.Vehicle.chunkcount;
+	/* END VEHICLE SPAWNS */
+    
+    /* BEGIN BIPD SPAWNS */
+	positionInScenario = header.BipedRef.offset;
+	for (x = 0; x < header.BipedRef.chunkcount; x++)
+		bipd_references[x] = [self readBipdReference];
+	bipd_ref_count = header.BipedRef.chunkcount;
+
 	/* END VEHICLE SPAWNS */
 	
 	/* BEGIN SCENERY SPAWNS */
@@ -388,7 +400,8 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	
 	// Now lets build our chunk sizes
 	[self buildChunkSizes];
-	
+	NSLog(@"VEHICLE CHUNK SIZE %d", header.Vehicle.chunkSize);
+    
 	// Now lets find the size and location of the last bit of the scenario
 	// (This never changes unless we increase the size of the scenario)
 	[self findLastBitOfScenario];
@@ -479,7 +492,16 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 - (mp_equipment)readMPEquip
 {
 	mp_equipment equip;
-	[self readScenario:&equip.unknown size:64];
+    [self readScenario:&equip.bitmask32 size:4];
+    [self readScenario:&equip.type1 size:2];
+    [self readScenario:&equip.type2 size:2];
+    [self readScenario:&equip.type3 size:2];
+    [self readScenario:&equip.type4 size:2];
+    [self readScenario:&equip.team_index size:2];
+    [self readScenario:&equip.spawn_time size:2];
+    
+    
+	[self readScenario:&equip.unknown size:48];
 	int i;
 	for (i = 0; i < 3; i++)
 		[self readScenario:&equip.coord[i] size:4];
@@ -566,6 +588,14 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 	
 	return scen;
 }
+- (bipd_reference)readBipdReference
+{
+	bipd_reference ref;
+	
+	[self readScenarioTagReference:&ref.bipd_ref];
+	[self readScenario:ref.zero size:32];
+	return ref;
+}
 - (vehicle_reference)readVehicleReference
 {
 	vehicle_reference ref;
@@ -576,11 +606,44 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 }
 - (vehicle_spawn)readVehicleSpawn
 {
+    /*vehicle_spawn vehi;
+     int i;
+     
+     if ([_mapfile isPPC])
+     {
+     [self readScenario:&vehi.flag size:2];
+     [self readScenario:&vehi.numid size:2];
+     [self readScenario:&vehi.desired_permutation size:2];
+     [self readScenario:&vehi.not_placed size:2];
+     }
+     else
+     {
+     [self readScenario:&vehi.numid size:2];
+     [self readScenario:&vehi.flag size:2];
+     [self readScenario:&vehi.not_placed size:2];
+     [self readScenario:&vehi.desired_permutation size:2];
+     }
+     for (i = 0; i < 3; i++)
+     [self readScenario:&vehi.coord[i] size:4];
+     for (i = 0; i < 3; i++)
+     [self readScenario:&vehi.rotation[i] size:4];
+     
+     [self readScenario:&vehi.unknown1 size:40];
+     [self readScenario:&vehi.body_vitality size:4];
+     [self readScenario:&vehi.flags size:4];
+     [self readScenario:&vehi.unknown3 size:8];
+     [self readScenario:&vehi.mpTeamIndex size:2];
+     [self readScenario:&vehi.mpSpawnFlags size:8];
+     
+     [self readScenario:vehi.unknown2 size:22];*/
+    
+    /*
 	vehicle_spawn vehi;
 	int i;
 	
 	if ([_mapfile isPPC])
 	{
+        NSLog(@"PPC Vehicle");
 		[self readScenario:&vehi.flag size:2];
 		[self readScenario:&vehi.numid size:2];
 		[self readScenario:&vehi.desired_permutation size:2];
@@ -597,7 +660,40 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
 		[self readScenario:&vehi.coord[i] size:4];
 	for (i = 0; i < 3; i++)
 		[self readScenario:&vehi.rotation[i] size:4];
-	[self readScenario:vehi.unknown2 size:88];
+    
+    [self readScenario:&vehi.unknown1 size:40]; //32
+    [self readScenario:&vehi.body_vitality size:4]; //72
+    [self readScenario:&vehi.flags size:2]; //76
+    [self readScenario:&vehi.unknown3 size:10]; //78
+    [self readScenario:&vehi.mpTeamIndex size:2]; //88
+    [self readScenario:&vehi.mpSpawnFlags size:2]; //90
+	[self readScenario:&vehi.unknown2 size:28];*/
+    
+    vehicle_spawn vehi;
+	int i;
+	
+	if ([_mapfile isPPC])
+	{
+        NSLog(@"PPC Vehicle");
+		[self readScenario:&vehi.flag size:2];
+		[self readScenario:&vehi.numid size:2];
+		[self readScenario:&vehi.desired_permutation size:2];
+		[self readScenario:&vehi.not_placed size:2];
+	}
+	else
+	{
+		[self readScenario:&vehi.numid size:2];
+		[self readScenario:&vehi.flag size:2];
+		[self readScenario:&vehi.not_placed size:2];
+		[self readScenario:&vehi.desired_permutation size:2];
+	}
+	for (i = 0; i < 3; i++)
+		[self readScenario:&vehi.coord[i] size:4];
+	for (i = 0; i < 3; i++)
+		[self readScenario:&vehi.rotation[i] size:4];
+    
+	[self readScenario:&vehi.unknown2 size:88];
+    
 	vehi.isSelected = NO;
 	vehi.isMoving = NO;
 		
@@ -873,6 +969,10 @@ Accessor Methods
 {
 	return vehi_references;
 }
+- (bipd_reference*)bipd_references
+{
+    return bipd_references;
+}
 - (vehicle_spawn *)vehi_spawns
 {
 	return vehi_spawns;
@@ -916,6 +1016,10 @@ Accessor Methods
 - (int)vehicle_spawn_count
 {
 	return vehicle_spawn_count;
+}
+- (int)bipd_ref_count
+{
+    return bipd_ref_count;
 }
 - (int)vehi_ref_count
 {
@@ -987,21 +1091,82 @@ Begin Duplication Methods
 	int retVal = 0;
 	switch (type)
 	{
-		case s_scenery:
+		case s_playerspawn:
+			retVal = ((s_playerspawn * MAX_SCENARIO_OBJECTS) + [self duplicatePlayerSpawn:index coord:0] );
+			break;
+        case s_scenery:
 			retVal = ((s_scenery * MAX_SCENARIO_OBJECTS) + [self duplicateScenery:index coord:0] );
 			break;
 		case s_item:
+        {
+            
+    
+            
 			retVal = ((s_item * MAX_SCENARIO_OBJECTS) + [self duplicateMpEquipment:index]);
 			break;
+        }
 		case s_machine:
+        {
+            FILE *tmpFile = fopen("/Users/colbrans/Desktop/machine.seo","w+");
+            fwrite(&mach_spawns[index],sizeof(s_machine),1,tmpFile);
+            fclose(tmpFile);
+            
 			retVal = ((s_machine * MAX_SCENARIO_OBJECTS) + [self duplicateMachine:index coord:0]);
 			break;
+        }
 		case s_vehicle:
+        {
+            //FILE *tmpFile = fopen("/Users/colbrans/Desktop/vehicle.seo","w+");
+            ////fwrite(&vehi_spawns[index],sizeof(vehicle_spawn),1,tmpFile);
+            //fclose(tmpFile);
+            
 			retVal = ((s_vehicle * MAX_SCENARIO_OBJECTS) + [self duplicateVehicle:index]);
 			break;
+        }
 	}
 	return retVal;
 }
+- (int)duplicatePlayerSpawn:(int)index coord:(int)coo
+{
+	player_spawn tmpSpawn, *tmpSpawnPointer;
+	int i;
+	
+	if (index < 0 || index > player_spawn_count)
+		return 0;
+    
+	// Lets copy the data
+	memcpy(&tmpSpawn,&spawns[index],sizeof(player_spawn));
+	
+    if (coo)
+    {
+        spawns[index].isSelected = YES;
+    }
+    else
+    {
+		spawns[index].isSelected = NO;
+		for (i = 0; i < 2; i++)
+			tmpSpawn.coord[i] -= 0.3;
+    }
+    
+    
+    
+	tmpSpawn.isSelected = YES;
+	
+	// Now lets redo the counters.
+	player_spawn_count += 1;
+	header.PlayerSpawn.newChunkCount = player_spawn_count;
+	
+	tmpSpawnPointer = malloc(sizeof(player_spawn) * player_spawn_count);
+	
+	// Copy the old scenery
+	memcpy(tmpSpawnPointer,spawns,(sizeof(player_spawn) * (player_spawn_count - 1)));
+	memcpy(&tmpSpawnPointer[player_spawn_count-1], &tmpSpawn, sizeof(player_spawn));
+	free(spawns);
+	spawns = tmpSpawnPointer;
+	
+	return (player_spawn_count-1);
+}
+
 - (int)duplicateScenery:(int)index coord:(int)coo
 {
 	scenery_spawn tmpSpawn, *tmpSpawnPointer;
@@ -1009,11 +1174,7 @@ Begin Duplication Methods
 	
 	if (index < 0 || index > scenery_spawn_count)
 		return 0;
-	
-	
-	
-	
-	
+
 	// Lets copy the data
 	memcpy(&tmpSpawn,&scen_spawns[index],sizeof(scenery_spawn));
 	
@@ -1027,6 +1188,7 @@ Begin Duplication Methods
 		for (i = 0; i < 2; i++)
 			tmpSpawn.coord[i] -= [[_mapfile tagForId:tmpSpawn.modelIdent] bounding_box]->max[i];
     }
+    
     
 	tmpSpawn.isSelected = NO;
 	tmpSpawn.numid = scen_spawns[index].numid;
@@ -1107,7 +1269,10 @@ Begin Duplication Methods
 	machine_ref *newtmpRefPointer, tmpRef;
 	
 	if (![_mapfile isTag:tag.TagId])
+    {
+        NSLog(@"Not a tag!");
 		return;
+    }
 	
 	// Lets create our scenery spawn
 	tmpRef.machTag = tag;
@@ -1221,9 +1386,7 @@ Begin Duplication Methods
 	
 	scen_spawns[index].isSelected = NO;
 	
-	//FILE *tmpFile = fopen("/Users/samuco/Desktop/machine.seo","w+");
-	//fwrite(&mach_spawns[index],sizeof(machine_spawn),1,tmpFile);
-	//fclose(tmpFile);
+	
 	
 	// Now lets redo the counters
 	mach_spawn_count += 1;
@@ -1306,6 +1469,90 @@ Begin Duplication Methods
 	return ((s_netgame * MAX_SCENARIO_OBJECTS) + (multiplayer_flags_count - 2));
 }
 
+- (unsigned int)createItem:(float *)coord
+{
+    NSLog(@"Create scenery");
+	mp_equipment tmpSpawn, *tmpSpawnPointer;
+	
+	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/item.seo"];
+	FILE *tmpFile = fopen([scen cString],"r+");
+	fread(&tmpSpawn, sizeof(mp_equipment), 1, tmpFile);
+	fclose(tmpFile);
+	
+	// Lets copy the data
+	if (!coord[0] || !coord[1] || !coord[2])
+		return 0;
+	
+	tmpSpawn.coord[0] = coord[0];
+	tmpSpawn.coord[1] = (coord[1]);
+	tmpSpawn.coord[2] = coord[2];
+	//tmpSpawn.rotation[0]=0;
+	//tmpSpawn.rotation[1]=0;
+	//tmpSpawn.rotation[2]=0;
+	
+	tmpSpawn.isSelected = NO;
+	//tmpSpawn.numid=0;
+	
+	//tmpSpawn.modelIdent = [self baseModelIdent:item_[0].scen_ref.TagId];
+	
+	// Now lets redo the counters.
+	item_spawn_count += 1;
+	header.MpEquip.newChunkCount = item_spawn_count;
+	
+	tmpSpawnPointer = malloc(sizeof(mp_equipment) * item_spawn_count);
+	
+	// Copy the old scenery
+	memcpy(tmpSpawnPointer,item_spawns,(sizeof(mp_equipment) * (item_spawn_count - 1)));
+	memcpy(&tmpSpawnPointer[item_spawn_count-1], &tmpSpawn, sizeof(mp_equipment));
+	free(item_spawns);
+	item_spawns = tmpSpawnPointer;
+	
+	return (item_spawn_count-1);
+}
+
+- (unsigned int)createVehicle:(float *)coord
+{
+	NSLog(@"createVehicle");
+	vehicle_spawn tmpSpawn, *tmpSpawnPointer;
+	
+	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/vehicle.seo"];
+	FILE *tmpFile = fopen([scen cString],"r+");
+	fread(&tmpSpawn, sizeof(vehicle_spawn), 1, tmpFile);
+	fclose(tmpFile);
+	
+	// Lets copy the data
+	if (!coord[0] || !coord[1] || !coord[2])
+		return 0;
+	
+	tmpSpawn.coord[0] = coord[0];
+	tmpSpawn.coord[1] = (coord[1]);
+	tmpSpawn.coord[2] = coord[2];
+	tmpSpawn.rotation[0]=0;
+	tmpSpawn.rotation[1]=0;
+	tmpSpawn.rotation[2]=0;
+	
+	tmpSpawn.isSelected = NO;
+	tmpSpawn.numid=0;
+	tmpSpawn.unknown2[14]=0;
+    
+	tmpSpawn.modelIdent = [self baseModelIdent:vehi_references[0].vehi_ref.TagId];
+	
+	// Now lets redo the counters.
+	vehicle_spawn_count += 1;
+	header.Vehicle.newChunkCount = vehicle_spawn_count;
+	
+	tmpSpawnPointer = malloc(sizeof(vehicle_spawn) * vehicle_spawn_count);
+	
+	// Copy the old scenery
+	memcpy(tmpSpawnPointer,vehi_spawns,(sizeof(vehicle_spawn) * (vehicle_spawn_count - 1)));
+	memcpy(&tmpSpawnPointer[vehicle_spawn_count-1], &tmpSpawn, sizeof(vehicle_spawn));
+	free(vehi_spawns);
+	vehi_spawns = tmpSpawnPointer;
+	
+	return (vehicle_spawn_count-1);
+}
+
+
 - (unsigned int)createSkull:(float *)coord
 {
 	NSLog(@"Create scenery");
@@ -1357,6 +1604,8 @@ Begin Duplication Methods
 	fread(&tmpSpawn, sizeof(machine_spawn), 1, tmpFile);
 	fclose(tmpFile);
 	
+    NSLog(scen);
+    
 	// Lets copy the data
 	if (!coord[0] || !coord[1] || !coord[2])
 		return 0;
@@ -1412,11 +1661,17 @@ Scenario object destruction
 		case s_scenery:
 			[self deleteScenery:index];
 			break;
+        case s_vehicle:
+			[self deleteVehicle:index];
+			break;
 		case s_item:
 			[self deleteMPEquipment:index];
 			break;
 		case s_netgame:
 			[self deleteNetgameFlag:index];
+			break;
+        case s_playerspawn:
+			[self deletePlayerSpawn:index];
 			break;
 		case s_machine:
 			[self deleteMachine:index];
@@ -1448,6 +1703,32 @@ Scenario object destruction
 	free(item_spawns);
 	
 	item_spawns = tmpSpawnPointer;
+}
+
+- (void)deleteVehicle:(int)index
+{
+	vehicle_spawn *tmpSpawnPointer;
+	int i, x;
+	
+	if (index < 0 || index > vehicle_spawn_count)
+		return;
+    
+	tmpSpawnPointer = (vehicle_spawn *)malloc(sizeof(vehicle_spawn) * (vehicle_spawn_count - 1));
+    
+	for (i = 0; i < index; i++)
+		memcpy(&tmpSpawnPointer[i], &vehi_spawns[i], sizeof(vehicle_spawn));
+	x = i;
+	for (i = (index + 1); i < vehicle_spawn_count; i++)
+	{
+		memcpy(&tmpSpawnPointer[x], &vehi_spawns[i], sizeof(vehicle_spawn));
+		x++;
+	}
+	vehicle_spawn_count--;
+	header.Vehicle.newChunkCount = vehicle_spawn_count;
+	
+	free(vehi_spawns);
+	
+	vehi_spawns = (vehicle_spawn *)tmpSpawnPointer;
 }
 - (void)deleteScenery:(int)index
 {
@@ -1503,6 +1784,28 @@ Scenario object destruction
 
 - (void)deletePlayerSpawn:(int)index
 {
+	player_spawn *tmpSpawnPointer;
+	int i, x;
+	
+	if (index < 0 || index > player_spawn_count)
+		return;
+    
+	tmpSpawnPointer = (player_spawn *)malloc(sizeof(player_spawn) * (player_spawn_count - 1));
+    
+	for (i = 0; i < index; i++)
+		memcpy(&tmpSpawnPointer[i], &spawns[i], sizeof(player_spawn));
+	x = i;
+	for (i = (index + 1); i < player_spawn_count; i++)
+	{
+		memcpy(&tmpSpawnPointer[x], &spawns[i], sizeof(player_spawn));
+		x++;
+	}
+	player_spawn_count--;
+	header.PlayerSpawn.newChunkCount = player_spawn_count;
+	
+	free(spawns);
+	
+	spawns = (player_spawn *)tmpSpawnPointer;
 	
 }
 - (void)deleteSceneryReference:(int)index
@@ -1671,7 +1974,7 @@ Item swapping
 	for (i = 0; i < mach_ref_count; i++)
 	{
 		if ([_mapfile isTag:mach_references[i].machTag.TagId])
-			[machTagArray addObject:[[_mapfile tagForId:mach_references[i].machTag.TagId] tagName]];
+			[machTagArray addObject:[NSString stringWithFormat:@"%@%d", [[_mapfile tagForId:mach_references[i].machTag.TagId] tagName], i]];
 		else
 			[machTagArray addObject:@"Dead Machinery Reference!"];
 	}
@@ -1718,7 +2021,9 @@ Item swapping
 	for (i = 0; i < vehi_ref_count; i++)
 	{
 		if ([_mapfile isTag:vehi_references[i].vehi_ref.TagId])
+        {
 			[vehiTagArray addObject:[[_mapfile tagForId:vehi_references[i].vehi_ref.TagId] tagName]];
+        }
 		else
 			[vehiTagArray addObject:@"Dead vehicle reference!"];
 	}
@@ -2434,12 +2739,7 @@ if (debug) NSLog(@"Writing bsp...");
 	/* Set the scenario pointer to the new scenario */
 	scnr = (char *)newScnr;
 	
-	if (debug) NSLog(@"Writing test scenario");
-	//if (debug) FILE *tmpFile = fopen("/Users/samuco/Desktop/test.scnr","w+");
-	///if (debug) NSLog(@"Writing...");
-	///if (debug) NSLog(@"Closing...");
-	//if (debug) fclose(tmpFile);
-	//if (debug) NSLog(@"Map rebuild complete!");
+
 }
 
 

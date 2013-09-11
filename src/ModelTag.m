@@ -51,10 +51,10 @@
 			for (x = 0; x < regions[i].Permutations.chunkcount; x++)
 			{
 				[_mapfile readBlockOfData:regions[i].modPermutations[x].Name size_of_buffer:32];
-				[_mapfile skipBytes:32];
+				[_mapfile readBlockOfData:regions[i].modPermutations[x].Flags size_of_buffer:32];
 				for (j = 0; j < 5; j++)
 					[_mapfile readShort:&regions[i].modPermutations[x].LOD_MeshIndex[j]];
-				[_mapfile skipBytes:28];
+				[_mapfile skipBytes:14];
 			}
 			[_mapfile seekToAddress:currentOffset];
 		}
@@ -64,12 +64,13 @@
 		
 		subModels = [[NSMutableArray alloc] initWithCapacity:geometryRef.chunkcount];
 		
+        NSLog(@"Geometry: %ld", geometryRef.chunkcount);
 		for (i = 0; i < geometryRef.chunkcount; i++)
 		{
 			[_mapfile seekToAddress:(geometryRef.offset + (i * 48))];
 			tmpGeo = [[Geometry alloc] initWithMap:_mapfile parent:self];
 			[subModels addObject:tmpGeo];
-			[tmpGeo release];
+			//[tmpGeo release]; //LEAK?
 		}
 		
 		[_mapfile seekToAddress:shaderRef.offset];
@@ -124,6 +125,7 @@
 		bb->max[0] = -50000;
 		bb->max[1] = -50000;
 		bb->max[2] = -50000;
+        
 		for (x = 0; x < [subModels count]; x++)
 		{
 			b = [(Geometry *)[subModels objectAtIndex:x] determineBoundingBox];
@@ -135,7 +137,9 @@
 					bb->max[i] = b.max[i];
 			}
 		}
-	}
+        
+    }
+    
 	
 }
 - (BOUNDING_BOX *)bounding_box
@@ -154,44 +158,145 @@
 {
 	return (int)numRegions;
 }
+
 - (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas
+{
+    [self drawAtPoint:point lod:lod isSelected:isSelected useAlphas:useAlphas distance:0.0];
+}
+
+- (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas distance:(float)dist
 {
 	int i, x;
 	
 	if (bb == NULL)
 		[self determineBoundingBox];
 	
+    
 	glPushMatrix();
-		glTranslatef(point[0],point[1],point[2]);
-		
-		/* Perform rotation */
-		glRotatef(point[5] * (57.29577951), 1, 0, 0);
-		glRotatef(-point[4] * (57.29577951), 0, 1, 0);
-		glRotatef(point[3] * (57.29577951), 0, 0, 1);
-	
-		GLuint vertexShaderObject;
-	
-		//vertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
-		//long shader_index = [self shaderIdentForIndex:0];
-	
-		//NSLog(@"%d", [[_mapfile tagForId:shader_index] tagLocation]);
-	
-		//glShaderSourceARB(vertexShaderObject, 1, [shaders objectAtIndex:0], [[shaders objectAtIndex:0] length]);
-		//glCompileShaderARB(vertexShaderObject);
-	
-		if (isSelected)
-		{
-			[self drawBoundingBox];
-		}
-		
-		glColor4f(1.0f,1.0f,1.0f,4.0f);
-		
-		for (i = 0; i < numRegions; i++)
-			for (x = 0; x < regions[i].Permutations.chunkcount; x++)
-			{
-				[[subModels objectAtIndex:regions[i].modPermutations[0].LOD_MeshIndex[lod]] drawIntoView:useAlphas];
-				//[[subModels objectAtIndex:regions[i].modPermutations[0].LOD_MeshIndex[lod]] drawIntoView:useAlphas];
-			}
+    glTranslatef(point[0],point[1],point[2]);
+    
+    if (isSelected)
+    {
+        if (useNewRenderer())
+        {
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_BLEND);
+        }
+        glBegin(GL_LINES);
+        {
+            // Now to try some other stuffs! Bwahaha!
+            // set these lines to white
+            glLineWidth(1.0f);
+            // x
+            
+            float lineLength = 1000.0f/2;
+            
+            glColor4f(5.0f,5.0f,5.0f, 1.0f);
+            glVertex3f(-lineLength,0.0f,0.0f);
+            glVertex3f(lineLength,0.0f,0.0f);
+            glVertex3f(0.0f,-lineLength,0.0f);
+            glVertex3f(0.0f,lineLength,0.0f);
+            glVertex3f(0.0f,0.0f,-lineLength);
+            glVertex3f(0.0f,0.0f,lineLength);
+        }
+        glEnd();
+        if (useNewRenderer())
+        {
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+        
+    }
+    
+    
+    /* Perform rotation */
+    glRotatef(point[5] * (57.29577951), 1, 0, 0);
+    glRotatef(-point[4] * (57.29577951), 0, 1, 0);
+    glRotatef(point[3] * (57.29577951), 0, 0, 1);
+    
+    
+    //--------------------------------
+    //The copyright for the following code is owned by Samuel Colbran (Samuco).
+    //The copyright for other smaller segments that are not identified by these comments are also owned by Samuel Colbran (Samuco).
+    //--------------------------------
+    
+    if (isSelected)
+    {
+        if (useNewRenderer())
+        {
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_BLEND);
+        }
+        
+        glColor4f(1.0f,1.0f,0.0f,4.0f);
+        [self drawBoundingBox];
+        glColor4f(1.0f,1.0f,0.0f,4.0f);
+        
+        if (useNewRenderer())
+        {
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+        
+        
+        
+    }
+ 
+    int z;
+    for (i = 0; i < numRegions; i++)
+    {
+        for (x = 0; x < regions[i].Permutations.chunkcount; x++)
+        {
+            
+            
+      
+               // NSLog([NSString stringWithCString:regions[i].modPermutations[x].Name encoding:NSUTF8StringEncoding]);
+            
+            int g = regions[i].modPermutations[x].Flags[0];
+            if ((g & 0xFF) == 1)
+            {
+                //NSLog([NSString stringWithCString:regions[i].modPermutations[x].Name encoding:NSUTF8StringEncoding]);
+                //continue;
+            }
+            else
+            {
+                int index;
+                if (dist < 10.0)
+                    index = regions[i].modPermutations[x].LOD_MeshIndex[4];
+                else
+                    index = regions[i].modPermutations[x].LOD_MeshIndex[0];
+                
+
+                if (index>=[subModels count])
+                {
+                    continue;
+                }
+                
+                id model = [subModels objectAtIndex:index];
+                if (model)
+                {
+    #ifdef fasterRendering
+                    glBegin(GL_TRIANGLE_STRIP);
+    #endif
+                    [model drawIntoView:useAlphas];
+    #ifdef fasterRendering
+                    glEnd();
+    #endif
+                }
+            }
+            
+        }
+    }
+    
+    //END CODE
+    
+    glColor3f(1.0f,1.0f,1.0f);
 	glPopMatrix();
 }
 
@@ -205,7 +310,9 @@
 }
 - (void)drawBoundingBox
 {
-    glColor3f(1.0f,1.0f,0.0f);
+    glFlush();
+    glLineWidth(1.0f);
+    glColor4f(1.0f,1.0f,0.0f, 5.0f);
 	glBegin(GL_LINES);
 	    glVertex3f(bb->max[0],bb->max[1],bb->max[2]);
 	    glVertex3f(bb->max[0],bb->max[1],bb->min[2]);
@@ -246,6 +353,7 @@
 		// Now to try some other stuffs! Bwahaha!
 		//[self drawAxes:TRUE];
 	glEnd();
+   
 }
 - (void)drawAxes:(BOOL)withPointerArrow
 {

@@ -45,6 +45,7 @@
 - (float)v_scale;
 - (int)numRegions;
 - (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas;
+- (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas distance:(float)dist;
 - (void)loadAllBitmaps;
 - (long)shaderIdentForIndex:(int)index;
 - (void)drawBoundingBox;

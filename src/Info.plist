@@ -21,7 +21,7 @@
 	<key>CFBundleVersion</key>
 	<string>Genesis</string>
 	<key>NSMainNibFile</key>
-	<string>MainMenu</string>
+	<string>Main</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

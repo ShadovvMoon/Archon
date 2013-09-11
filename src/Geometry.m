@@ -15,6 +15,9 @@
 
 #import "TextureManager.h"
 
+#import <OpenGL/OpenGL.h>
+
+
 @implementation Geometry
 - (id)initWithMap:(HaloMap *)map parent:(ModelTag *)mTag
 {
@@ -44,8 +47,8 @@
 			[_mapfile readBlockOfData:currentPart->junk4 size_of_buffer:4];
 			[_mapfile readShort:&currentPart->shaderIndex];
 			
-			//[_mapfile readBlockOfData:&currentPart->junk size_of_buffer:66]; <-- This little baby was causing a buffer overrun on PPC macs, so I'm just skipping it
-			[_mapfile skipBytes:66];
+			[_mapfile readBlockOfData:&currentPart->junk size_of_buffer:66];// <-- This little baby was causing a buffer overrun on PPC macs, so I'm just skipping it
+			//[_mapfile skipBytes:66];
 			
 			[_mapfile readLong:&currentPart->indexPointer.count];
 			[_mapfile readLong:&currentPart->indexPointer.rawPointer[0]];
@@ -95,6 +98,9 @@
 			[_mapfile seekToAddress:endOfPart];
 		}
 	}
+    
+    [self setupDrawing];
+    
 	return self;
 }
 - (void)dealloc
@@ -108,6 +114,10 @@
 		free(parts[x].indices);
 
 	free(parts);
+    
+    //if (vertex_array)
+    //
+    free(vertex_array);
 	
 	if (textures)
 		free(textures); // Not so sure about this call, I'm not sure if glDeleteTextures frees this or not
@@ -161,6 +171,8 @@
 		}
 	}
 	texturesLoaded = TRUE;
+    
+    
 }
 - (BOUNDING_BOX)determineBoundingBox
 {
@@ -194,70 +206,178 @@
 	}
 	return bb;
 }
+
+-(void)setupDrawing
+{
+    
+    int i, x;
+	part currentPart;
+    
+    NSLog(@"Initialing drawing");
+    
+    float u_scale, v_scale;
+    
+	u_scale = [parent u_scale];
+	v_scale = [parent v_scale];
+    
+    int requiredSize = 0;
+    int indexSize = 0;
+    int cC= partsref.chunkcount;
+    
+    for (i = 0; i < cC; i++)
+	{
+        currentPart = parts[i];
+        requiredSize+=currentPart.vertPointer.count;
+        indexSize+=currentPart.indexPointer.count+2;
+    }
+    
+    vertex_array = (GLfloat*)malloc(requiredSize * 3 * sizeof(GLfloat));
+    index_array = (GLshort*)malloc(indexSize * sizeof(GLshort));
+    texture_uv = (GLfloat*)malloc(requiredSize * 2 * sizeof(GLfloat));
+    normals = (GLfloat*)malloc(requiredSize * 3 * sizeof(GLfloat));
+    
+    int a=0;
+    int uvr=0;
+    int normal=0;
+    int ind=0;
+    for (i = 0; i < cC; i++)
+	{
+        currentPart = parts[i];
+        if (currentPart.indexPointer.rawPointer[0] == currentPart.indexPointer.rawPointer[1])
+		{
+            
+            for (x = 0; x < currentPart.indexPointer.count+2; x++)
+            {
+                GLshort index = currentPart.indices[x];
+                index+=(a/3);
+                
+                index_array[ind]=index;
+                ind++;
+            }
+        
+            for (x=0; x < currentPart.vertPointer.count; x++)
+            {
+                Vector vertex = currentPart.vertices[x];
+                vertex_array[a] = vertex.x;
+                vertex_array[a+1] = vertex.y;
+                vertex_array[a+2] = vertex.z;
+                //normals[a]=vertex.normalx;
+                //normals[a+2]=vertex.normaly;
+                //normals[a+3]=vertex.normalz;
+                texture_uv[uvr] = vertex.u*u_scale;
+                texture_uv[uvr+1] = vertex.v*v_scale;
+                
+                uvr+=2;
+                a+=3;
+            }
+            
+            
+            
+        }
+    }
+    indexCount_R = ind;
+    NSLog(@"Complete");
+    
+    
+    
+}
+
 - (void)drawIntoView:(BOOL)useAlphas
 {
+    useAlphas = YES;
+    
 	int i, x;
 	part currentPart;
-	float	u_scale,
-			v_scale;
+	float u_scale, v_scale;
 			
 	u_scale = [parent u_scale];
 	v_scale = [parent v_scale];
 	
+    if (partsref.chunkcount <= 0)
+        return;
+    
+    //--------------------------------
+    //The copyright for the following code is owned by Samuel Colbran (Samuco).
+    //The copyright for other smaller segments that are not identified by these comments are also owned by Samuel Colbran (Samuco).
+    //--------------------------------
+    
+    
+    if (useNewRenderer())
+    {
+       
+        glVertexPointer(3, GL_FLOAT, 0, vertex_array);
+        glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);
+        //glNormalPointer(GL_FLOAT, 0, normals);
+        
+        int currentIndex = 0;
+        for (i = 0; i < partsref.chunkcount; i++)
+        {
+            currentPart = parts[i];
+            if (currentPart.indexPointer.rawPointer[0] == currentPart.indexPointer.rawPointer[1])
+            {
+                if (currentPart.shaderIndex != -1)
+                {
+                    [[parent _texManager] activateTextureOfIdent:currentPart.shaderBitmapIndex subImage:0 useAlphas:useAlphas];
+                }
+                
+                if (currentIndex+currentPart.indexPointer.count+2 <= indexCount_R)
+                {
+                    glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
+                }
+                currentIndex+=currentPart.indexPointer.count+2;
+            }
+        }
+        
+        
+
+        return;
+    }
+    
+    //END CODE
+    
 	for (i = 0; i < partsref.chunkcount; i++)
 	{
 		currentPart = parts[i];
-		
 		if (currentPart.indexPointer.rawPointer[0] == currentPart.indexPointer.rawPointer[1])
 		{
 			/* GL Texture stuff goes hur */
 			if (currentPart.shaderIndex != -1)
 			{
 				[[parent _texManager] activateTextureOfIdent:currentPart.shaderBitmapIndex subImage:0 useAlphas:useAlphas];
-				/*if (textures)
-				{
-					glColor3f(1,1,1);
-					glEnable(GL_TEXTURE_2D);
-					
-					if (useAlphas)
-					{
-						glEnable(GL_BLEND);
-						glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
-						glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-					}
-			
-					glBindTexture(GL_TEXTURE_2D,textures[i]);
-				
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-					glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-					glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-			
-					glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-				}*/
 			}
 
+            
+            unsigned short index;
+            if (textures)
+            {
+                glBegin(GL_TRIANGLE_STRIP);
+                for (x = 0; x < currentPart.indexPointer.count + 2; x++)
+                {
+                    index = currentPart.indices[x];
+                    Vector *tempVector = &currentPart.vertices[index];
+                    
+                    glNormal3f(tempVector->normalx,tempVector->normaly,tempVector->normalz);
+                    glTexCoord2f(tempVector->u * u_scale, tempVector->v * v_scale);
+                    glVertex3f(tempVector->x,tempVector->y,tempVector->z);
+                }
+                glEnd();
+            }
+            else
+            {
+                glBegin(GL_TRIANGLE_STRIP);
+                for (x = 0; x < currentPart.indexPointer.count + 2; x++)
+                {
+                    index = currentPart.indices[x];
+                    Vector *tempVector = &currentPart.vertices[index];
+                    
+                    glNormal3f(tempVector->normalx,tempVector->normaly,tempVector->normalz);
+                    glVertex3f(tempVector->x,tempVector->y,tempVector->z);
+                }
+                glEnd();
+            }
 			
-			glBegin(GL_TRIANGLE_STRIP);
-			
-			unsigned short index;
-			
-			for (x = 0; x < currentPart.indexPointer.count + 2; x++)
-			{
-				index = currentPart.indices[x];
-				Vector *tempVector = &currentPart.vertices[index];
-				
-				// Normal mapping?
-				glNormal3f(tempVector->normalx,tempVector->normaly,tempVector->normalz);
-				if (textures)
-					glTexCoord2f(tempVector->u * u_scale, tempVector->v * v_scale);
-				
-				glVertex3f(tempVector->x,tempVector->y,tempVector->z);
-			}
-			
-			glEnd();
-			glDisable(GL_TEXTURE_2D);
-			glDisable(GL_BLEND);
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_BLEND);
 		}
 	}
 	glFlush();

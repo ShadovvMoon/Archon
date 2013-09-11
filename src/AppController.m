@@ -93,7 +93,7 @@
 	{
 		[self selectBitmapLocation];
 	}
-	
+	[rendView loadPrefs];
 	[mainWindow makeKeyAndOrderFront:self];
 	//[mainWindow center];
 	
@@ -163,7 +163,7 @@
 		default:
 			break;
 	}
-	[mainWindow setTitle:[[NSString stringWithString:@"starlight : "] stringByAppendingString:[mapfile mapName]]];
+	[mainWindow setTitle:[[NSString stringWithString:@"Moonlight : "] stringByAppendingString:[mapfile mapName]]];
 }
 
 - (IBAction)loadMap:(id)sender
@@ -214,8 +214,8 @@
 	{
 		NSRunAlertPanel(@"Error!",@"No mapfile currently open!", @"Ok", nil,nil);
 		return;
-	}
-	if ((NSRunAlertPanel(@"Saving...", @"Are you sure you want to save?",@"Yes",@"No",nil)) == 1)
+	} 
+	if ((NSRunAlertPanel(@"Saving...", @"Are you sure you want to save? Swordedit will quit after saving to ensure map stability.",@"Yes",@"No",nil)) == 1)
 	{
 		// do whatever the fuck you want
 		[mapfile saveMap];
@@ -238,7 +238,7 @@
 		[NSTask launchedTaskWithLaunchPath:relaunch arguments:[NSArray arrayWithObjects:[[NSBundle mainBundle] bundlePath], [NSString stringWithFormat:@"%d",procid], nil]];
 		[NSApp terminate:NULL];
 		
-		///[self loadMapFile:opened];
+		///[self loadMapFile:opened];*/
 	}
 }
 - (IBAction)close:(id)sender

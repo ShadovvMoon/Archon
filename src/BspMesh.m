@@ -129,6 +129,8 @@
 	m_BspHeader.DetailObjects = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.RuntimeDecals = [_mapfile readBspReflexive:_bspMagic];
 	[_mapfile skipBytes:(9 * sizeof(unsigned long))];
+    
+    
 	
 	[self LoadMaterialMeshHeaders];
 	[self LoadCollisionMeshHeaders];
@@ -175,6 +177,31 @@
 	}
 }
 
+
+struct Bsp3dNode
+{
+    int plane;  // if < 0, then the plane is flipped (I'm not 100% sure about that though)
+    int backNode; // if < 0, then the left node is a leaf, the leaf index can be obtained by masking off the MSB from the node (Ex: leaf = node & 0x7FFFFFFF;)
+    int frontNode; // if < 0, then the right node is a leaf, see above
+};
+
+struct Plane
+{ //I think that this is traditionally (i,j,k,d), but I  like my naming scheme better.
+    float a;
+    float b;
+    float c;
+    float d;
+};
+
+struct Leaf3d
+{
+    int flags;
+    int bsp2dRef; // Don't worry about this right now
+    int bsp2dCount; // Don't worry about this right now
+};
+
+
+
 -(void)writePcSubmeshes
 {
 	int i, v, x;
@@ -205,20 +232,23 @@
 		}
 	}
 
-		unsigned long offset;
-		int j;
-		int cv=0;
-		for (i = 0; i < m_BspHeader.CollBspHeader.chunkcount; i++)
-		{
-			for (j = 0; j < m_pCollisions[i].Material.chunkcount; j++)
-			{
-				offset = (m_pCollisions[i].Material.offset + (16 * j));
-				[_mapfile writeAnyDataAtAddress:&coll_verts[cv].x size:4 address:offset];
-				[_mapfile writeAnyDataAtAddress:&coll_verts[cv].y size:4 address:offset+4];
-				[_mapfile writeAnyDataAtAddress:&coll_verts[cv].z size:4 address:offset+8];
-				cv++;
-			}
-		}
+    
+    NSLog(@"Saving collision data.");
+    
+    unsigned long offset;
+    int j;
+    int cv=0;
+    for (i = 0; i < m_BspHeader.CollBspHeader.chunkcount; i++)
+    {
+        for (j = 0; j < m_pCollisions[i].Material.chunkcount; j++)
+        {
+            offset = (m_pCollisions[i].Material.offset + (16 * j));
+            [_mapfile writeAnyDataAtAddress:&coll_verts[cv].x size:4 address:offset];
+            [_mapfile writeAnyDataAtAddress:&coll_verts[cv].y size:4 address:offset+4];
+            [_mapfile writeAnyDataAtAddress:&coll_verts[cv].z size:4 address:offset+8];
+            cv++;
+        }
+    }
 	
 }
 
@@ -237,9 +267,7 @@
 		int gm = 1;
 		if (gm)
 		{
-		
 			m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
-			//m_pMesh[i].DefaultBitmapIndex = m_BspHeader.LightmapsTag.TagId;
 			
 			[_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
 			//[_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:0];
@@ -305,46 +333,46 @@
 			if (!pla)
 			{
 				
-			unsigned long offset;
-			int x, i, j, hdr_count;
-			
-			m_pCollisions = malloc(sizeof(BSP_COLLISION) * m_BspHeader.CollBspHeader.chunkcount);
-			
-			[_mapfile seekToAddress:m_BspHeader.CollBspHeader.offset];
-			int col_mesh_count = 0;
-			for (x = 0; x< m_BspHeader.CollBspHeader.chunkcount; x++)
-			{
-				[_mapfile readShort:&m_pCollisions[x].LightmapIndex];
-				[_mapfile readShort:&m_pCollisions[x].unk1];
-				[_mapfile skipBytes:0x54-4];
-				m_pCollisions[x].Material = [_mapfile readBspReflexive:_bspMagic]; //Verticies
-				col_mesh_count += m_pCollisions[x].Material.chunkcount;
-			}
-			coll_count = col_mesh_count;
-			coll_verts = malloc(col_mesh_count * sizeof(vert));
-			hdr_count = 0;
-			for (i = 0; i < m_BspHeader.CollBspHeader.chunkcount; i++)
-			{
-				for (j = 0; j < m_pCollisions[i].Material.chunkcount; j++)
-				{
-					offset = (m_pCollisions[i].Material.offset + (16 * j));
-					[_mapfile seekToAddress:offset];
-					
-					
-					long x;
-					
-					
-					[_mapfile readFloat:&(coll_verts[hdr_count].x)];
-					
-					[_mapfile readFloat:&coll_verts[hdr_count].y];
-					
-					[_mapfile readFloat:&coll_verts[hdr_count].z];
-					[_mapfile readFloat:&coll_verts[hdr_count].edge];
-					
-					
-					hdr_count++;
-				}
-			}
+                unsigned long offset;
+                int x, i, j, hdr_count;
+                
+                m_pCollisions = malloc(sizeof(BSP_COLLISION) * m_BspHeader.CollBspHeader.chunkcount);
+                
+                [_mapfile seekToAddress:m_BspHeader.CollBspHeader.offset];
+                int col_mesh_count = 0;
+                for (x = 0; x< m_BspHeader.CollBspHeader.chunkcount; x++)
+                {
+                    [_mapfile readShort:&m_pCollisions[x].LightmapIndex];
+                    [_mapfile readShort:&m_pCollisions[x].unk1];
+                    [_mapfile skipBytes:0x54-4];
+                    m_pCollisions[x].Material = [_mapfile readBspReflexive:_bspMagic]; //Verticies
+                    col_mesh_count += m_pCollisions[x].Material.chunkcount;
+                }
+                coll_count = col_mesh_count;
+                coll_verts = malloc(col_mesh_count * sizeof(vert));
+                hdr_count = 0;
+                for (i = 0; i < m_BspHeader.CollBspHeader.chunkcount; i++)
+                {
+                    for (j = 0; j < m_pCollisions[i].Material.chunkcount; j++)
+                    {
+                        offset = (m_pCollisions[i].Material.offset + (16 * j));
+                        [_mapfile seekToAddress:offset];
+                        
+                        
+                        long x;
+                        
+                        
+                        [_mapfile readFloat:&(coll_verts[hdr_count].x)];
+                        
+                        [_mapfile readFloat:&coll_verts[hdr_count].y];
+                        
+                        [_mapfile readFloat:&coll_verts[hdr_count].z];
+                        [_mapfile readFloat:&coll_verts[hdr_count].edge];
+                        
+                        
+                        hdr_count++;
+                    }
+                }
 			}
 			else
 			{

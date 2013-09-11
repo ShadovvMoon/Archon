@@ -12,5 +12,17 @@ char *gExecutablePath = NULL;
 int main(int argc, char *argv[])
 {
 	gExecutablePath = argv[0];	
-	return NSApplicationMain(argc,  (const char **) argv);
+	
+    
+    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    int retVal = -1;
+    @try {
+        retVal = NSApplicationMain(argc,  (const char **) argv);
+    }
+    @catch (NSException* exception) {
+        NSLog(@"Uncaught exception: %@", exception.description);
+        NSLog(@"Stack trace: %@", [exception callStackSymbols]);
+    }
+    [pool release];
+    return retVal;
 }
