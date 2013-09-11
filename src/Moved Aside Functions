@@ -1,0 +1,719 @@
+- (void)third_try_calculateTranslation:(float *)coord move:(float *)move
+{
+	float theta;
+	CVector3 camPos, objPos, upVector, viewingDirection, rightVector;
+	
+	
+	camPos = NewCVector3([_camera position][0],[_camera position][1],[_camera position][2]);
+	objPos = NewCVector3(coord[0], coord[1], coord[2]);
+	
+	upVector = NewCVector3(0.0f,0.0f,1.0f);
+	
+	viewingDirection = SubtractTwoVectors(camPos,objPos);
+	
+	NSLog(@"Viewing Direction: x: [%f], y:[%f], z:[%f]", viewingDirection.x, viewingDirection.y, viewingDirection.z);
+	
+	rightVector = Cross(upVector,viewingDirection);
+	
+	//NSLog(@"Normal: x: [%f], y:[%f], z:[%f]", rightVector.x, rightVector.y, rightVector.z);
+	
+	rightVector = Normalize(viewingDirection);
+	
+	//NSLog(@"Normal: x: [%f], y:[%f], z:[%f]", rightVector.x, rightVector.y, rightVector.z);
+	
+	NSLog(@"Cam x:[%f], y:[%f]; obj x:[%f], y[%f];", [_camera position][0], [_camera position][1], coord[0], coord[1]);
+	
+	
+	// Dollying
+	if (move[1] > 0)
+	{
+		if (viewingDirection.x > 0)
+			rightVector.x *= (move[1] * ((rightVector.x > 0) ? -1 : 1));
+		if (viewingDirection.y > 0)
+			rightVector.y *= (move[1] * ((rightVector.y > 0) ? -1 : 1)); 
+			
+		rightVector.x *= ((viewingDirection.x < 0) ? -1 : 1);
+		rightVector.y *= ((viewingDirection.y < 0) ? -1 : 1);
+	}
+	
+	rightVector.x *= (viewingDirection.x / 10);
+	rightVector.y *= (viewingDirection.y / 10);
+	
+	// Now lets add sum left / right translation
+	theta = atanf(rightVector.y/rightVector.z);
+	NSLog(@"Theta: %f", theta);
+	
+	coord[0] += rightVector.x;
+	coord[1] += rightVector.y;
+}
+/* 
+	move is the amount that we'll be moving the object
+*/
+
+- (void)anotheroldcalculateTranslation:(float *)coord move:(float *)move
+{
+	float theta, distance, x, y;
+	CVector3 toVect;
+	NSLog(@"Obj position: x: %f, y: %f, z: %f", coord[0], coord[1], coord[2]);
+	
+	// Here is our direction vector.
+	toVect.x = [_camera position][0] - coord[0];
+	toVect.y = [_camera position][1] - coord[1];
+	
+	distance = [self distanceToPoint:coord camPos:[_camera position]];
+	distance = sqrt(powf(coord[0] - [_camera position][0],2) + powf(coord[1] - [_camera position][1], 2));
+	// We have our new axes with [_camera position] signifying (0,0), so lets do some mathz
+	// Lets get the orientation of the vector in range of [-pi/2, +pi/2]
+	theta = (pi / 2.0f) + atanf(toVect.y/toVect.x);
+	theta *= 114.64968152866;
+	
+	// Now lets decide our moves upon the quadrants?
+	
+	
+	//theta += move[0];
+	//if (theta >= 360.0f)
+	//	theta -= 360.0f;
+	//theta /= 114.64968152866;
+	//theta -= (pi / 2.0f);
+	
+	y = (distance * sinf(theta));
+	//x = (distance * cosf(theta));
+	
+	//coord[0] = [_camera position][0] + x;
+	//coord[1] = [_camera position][1] + y;
+
+	// We have our orientation, so lets move this baby left / right on screen
+	NSLog(@"Cam x:[%f], y:[%f]; obj x:[%f], y[%f];", [_camera position][0], [_camera position][1], coord[0], coord[1]);
+	NSLog(@"Distance: [%f], theta: [%f], pi: [%f]", distance, theta, pi);
+}
+- (void)old_calculateTranslation:(float *)coord move:(float *)move
+{
+	/* Take the coord from the spawn object and compare it to the camera's location */
+	float distanceTo = [self distanceToPoint:coord camPos:[_camera position]];
+	float o_pX, o_pY, z, theta, hypotnuse;
+	
+	float cX, cY;
+	
+	
+	//NSLog(@"Distance to point: %f", distanceTo);
+	//NSLog(@"Position of Obj: x:[%f], y:[%f], z:[%f];", coord[0], coord[1], coord[2]);
+	//NSLog(@"Position of Cam: x:[%f], y:[%f], z:[%f];", [_camera position][0], [_camera position][1], [_camera position][2]);
+	/*if ((coord[0] - [_camera position][0]) < 0)
+		move[0] *= -1;
+	if ((coord[1] - [_camera position][1]) < 0)
+		move[1] *= -1;*/
+		
+	/* Lets construct our axes */
+	o_pX = (coord[0] - [_camera position][0]);
+	o_pY = (coord[1] - [_camera position][1]);
+	
+	NSLog(@"Position of obj on axes: x:[%f], y:[%f]", o_pX, o_pY);
+	
+	hypotnuse = sqrt(powf(o_pX, 2) + powf(o_pY, 2));
+	
+	/*if (o_pX > 0 && o_pY > 0)
+	{
+		// Quadrant 1
+		if (o_pX > o_pY)
+		{
+			// Q1, S1
+			theta = asinf(o_pY/hypotnuse);
+			cX = move[1];
+			cY = move[0];
+		}
+		else if (o_pX < o_pY)
+		{
+			// Q1, S2
+			theta = asinf(o_pX/hypotnuse);
+			cX = move[0];
+			cY = move[1];
+		}
+	}
+	else if (o_pX < 0 && o_pY > 0)
+	{
+		// Quadrant 2
+		if (o_pX < o_pY)
+		{
+			// Q2, S1
+			theta = asinf(o_pX/hypotnuse);
+			cX = move[0] * -1;
+			cY = move[1];
+		}
+		else if (o_pX > o_pY)
+		{
+			// Q2, S2
+			theta = asinf(o_pY/hypotnuse);
+			cX = move[1] * -1;
+			cY = move[0];
+		}
+	}
+	else if (o_pX < 0 && o_pY < 0)
+	{
+		// Quadrant 3
+		if (o_pX > o_pY)
+		{
+			// Q3, s1
+			theta = asinf(o_pY/hypotnuse);
+			cX = move[1] * -1;
+			cY = move[0] * -1;
+		}
+		else if (o_pX < o_pY)
+		{
+			// Q3, S2
+			theta = asinf(o_pX/hypotnuse);
+			cX = move[0] * -1;
+			cY = move[1] * -1;
+		}
+	}
+	else if (o_pX > 0 && o_pY < 0)
+	{
+		// Quadrant 4
+		if (o_pX > o_pY)
+		{
+			// Q4, S1
+			theta = asinf(o_pY/hypotnuse);
+			cX = move[0];
+			cY = move[1] * -1;
+		}
+		else if (o_pX < o_pY)
+		{
+			// Q4, S2
+			theta = asinf(o_pY/hypotnuse);
+			cX = move[1];
+			cY = move[0] * -1;
+		}
+	}
+	
+	theta *= 180;
+	
+	o_pX += cX;
+	o_pY += cY;
+	
+	//theta = fabsf(theta * 180);
+	
+	NSLog(@"Theta: %f", theta);*/
+	
+	//float u = ([_camera position][2] - coord[2])/([_camera position][2] - 
+	
+	NSLog(@"Adjusted Position of obj on axes: x:[%f], y:[%f]", o_pX, o_pY);
+	
+	coord[0] = (o_pX + [_camera position][0]);
+	coord[1] = (o_pY + [_camera position][1]);
+}
+- (float)distanceToPoint:(float *)oCoord camPos:(float *)camPos
+{
+	return sqrtf(powf(oCoord[0] - camPos[0], 2) + powf(oCoord[1] - camPos[1], 2) + powf(oCoord[2] - camPos[2], 2));
+}
+
+
+
+
+- (void)moved_aside_old_rebuildScenario
+{
+	/*
+		reflexive *tmpreflex = (reflexive *)_reflexLookup[7];
+	
+		NSLog(@"Vehicle offset: %x, table lookup offset: %x", header.Vehicle.offset, tmpreflex->offset);
+	*/
+	
+	int i, x, n, sizeChange,
+		realOffsets = 0,
+		index, pointerOffset,
+		bufIndex;
+	char	*scen_buf,
+			*scen_ref_buf,
+			*p_spawns_buf,
+			*mp_flags_buf,
+			*mp_equip_buf;
+	long negativeOffset;
+	char *newScnr;
+	reflexive *tmpReflex, *nextReflex;
+	
+	negativeOffset = 0;
+	negativeOffset -= ([_mapfile magic] + [self offsetInMap]);
+	
+	sizeChange = 0;
+	
+	/*	NSLogs
+			
+			//NSLog(@"Reflexive[%d], located at: %x, points to offset: [0x%x]", i, tmpReflex->location_in_mapfile, tmpReflex->offset);
+			//NSLog(@"new chunk count: %d, old chunk count: %d", tmpReflex->newChunkCount, tmpReflex->chunkcount);
+			//NSLog(@"sizechange: %x", (tmpReflex->newChunkCount * tmpReflex->chunkSize));
+	*/
+	
+	/*
+		This loop here gets the total size change of the scenario which we may then add onto the original scenario size in our malloc call
+		
+		What happens here
+		{
+			sizeChange is the counter for the number of bytes that have been added to the scenario as reported by each reflexive
+			we construct a new scenario pointer (*newScnr) which we'll have point to malloc(scnr_size + sizeChange);
+			Then we proceed to fill this with, first, our scenario header.
+			
+			\\\\ The Scenario header is ALWAYS 0x5B0 long and ends with the skybox tag ref. \\\\
+			\\\\ There are 79 reflexives that we keep track of in our scenario defs, many of which may need to be updated on a rebuild. \\\\
+		}
+	*/
+	for (i = 0; i < 79; i++)
+	{		
+		// Now lets construct a lookup table for the order that we'll need to write everything
+		/*
+			This lookup table is meant to go in order of smallest offset to largest (ie, [0]=smallest, [1]=second smallest ... [n]=larger offset than [0]
+			By doing this were able to copy all of the data correctly, going in the right order, and missing all of the unused reflexives
+		*/
+		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset))
+		{
+			// Ok, its passes our preliminary checks. Lets move on...
+			
+			// Create the lookup array time lolz
+			realOffsets++;
+		}
+	}
+	
+	int OffsetTable[realOffsets];
+	
+	// Construct the lookup table of REAL offsets
+	x = 0; // x is our table index counter
+	for (i = 0; i < 79; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[i];
+		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset))
+		{
+			OffsetTable[x] = ((tmpReflex->offset * 100) + i);
+			x++;
+			NSLog(@"Tag [%d], offset [%x]", x, tmpReflex->offset);
+			/*
+				Here I am creating the buffers for us to use in copying any sort of swordedit-modified data
+			*/
+			switch (i)
+			{
+				case 3: // Scenery spawns
+					NSLog(@"New chunk count: %d", tmpReflex->newChunkCount);
+					scen_buf = (char *)malloc(tmpReflex->newChunkCount * SCENERY_SPAWN_CHUNK);
+					for (n = 0; n < tmpReflex->newChunkCount; n++)
+					{
+						bufIndex = (SCENERY_SPAWN_CHUNK * n);
+						memcpy(&scen_buf[bufIndex],&scen_spawns[n], SCENERY_SPAWN_CHUNK); // Copies everything from that struct up to, but not including, modelIdent
+					}
+					break;
+				case 4: // Scenery ref
+					scen_ref_buf = (char *)malloc(tmpReflex->newChunkCount * SCENERY_SPAWN_CHUNK);
+					for (n = 0; n < tmpReflex->newChunkCount; n++)
+					{
+						bufIndex = (SCENERY_SPAWN_CHUNK * n);
+						memcpy(&scen_ref_buf[bufIndex], &scen_references[n], SCENERY_REF_CHUNK);
+					}
+					break;
+				case 30: // spawns
+					p_spawns_buf = (char *)malloc(tmpReflex->newChunkCount * PLAYER_SPAWN_CHUNK);
+					for (n = 0; n < tmpReflex->newChunkCount; n++)
+					{
+						bufIndex = (PLAYER_SPAWN_CHUNK * n);
+						memcpy(&p_spawns_buf[bufIndex], &spawns[n], PLAYER_SPAWN_CHUNK);
+					}
+					break;
+				case 33: // Netgame Flags
+					mp_flags_buf = (char *)malloc(tmpReflex->newChunkCount * MP_FLAGS_CHUNK);
+					for (n = 0; n < tmpReflex->newChunkCount; n++)
+					{
+						bufIndex = (MP_FLAGS_CHUNK * n);
+						memcpy(&mp_flags_buf[bufIndex], &mp_flags[n], MP_FLAGS_CHUNK);
+					}
+					break;
+				case 34: // MpEquip
+					mp_equip_buf = (char *)malloc(tmpReflex->newChunkCount * MP_EQUIP_CHUNK);
+					for (n = 0; n < tmpReflex->newChunkCount; n++)
+					{
+						bufIndex = (MP_EQUIP_CHUNK * n);
+						memcpy(&mp_equip_buf[bufIndex], &item_spawns[n], MP_EQUIP_CHUNK);
+					}
+					break;
+			}
+		}
+	}
+	
+	for (i = 0; i < x; i++)
+	{
+		index = (int)(OffsetTable[i] % 100);
+		tmpReflex = (reflexive *)_reflexLookup[index];
+		
+		if (tmpReflex->chunkcount != tmpReflex->newChunkCount)
+		{
+			tmpReflex->offset += sizeChange;
+			sizeChange += ((tmpReflex->newChunkCount - tmpReflex->chunkcount) * tmpReflex->chunkSize);
+		}
+	}
+	
+	NSLog(@"Hey again!");
+	
+	qsort(OffsetTable, x, sizeof(int), compare);
+	
+	/*
+		Create the new scenario buffer
+		
+		I don't have to increase the malloc size since I've read in the ENTIRE fucking scenario.
+		
+		If there has been no size change then we'll just be creating a buffer of the same size as the original.
+	*/
+	//newScnr = (char *)malloc([self tagLength] + sizeChange);
+	newScnr = (char *)malloc([self tagLength]);
+	
+	/*
+		Now I'm going to go ahead and copy over the header, udpating all of the reflexives in the process
+	*/	
+	memcpy(newScnr,scnr,0x5B0);
+	
+	// FUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCK
+	
+	/* 
+		Now lets update all of the reflexives 
+	*/
+	for (i = 0; i < 79; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[i];
+		
+		// Copy in the reflexive
+		tmpReflex->offset += ([self offsetInMap] + [_mapfile magic]);
+		memcpy(&scnr[tmpReflex->location_in_mapfile], &tmpReflex->chunkcount, 4);
+		memcpy(&scnr[tmpReflex->location_in_mapfile+4], &tmpReflex->offset, 4);
+		memcpy(&scnr[tmpReflex->location_in_mapfile+8], &tmpReflex->zero, 4);
+		tmpReflex->offset -= ([self offsetInMap] + [_mapfile magic]);
+	}
+	
+	/*
+		The header is now updated. Lets write our data to the scenario by way of the lookup table
+		
+		x is our OffsetTable index counter.
+		
+		Time to copy our fucking data into the mother fucking buffer!
+		
+		ALL of the reflexives here are clean. That is, they aren't errant pointers so we don't have to run any more checks on them.
+	*/
+	NSLog(@"x: %d", x);
+	for (i = 0; i < x; i++)
+	{
+		index = (int)(OffsetTable[i] % 100);
+		pointerOffset = (int)(OffsetTable[i] / 100);
+		
+		tmpReflex = (reflexive *)_reflexLookup[index];
+		nextReflex = (reflexive *)_reflexLookup[(int)(OffsetTable[i+1] % 100)];
+		
+		// We do our fun stuff in hur
+		
+		NSLog(@"Sorted index: [%d], _reflexLookup index: [%d], offset: [%x]", i, index, pointerOffset);
+		
+		switch (index)
+		{
+			case 3: // Scenery spawns
+				memcpy(&newScnr[tmpReflex->offset], scen_buf, (SCENERY_SPAWN_CHUNK * tmpReflex->newChunkCount));
+				break;
+			/*case 4: // Scenery ref
+				memcpy(&newScnr[tmpReflex->offset], scen_ref_buf, (SCENERY_REF_CHUNK * tmpReflex->newChunkCount));
+				break;
+			case 30: // spawns
+				memcpy(&newScnr[tmpReflex->offset], p_spawns_buf, (PLAYER_SPAWN_CHUNK * tmpReflex->newChunkCount));
+				break;*/
+			/*case 33: // Netgame Flags
+				memcpy(&newScnr[tmpReflex->offset], mp_flags_buf, (MP_FLAGS_CHUNK * tmpReflex->newChunkCount));
+				break;*/
+			/*case 34: // MpEquip
+				memcpy(&newScnr[tmpReflex->offset], mp_equip_buf, (MP_EQUIP_CHUNK * tmpReflex->newChunkCount));
+				break;*/
+			default: 
+				//NSLog(@"Refleixve offset: %x, and size of chunks: %x", tmpReflex->offset, (nextReflex->offset - tmpReflex->offset));
+				if (i < (x - 1))
+					memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
+				else // Copy the rest foo
+					memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], ([self tagLength] - tmpReflex->offset));
+				break;
+		}
+	}
+	
+	/*
+		Now we destroy the old scenario
+	*/
+	free(scnr);
+	
+	/*
+		And set the scnr pointer to our new scenario
+	*/
+	
+	scnr = newScnr;
+	
+	/*
+		Finally, I'm going to clean up our temporary pointers
+	*/
+	free(scen_buf);
+	free(scen_ref_buf);
+	free(p_spawns_buf);
+	free(mp_flags_buf);
+	free(mp_equip_buf);
+	
+	FILE *tmpFile = fopen("test.scnr","w+");
+	
+	fwrite(scnr,[self tagLength],1,tmpFile);
+	
+	fclose(tmpFile);
+}
+- (void)__rebuildScenario (June 2008)
+{
+	int i, x, n,
+		sizeChange = 0,
+		index, 
+		realReflexives = 0,
+		bufIndex,
+		posCounter = 0;
+	char	*newScnr;
+	long	negativeOffset,
+			cacashit,
+			*hack;
+	
+	reflexive *tmpReflex, *nextReflex;
+				
+	newScnr = (char *)malloc([self tagLength]);
+	memset(newScnr,0,[self tagLength]);
+	
+	negativeOffset = (0 - ([_mapfile magic] + [self offsetInMap]));
+	
+	/* See how many reflexives are actually in use here */
+	for (i = 0; i < 79; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[i];
+		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset) && (tmpReflex->chunkcount > 0))
+			realReflexives++;
+	}
+	
+	int OffsetTable[realReflexives];
+	x = 0;
+	
+	for (i = 0; i < 79; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[i];
+		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset) && (tmpReflex->chunkcount > 0))
+		{
+			OffsetTable[x] = ((tmpReflex->offset * 100) + i);
+			x++;
+		}
+	}
+	
+	/* Ok, we have all of the working reflexives, lets sort shit */
+	qsort(OffsetTable, x, sizeof(int), compare);
+	
+	/* Now that this is done, lets update our reflexive offsets */
+	for (i = 0; i < x; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 100];
+		
+		//if (i == (x - 1))
+		//	break; // Last reflexive - leave it alone. We need this for the BSP data.
+		
+		
+		tmpReflex->offset += sizeChange;
+		if (tmpReflex->chunkcount != tmpReflex->newChunkCount)
+		{
+			sizeChange += ((tmpReflex->newChunkCount - tmpReflex->chunkcount) * tmpReflex->chunkSize);
+			tmpReflex->chunkcount = tmpReflex->newChunkCount;
+		}
+		
+	}
+	
+	
+	/* Ok, thats all sorted out. Now lets copy everything into our new scenario buffer */
+	for (i = 0; i < x; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 100];
+		nextReflex = (reflexive *)_reflexLookup[OffsetTable[i+1] % 100];
+		index = (int)(OffsetTable[i] % 100);
+		
+		switch (index)
+		{
+			case 3: // Scenery spawns
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+					bufIndex = (n * SCENERY_SPAWN_CHUNK);
+					if ([_mapfile isPPC])
+					{
+						hack = (long *)&scen_spawns[n];
+						*hack = EndianSwap32(*hack);
+						scen_spawns[n].flag = EndianSwap16(scen_spawns[n].flag);
+						scen_spawns[n].numid = EndianSwap16(scen_spawns[n].numid);
+					}
+					memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_spawns[n],SCENERY_SPAWN_CHUNK);
+					if ([_mapfile isPPC])
+					{
+						scen_spawns[n].flag = EndianSwap16(scen_spawns[n].flag);
+						scen_spawns[n].numid = EndianSwap16(scen_spawns[n].numid);
+						*hack = EndianSwap32(*hack);
+					}
+				}
+				break;
+			case 4: // Scenery ref
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+					bufIndex = (n * SCENERY_REF_CHUNK);
+					memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_references[n],SCENERY_REF_CHUNK);
+				}
+				break;
+			case 7: // vehicle spawns
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+					bufIndex = (n * VEHICLE_SPAWN_CHUNK);
+					
+					if ([_mapfile isPPC])
+					{
+						hack = (long *)&vehi_spawns[n];
+						*hack = EndianSwap32(*hack);
+						vehi_spawns[n].flag = EndianSwap16(vehi_spawns[n].flag);
+						vehi_spawns[n].numid = EndianSwap16(vehi_spawns[n].numid);
+					}
+					
+					memcpy(&newScnr[tmpReflex->offset + bufIndex], &vehi_spawns[n], VEHICLE_SPAWN_CHUNK);
+					
+					if ([_mapfile isPPC])
+					{
+						vehi_spawns[n].flag = EndianSwap16(vehi_spawns[n].flag);
+						vehi_spawns[n].numid = EndianSwap16(vehi_spawns[n].numid);
+						*hack = EndianSwap32(*hack);
+					}
+				}
+				break;
+			case 30: // spawns
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+					bufIndex = (n * PLAYER_SPAWN_CHUNK);
+					if ([_mapfile isPPC])
+					{
+						hack = (long *)&spawns[n].team_index;
+						*hack = EndianSwap32(*hack);
+						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
+						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
+						hack = (long *)&spawns[n].type1;
+						*hack = EndianSwap32(*hack);
+						spawns[n].type1 = EndianSwap16(spawns[n].type1);
+						spawns[n].type2 = EndianSwap16(spawns[n].type2);
+						hack = (long *)&spawns[n].type3;
+						spawns[n].type3 = EndianSwap16(spawns[n].type3);
+						spawns[n].type4 = EndianSwap16(spawns[n].type4);
+					}
+					memcpy(&newScnr[tmpReflex->offset + bufIndex], &spawns[n], PLAYER_SPAWN_CHUNK);
+					if ([_mapfile isPPC])
+					{
+						hack = (long *)&spawns[n].team_index;
+						*hack = EndianSwap32(*hack);
+						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
+						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
+						hack = (long *)&spawns[n].type1;
+						*hack = EndianSwap32(*hack);
+						spawns[n].type1 = EndianSwap16(spawns[n].type1);
+						spawns[n].type2 = EndianSwap16(spawns[n].type2);
+						hack = (long *)&spawns[n].type3;
+						spawns[n].type3 = EndianSwap16(spawns[n].type3);
+						spawns[n].type4 = EndianSwap16(spawns[n].type4);
+					}
+				}
+				break;
+			case 33: // Netgame Flags
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+					bufIndex = (n * MP_FLAGS_CHUNK);
+					
+					if ([_mapfile isPPC])
+					{
+						// Flip the byte order
+						hack = (long *)&mp_flags[n].type;
+						*hack = EndianSwap32(*hack);
+						mp_flags[n].type = EndianSwap16(mp_flags[n].type);
+						mp_flags[n].team_index = EndianSwap16(mp_flags[n].team_index);
+					}
+					
+					memcpy(&newScnr[tmpReflex->offset + bufIndex], &mp_flags[n], MP_FLAGS_CHUNK);
+					
+					if ([_mapfile isPPC])
+					{
+						mp_flags[n].type = EndianSwap16(mp_flags[n].type);
+						mp_flags[n].team_index = EndianSwap16(mp_flags[n].team_index);
+						*hack = EndianSwap32(*hack);
+					}
+				}
+				break;
+			case 34: // MpEquip
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+				{
+					bufIndex = (n * MP_EQUIP_CHUNK);
+					memcpy(&newScnr[tmpReflex->offset + bufIndex], &item_spawns[n], MP_EQUIP_CHUNK);
+				}
+				break;
+			default:
+				if (i < (x - 1))
+					memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
+				else
+				{ // Copy the rest foo
+					/*do
+					{
+						// Copy 4 bytes at a time
+						memcpy(&cacashit, &scnr[tmpReflex->oldOffset + (0x4 * posCounter)], 4);
+						if (cacashit != 0xCACACACA || cacashit != 0x0000CACA)
+							memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter)], 4);
+						else	
+							break;
+						posCounter += 1;
+					} while ((posCounter * 4) < ([self tagLength] - tmpReflex->offset));
+					memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter) + sizeChange], ([self tagLength] - ( (4 * posCounter) + tmpReflex->offset)));*/
+					
+				}
+				break;	
+		}
+	}
+	/* Construct the scenario header */
+	memcpy(newScnr,scnr,0x5B0);
+	
+	/* Update all the scenario header reflexives */
+	for (i = 0; i < x; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 100];
+		tmpReflex->offset += ([self offsetInMap] + [_mapfile magic]);
+		memcpy(&newScnr[tmpReflex->location_in_mapfile], &tmpReflex->chunkcount, 4);
+		memcpy(&newScnr[tmpReflex->location_in_mapfile+4], &tmpReflex->offset, 4);
+		memcpy(&newScnr[tmpReflex->location_in_mapfile+8], &tmpReflex->zero, 4);
+		tmpReflex->offset -= ([self offsetInMap] + [_mapfile magic]);
+	}
+	
+	
+	#ifdef __DEBUG__
+	NSLog(@"Address of bsp offset: 0x%x", (header.StructBsp.offset - resolvedOffset));
+	#endif
+	
+	/* Consistency write! */
+	// This writes the last few hundred bytes, whatever it is, thats beyond the 0xCACACACA crap. This also ensures that the bsp data won't be corrupted.
+	tmpReflex = (reflexive *)_reflexLookup[OffsetTable[x-1] % 100];
+	memcpy(&newScnr[tmpReflex->offset],&scnr[tmpReflex->offset],(([self tagLength] - tmpReflex->offset) - (header.StructBsp.chunkcount * 0x20)));
+	
+	#ifdef __DEBUG__
+	NSLog(@"Final reflexive data: [offset][0x%x] :: [chunkcount][%d]", tmpReflex->offset, tmpReflex->chunkcount);
+	#endif
+	
+	memcpy(&newScnr[header.StructBsp.offset - resolvedOffset],&scnr[header.StructBsp.offset - resolvedOffset],(0x20 * header.StructBsp.chunkcount));
+	/* End consistency write! */
+	
+	
+	/* Reset the adjusted offset values */
+	for (i = 0; i < x; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 100];
+		tmpReflex->offset = tmpReflex->oldOffset;
+	}
+	
+	
+	/* Destroy the old scenario */
+	free(scnr);
+	
+	/* Set the scenario pointer to the new scenario */
+	scnr = (char *)newScnr;
+	
+	FILE *tmpFile = fopen("test.scnr","w+");
+	
+	fwrite(scnr,[self tagLength],1,tmpFile);
+	
+	fclose(tmpFile);
+}
+@end

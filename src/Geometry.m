@@ -1,130 +1,139 @@
 //
 //  Geometry.m
-//  SparkEdit
+//  swordedit
 //
-//  Created by Michael Edgar on Mon Jun 21 2004.
-//  Copyright (c) 2004 __MyCompanyName__. All rights reserved.
+//  Created by Fred Havemeyer on 5/11/08.
+//  Copyright 2008 __MyCompanyName__. All rights reserved.
 //
 
 #import "Geometry.h"
-#import "NSFile.h"
+
 #import "HaloMap.h"
+
 #import "ModelTag.h"
 #import "BitmapTag.h"
-#include <string.h>
+
+#import "TextureManager.h"
+
 @implementation Geometry
-- (void)releaseBitmaps
+- (id)initWithMap:(HaloMap *)map parent:(ModelTag *)mTag
 {
-	glDeleteTextures(numParts,&textures[0] );
+	int i, x, endOfPart;
 	
+	if ((self = [super init]) != nil)
+	{
+		_mapfile = [map retain];
+		parent = [mTag retain];
+		
+		vertexSize = [_mapfile indexHead].vertex_size;
+		vertexOffset = [_mapfile indexHead].vertex_offset;
+		
+		[_mapfile readBlockOfData:&me.junk size_of_buffer:36];
+		
+		partsref = [_mapfile readReflexive];
+		
+		
+		textures = malloc(partsref.chunkcount * sizeof(GLuint));
+		
+		[_mapfile seekToAddress:partsref.offset];
+		
+		parts = (part *)malloc(sizeof(part) * partsref.chunkcount);
+		for (x = 0; x < partsref.chunkcount; x++)
+		{
+			part *currentPart = &parts[x];
+			[_mapfile readBlockOfData:currentPart->junk4 size_of_buffer:4];
+			[_mapfile readShort:&currentPart->shaderIndex];
+			
+			//[_mapfile readBlockOfData:&currentPart->junk size_of_buffer:66]; <-- This little baby was causing a buffer overrun on PPC macs, so I'm just skipping it
+			[_mapfile skipBytes:66];
+			
+			[_mapfile readLong:&currentPart->indexPointer.count];
+			[_mapfile readLong:&currentPart->indexPointer.rawPointer[0]];
+			[_mapfile readLong:&currentPart->indexPointer.rawPointer[1]];
+			
+			#ifdef __DEBUG__
+			if (currentPart->indexPointer.rawPointer[1] != currentPart->indexPointer.rawPointer[0])
+				NSLog(@"BadPartInt!"); // Whatever the hell that is
+			#endif
+				
+			[_mapfile readBlockOfData:currentPart->junk2 size_of_buffer:4];
+			
+			[_mapfile readLong:&currentPart->vertPointer.count];
+			[_mapfile readBlockOfData:currentPart->vertPointer.junk size_of_buffer:8];
+			[_mapfile readLong:&currentPart->vertPointer.rawPointer];
+			
+			[_mapfile readBlockOfData:currentPart->junk3 size_of_buffer:28];
+			
+			endOfPart = [_mapfile currentOffset];
+			
+			[_mapfile seekToAddress:currentPart->vertPointer.rawPointer+vertexOffset];
+			
+			currentPart->vertices = (Vector *)malloc(sizeof(Vector) * currentPart->vertPointer.count);
+			
+			for (i = 0; i < currentPart->vertPointer.count; i++)
+			{
+				Vector *currentVertex = &currentPart->vertices[i];
+				[_mapfile readFloat:&currentVertex->x];
+				[_mapfile readFloat:&currentVertex->y];
+				[_mapfile readFloat:&currentVertex->z];
+				
+				[_mapfile readFloat:&currentVertex->normalx];
+				[_mapfile readFloat:&currentVertex->normaly];
+				[_mapfile readFloat:&currentVertex->normalz];
+				[_mapfile skipBytes:24];
+				[_mapfile readFloat:&currentVertex->u];
+				[_mapfile readFloat:&currentVertex->v];
+				[_mapfile skipBytes:12];
+			}
+			
+			[_mapfile seekToAddress:(currentPart->indexPointer.rawPointer[0] + vertexOffset + vertexSize)];
+			currentPart->indices = (unsigned short *)malloc(sizeof(unsigned short) * (currentPart->indexPointer.count + 2));
+				// No clue why its +2, lol
+			for (i = 0; i < currentPart->indexPointer.count + 2; i++)
+				[_mapfile readShort:&currentPart->indices[i]];
+			
+			[_mapfile seekToAddress:endOfPart];
+		}
+	}
+	return self;
+}
+- (void)dealloc
+{	
+	//NSLog(@"Destroying geometry!");
+	int x;
+	
+	for (x = 0; x < partsref.chunkcount; x++)
+		free(parts[x].vertices);
+	for (x = 0; x < partsref.chunkcount; x++)
+		free(parts[x].indices);
+
+	free(parts);
+	
+	if (textures)
+		free(textures); // Not so sure about this call, I'm not sure if glDeleteTextures frees this or not
+		
+	[super dealloc];
+}
+- (void)destroy
+{
+	[parent release];
+	[_mapfile release];
 }
 - (void)loadBitmaps
 {
-	NSFile *file = [[NSFile alloc] initWithPathForReading:pathToFile];
-	[file setLittleEndian:YES];
-	long index;
-	for (index=0;index<numParts;index++)
+	int x;
+	
+	if (texturesLoaded)
 	{
-
-		long identOfBitm = [myMap baseBitmapIdentForShader:[[parent shaderIdentForIndex:parts[index].shaderIndex] longValue] file:file];
-		BitmapTag *bitm = [myMap bitmForIdent:identOfBitm];
-		unsigned int *texData = [bitm imagePixelsForImageIndex:0];
-		glGenTextures( 1 , &textures[index] );
-		glBindTexture( GL_TEXTURE_2D, textures[ index ] );
-		glTexImage2D( GL_TEXTURE_2D, 0, 4, [bitm textureSizeForImageIndex:0].width,
-                    [bitm textureSizeForImageIndex:0].height, 0, GL_RGBA,
-                    GL_UNSIGNED_BYTE, texData );
-		[bitm freeImagePixels];
-		/*unsigned char **pointerToBitRep = (char *)&texData;
-		NSBitmapImageRep *bitRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:pointerToBitRep
-		pixelsWide:[bitm textureSizeForImageIndex:0].width
-		pixelsHigh:[bitm textureSizeForImageIndex:0].height
-		bitsPerSample:8
-		samplesPerPixel:4
-		hasAlpha:YES
-		isPlanar:NO
-		colorSpaceName:NSCalibratedRGBColorSpace
-		bytesPerRow:(4 * 8 * [bitm textureSizeForImageIndex:0].width)
-		bitsPerPixel:32];
-		[[NSFileHandle fileHandleForWritingAtPath:@"bob.tiff"] writeData:[bitRep TIFFRepresentation]];*/
-
-	
-	
-	
-	}
-	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,
-		GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,
-		GL_NEAREST);
-		      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE, GL_DECAL);
-	glEnable(GL_TEXTURE_2D);
-
-}
-
-- (void)drawIntoView:(NSOpenGLView *)view x:(float)x y:(float)y z:(float)z
-{
-	
-	
-	int i;
-	//NSFile *file = [[NSFile alloc] initWithPathForReading:pathToFile];
-	//[file setLittleEndian:YES];
-	part currentPart;
-	float u_scale = [parent u_scale];
-	float v_scale = [parent v_scale];
-	
-	for (i=0;i<numParts;i++)
-	{
-		currentPart = parts[i];
-		//[file seekToOffset:currentPart.indexPointer.rawPointer[0]+vertex_offset+vertex_size];
-		glBindTexture( GL_TEXTURE_2D, textures[ i ] );
-		glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	//glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
-		glEnable(GL_TEXTURE_2D);
-
-		int j;
-
-
-		if (currentPart.indexPointer.rawPointer[0]==currentPart.indexPointer.rawPointer[1])
-		{
-		
-		
-		glBegin( GL_TRIANGLE_STRIP );
-		unsigned short idx;
-		
-		for (j=0;j<currentPart.indexPointer.count+2;j++)
-		{
-
-			idx = currentPart.indices[j];
-			Vector *tempVector = &currentPart.vertices[idx];
-			glNormal3f( tempVector->normalx, tempVector->normaly, tempVector->normalz); 
-			glTexCoord2f( tempVector->u*u_scale, tempVector->v*v_scale );
-
-			glVertex3f(tempVector->x,tempVector->y,tempVector->z);
-		}
-		
-		glEnd();
-
-		glDisable(GL_TEXTURE_2D);
-		}
-		else
-		{
-		NSLog(@"Bad part");
-		}
-		//Vector *tempVector = &currentPart.vertices[0];
-//			glTexCoord2f( tempVector->u*u_scale, tempVector->v*v_scale );
-//			glVertex3f(tempVector->x,tempVector->y,tempVector->z);
-
-
+		return;
 	}
 	
-	glFlush();
-
-	//[file close];
+	for (x = 0; x < partsref.chunkcount; x++)
+	{
+		parts[x].shaderBitmapIndex = [[_mapfile bitmTagForShaderId:[parent shaderIdentForIndex:parts[x].shaderIndex]] idOfTag];
+		[[parent _texManager] loadTextureOfIdent:parts[x].shaderBitmapIndex subImage:0];
+	}
+	texturesLoaded = TRUE;
 }
 - (BOUNDING_BOX)determineBoundingBox
 {
@@ -136,7 +145,7 @@
 	bb.max[1] = -50000;
 	bb.max[2] = -50000;
 	int x;
-	for (x=0;x<numParts;x++)
+	for (x=0;x<partsref.chunkcount;x++)
 	{
 		part currentPart = parts[x];
 		int y;
@@ -158,85 +167,72 @@
 	}
 	return bb;
 }
-					
-		
-
-- (id)initWithFile:(NSFile *)file magic:(long)magic map:(HaloMap *)map parent:(ModelTag *)myModel
+- (void)drawIntoView:(BOOL)useAlphas
 {
-	if (self = [super init])
+	int i, x;
+	part currentPart;
+	float	u_scale,
+			v_scale;
+			
+	u_scale = [parent u_scale];
+	v_scale = [parent v_scale];
+	
+	for (i = 0; i < partsref.chunkcount; i++)
 	{
-		myMap = [[map retain] autorelease];
-		parent = myModel;
-		vertex_size = [map indexHeader].vertex_size;
-		vertex_offset = [map indexHeader].vertex_offset;
-		//read the geometry
-		pathToFile = [[file path] retain];
-		[file readIntoStruct:&me.junk size:36];
-		partsref.chunkcount = [file readDword];
-		partsref.offset = [file readDword];
-		partsref.zero = [file readDword];
-		numParts = partsref.chunkcount;
-		textures = malloc(numParts * sizeof(GLuint));
-		[file seekToOffset:partsref.offset-magic];
-		//go to the parts
-		int x;
-		parts = malloc(sizeof(part)*numParts);
-		part *tempPointer = parts;
-		for (x=0;x<numParts;x++)
+		currentPart = parts[i];
+		
+		if (currentPart.indexPointer.rawPointer[0] == currentPart.indexPointer.rawPointer[1])
 		{
-			part *currentPart = &parts[x];
-			[file readIntoStruct:currentPart->junk4 size:4];
-			currentPart->shaderIndex=[file readWord];
-			[file readIntoStruct:currentPart->junk size:66];
-			//read indices pointer
-			currentPart->indexPointer.count = [file readDword];
-			currentPart->indexPointer.rawPointer[0] = [file readDword];
-			currentPart->indexPointer.rawPointer[1] = [file readDword];
-			if (currentPart->indexPointer.rawPointer[1] != currentPart->indexPointer.rawPointer[0])
-				NSLog(@"BadPartInit");
-			//junk
-			[file readIntoStruct:currentPart->junk2 size:4];
-			//read vertex pointer
-			currentPart->vertPointer.count = [file readDword];
-			[file readIntoStruct:currentPart->vertPointer.junk size:8];
-			currentPart->vertPointer.rawPointer = [file readDword];
-			//junk
-			[file readIntoStruct:currentPart->junk3 size:28];
-			
-
-			
-			DWORD endOfPart = [file offset];
-			[file seekToOffset:currentPart->vertPointer.rawPointer+vertex_offset];
-
-			currentPart->vertices = malloc(sizeof(Vector) * currentPart->vertPointer.count);
-			//parts->vertices=currentPart.vertices;
-			int j;
-			for (j=0;j<currentPart->vertPointer.count;j++)
+			/* GL Texture stuff goes hur */
+			if (currentPart.shaderIndex != -1)
 			{
-				Vector *currentVertex = &currentPart->vertices[j];
-				currentVertex->x = [file readFloat];
-				currentVertex->y = [file readFloat];
-				currentVertex->z = [file readFloat];
+				[[parent _texManager] activateTextureOfIdent:currentPart.shaderBitmapIndex subImage:0 useAlphas:useAlphas];
+				/*if (textures)
+				{
+					glColor3f(1,1,1);
+					glEnable(GL_TEXTURE_2D);
+					
+					if (useAlphas)
+					{
+						glEnable(GL_BLEND);
+						glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
+						glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+					}
+			
+					glBindTexture(GL_TEXTURE_2D,textures[i]);
+				
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+					glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+					glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+			
+					glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+				}*/
+			}
 
-				currentVertex->normalx = [file readFloat];
-				currentVertex->normaly = [file readFloat];
-				currentVertex->normalz = [file readFloat];
-				[file skipBytes:24];
-				currentVertex->u = [file readFloat];
-				currentVertex->v = [file readFloat];
-				[file skipBytes:12];
+			
+			glBegin(GL_TRIANGLE_STRIP);
+			
+			unsigned short index;
+			
+			for (x = 0; x < currentPart.indexPointer.count + 2; x++)
+			{
+				index = currentPart.indices[x];
+				Vector *tempVector = &currentPart.vertices[index];
+				
+				// Normal mapping?
+				glNormal3f(tempVector->normalx,tempVector->normaly,tempVector->normalz);
+				if (textures)
+					glTexCoord2f(tempVector->u * u_scale, tempVector->v * v_scale);
+				
+				glVertex3f(tempVector->x,tempVector->y,tempVector->z);
 			}
 			
-			[file seekToOffset:currentPart->indexPointer.rawPointer[0]+vertex_offset+vertex_size];
-			currentPart->indices = malloc(sizeof(unsigned short) * (currentPart->indexPointer.count+2));
-			for (j=0;j<currentPart->indexPointer.count+2;j++)
-				currentPart->indices[j] = [file readWord];
-			
-			[file seekToOffset:endOfPart];
-			
+			glEnd();
+			glDisable(GL_TEXTURE_2D);
+			glDisable(GL_BLEND);
 		}
-		parts = tempPointer;
 	}
-	return self;
+	glFlush();
 }
 @end

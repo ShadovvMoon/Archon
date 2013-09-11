@@ -1,39 +1,54 @@
 //
-//  ModelTag.h
-//  SparkEdit
+//  
+//  swordedit
 //
-//  Created by Michael Edgar on Mon Jun 21 2004.
-//  Copyright (c) 2004 __MyCompanyName__. All rights reserved.
+//  Created by sword on 5/11/08.
 //
 
-#import <Foundation/Foundation.h>
-@class Geometry;
-@class NSFile;
-@class HaloMap;
-#import "FileConstants.h"
-#import "ModelDefs.h"
+#import <Cocoa/Cocoa.h>
 
-@interface ModelTag : NSObject {
-	tag myTag;
-	NSString *name;
+#import "defines.h"
+
+#import "HaloMap.h"
+#import "MapTag.h"
+
+@class TextureManager;
+
+@interface ModelTag : MapTag {
+	HaloMap *_mapfile;
+	
+	TextureManager *_texManager;
+	
 	NSMutableArray *subModels;
 	NSMutableArray *shaders;
+	
 	float u_scale;
 	float v_scale;
+	
 	MODEL_REGION *regions;
-	unsigned long numRegions;
+	
+	reflexive regionRef;
+	
+	int numRegions;
+	
 	BOUNDING_BOX *bb;
+	
+	BOOL moving;
+	BOOL selected;
 }
-- (void)drawBoundingBox;
+- (id)initWithMapFile:(HaloMap *)map texManager:(TextureManager *)texManager;
+- (void)dealloc;
+- (void)releaseGeometryObjects;
 - (void)determineBoundingBox;
-- (void)drawAtPoint:(float*)point lod:(int)lod withView:(NSOpenGLView*)view index:(long)index type:(short)type selected:(bool)selected moving:(bool)moving;
-- (id)initWithFile:(NSFile *)file atOffset:(long)offset map:(HaloMap *)map;
-- (NSString *)name;
-- (unsigned long)ident;
-- (int)submodelCount;
-- (Geometry *)geoAtIndex:(int)idx;
-- (NSNumber *)shaderIdentForIndex:(char)idx;
+- (BOUNDING_BOX *)bounding_box;
 - (float)u_scale;
-- (void)loadBitmaps;
 - (float)v_scale;
+- (int)numRegions;
+- (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas;
+- (void)loadAllBitmaps;
+- (long)shaderIdentForIndex:(int)index;
+- (void)drawBoundingBox;
+- (void)drawAxes:(BOOL)withPointerArrow;
+- (TextureManager *)_texManager;
+- (void)renderPartyTriangle;
 @end

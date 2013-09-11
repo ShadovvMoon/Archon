@@ -1,13 +1,14 @@
 //
 //  BitmapTag.h
-//  SparkEdit
+//  swordedit
 //
-//  Created by Michael Edgar on Tue Jun 22 2004.
-//  Copyright (c) 2004 __MyCompanyName__. All rights reserved.
+//  Created by sword on 6/17/08.
+//  Copyright 2008 sword Inc. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-
+#import <Cocoa/Cocoa.h>
+#import "HaloMap.h"
+#import "MapTag.h"
 
 #define BITM_FORMAT_A8			0x00
 #define BITM_FORMAT_Y8			0x01
@@ -31,26 +32,19 @@
 // Flags
 #define BITM_FLAG_LINEAR		(1 << 4)
 
-#define bmpEndianSwap64(x) (((x & 0xFF00000000000000) >> 56) | ((x & 0x00FF000000000000) >> 40) | ((x & 0x0000FF0000000000) >> 24) | ((x & 0x000000FF00000000) >> 8) | ((x & 0x00000000FF000000) << 8) | ((x & 0x0000000000FF0000) << 24) | ((x & 0x000000000000FF00) << 40) |    ((x & 0x00000000000000FF) << 56))
-#define bmpEndianSwap32(x) (((x & 0xFF000000) >> 24) | ((x & 0x00FF0000) >> 8) | ((x & 0x0000FF00) << 8) | ((x & 0x000000FF) << 24))
-#define bmpEndianSwap16(x) (((x & 0x00FF) << 8) | ((x & 0xFF00) >> 8))
+typedef char BYTE;
+typedef short WORD;
+typedef unsigned short WCHAR;
+typedef char CHAR;
+typedef int DWORD;
+typedef int FOURCC;
 
-
-@class NSFile;
-@class HaloMap;
-#import "FileConstants.h"
 typedef struct
 {
-	int							unknown[22]; // [7] == [6]+108[9]
-	int							offset_to_first;
-	int							unknown23;	// always 0x0
-	int							image_count;
-	int							image_offset;
-	int							unknown25;	// always 0x0
-
+	long unknown[0x15];
+	reflexive reflexive_to_first;
+	reflexive image_reflexive;
 } bitm_header_t;
-
-
 typedef struct
 {
 	int							unknown[16];
@@ -65,7 +59,9 @@ typedef struct
 	short						depth;
 	short						type;
 	short						format;
-	short						flags;
+	//short						flags;
+	char						flag0;
+	char						internalized;
 	short						reg_point_x;
 	short						reg_point_y;
 	short						num_mipmaps;
@@ -80,45 +76,41 @@ typedef struct
 
 typedef struct
 {
-	DWORD R,G,B,T;
+	int R,G,B,T;
 } RGB;
 typedef struct
 {
 	unsigned int r, g, b, a;
 } rgba_color_t;
-@interface BitmapTag : NSObject {
-	tag myTag;
+
+
+@interface BitmapTag : MapTag {
+	HaloMap *_mapfile;
+	FILE *bitmapFile;
+	
+	BOOL _isPPC;
+	
+	BOOL hasDecoded;
+	
 	bitm_header_t header;
 	bitm_image_t *images;
-	NSString *pathToMap;
-	NSString *myName;
-	unsigned int *bytes;
+	
+	unsigned int *imageBytesLookup;
+	BOOL *imageLoaded;
+	
+	NSMutableArray *subImages;
 }
-- (id)initWithFile:(NSFile *)file atOffset:(long)offset map:(HaloMap *)map;
-- (NSSize)textureSizeForImageIndex:(unsigned short)idx;
-- (unsigned int *)imagePixelsForImageIndex:(unsigned short)idx;
-- (NSString *)name;
-- (char)imageCount;
-- (void)freeImagePixels;
+- (id)initWithMapFiles:(HaloMap *)mapfile bitmap:(FILE *)bitmap ppc:(BOOL)ppc;
+- (void)dealloc;
+- (void)freeImagePixels:(int)image;
+- (void)freeAllImages;
+- (void)seekToOffset:(long)_offset;
+- (unsigned int)currentOffset;
+- (void)readData:(const void *)buffer address:(long)address size:(int)size;
+- (NSSize)textureSizeForImageIndex:(int)index;
+- (unsigned int *)imagePixelsForImageIndex:(int)index; // backwards compatability lolz
+- (BOOL)loadImage:(int)index;
+- (BOOL)imageAlreadyLoaded:(int)index;
+- (int)imageCount;
+- (NSMutableArray *)subImages;
 @end
-int getImageSize (int format, int width, int height);
-RGB ConvertWORDToRGB(WORD Color);
-DWORD RGBToDWORD(RGB Color);
-rgba_color_t GradientColorsHalf (rgba_color_t Col1, rgba_color_t Col2);
-unsigned int rgba_to_int (rgba_color_t color);
-rgba_color_t short_to_rgba (unsigned short color);
-void DecodeDXT1(int Height, int Width, const char* IData, unsigned int* PData);
-void DecodeBitmSurface (const char *data, int width, int height, int depth, 
-                                   int format, int flags, unsigned int *pOutBuf);
-  void DecodeLinearA8 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeLinearY8 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeLinearAY8 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeLinearA8Y8 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeLinearR5G6B5 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeLinearA1R5G5B5 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeLinearA4R4G4B4 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeLinearX8R8G8B8 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeLinearA8R8G8B8 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeLinearP8 (int width, int height, const char *texdata, unsigned int *outdata);
-  void DecodeDXT2And3 (int Height, int Width, const char* IData, unsigned int* PData);
-  void DecodeDXT4And5 (int Height, int Width, const char* IData, unsigned int* PData);

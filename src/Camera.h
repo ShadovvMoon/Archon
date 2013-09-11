@@ -9,14 +9,8 @@
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
 #import <Foundation/Foundation.h>
-typedef struct
-{
-	float x,y,z;
-} CVector3;
-CVector3 AddTwoVectors(CVector3 v1, CVector3 v2);
-CVector3 SubtractTwoVectors(CVector3 v1, CVector3 v2);
-CVector3 MultiplyTwoVectors(CVector3 v1, CVector3 v2);
-CVector3 DivideTwoVectors(CVector3 v1, CVector3 v2);
+
+#import "defines.h"
 
 @interface Camera : NSObject {
 	CVector3 m_vPosition;					
@@ -25,10 +19,13 @@ CVector3 DivideTwoVectors(CVector3 v1, CVector3 v2);
 	CVector3 m_vStrafe;
 	float m_Speed;
     float m_CurrentRotX;
+	
+	int allow_z;
 }
 - (void) Look;
 - (void)DoUnProject:(float)ifX ifY:(float) ifY ofObjX:(float*)ofObjX ofObjY:(float*)ofObjY ofObjZ:(float*)ofObjZ ifZ:(float)ifZ ibUseZ:(bool)ibUseZ;
 - (float*)position;
+- (float *)vView;
 - (void) Update;
 - (void) MoveCamera:(float)delta;
 - (void) LevitateCamera:(float)delta;
@@ -39,6 +36,7 @@ CVector3 DivideTwoVectors(CVector3 v1, CVector3 v2);
 - (id)init;
 - (void) HandleMouseMove:(float)dx dy:(float)dy;
 - (void) OnlySetPosition:(float)x y:(float)y z:(float)z;
+- (void)orientUp;
 - (void) UpdateMouseMove:(int) DeltaX deltaY:(int) DeltaY;
 - (void) RotateView:(float) angle x:(float) x y:(float) y z:(float) z;
 @end

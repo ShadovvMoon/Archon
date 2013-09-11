@@ -1,107 +1,6 @@
-//
-//  Camera.m
-//  SparkEdit
-//
-//  Created by Michael Edgar on Tue Jul 20 2004.
-//  Copyright (c) 2004 __MyCompanyName__. All rights reserved.
-//
-
 #import "Camera.h"
+#import "VectorMath.h"
 
-CVector3 AddTwoVectors(CVector3 v1, CVector3 v2)
-{
-	CVector3 retVector;
-	retVector.x = v1.x + v2.x;
-	retVector.y = v1.y + v2.y;
-	retVector.z = v1.z + v2.z;
-	return retVector;
-}
-CVector3 SubtractTwoVectors(CVector3 v1, CVector3 v2)
-{
-	CVector3 retVector;
-	retVector.x = v1.x - v2.x;
-	retVector.y = v1.y - v2.y;
-	retVector.z = v1.z - v2.z;
-	return retVector;
-}
-CVector3 MultiplyTwoVectors(CVector3 v1, CVector3 v2)
-{
-	CVector3 retVector;
-	retVector.x = v1.x * v2.x;
-	retVector.y = v1.y * v2.y;
-	retVector.z = v1.z * v2.z;
-	return retVector;
-}
-CVector3 DivideTwoVectors(CVector3 v1, CVector3 v2){
-	CVector3 retVector;
-	retVector.x = v1.x / v2.x;
-	retVector.y = v1.y / v2.y;
-	retVector.z = v1.z / v2.z;
-	return retVector;
-}
-
-/////////////////////////////////////// CROSS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This returns a perpendicular vector from 2 given vectors by taking the cross product.
-/////
-/////////////////////////////////////// CROSS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-												
-CVector3 Cross(CVector3 vVector1, CVector3 vVector2)
-{
-	CVector3 vNormal;	
-
-	// Calculate the cross product with the non communitive equation
-	vNormal.x = ((vVector1.y * vVector2.z) - (vVector1.z * vVector2.y));
-	vNormal.y = ((vVector1.z * vVector2.x) - (vVector1.x * vVector2.z));
-	vNormal.z = ((vVector1.x * vVector2.y) - (vVector1.y * vVector2.x));
-
-	// Return the cross product
-	return vNormal;										 
-}
-
-
-/////////////////////////////////////// MAGNITUDE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This returns the magnitude of a vector
-/////
-/////////////////////////////////////// MAGNITUDE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-float Magnitude(CVector3 vNormal)
-{
-	// Here is the equation:  magnitude = sqrt(V.x^2 + V.y^2 + V.z^2) : Where V is the vector
-	return (float)sqrt( (vNormal.x * vNormal.x) + 
-						(vNormal.y * vNormal.y) + 
-						(vNormal.z * vNormal.z) );
-}
-/////////////////////////////////////// NORMALIZE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-/////
-/////	This returns a normalize vector (A vector exactly of length 1)
-/////
-/////////////////////////////////////// NORMALIZE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
-
-CVector3 Normalize(CVector3 vVector)
-{
-	// Get the magnitude of our normal
-	float magnitude = Magnitude(vVector);				
-
-	// Now that we have the magnitude, we can divide our vector by that magnitude.
-	// That will make our vector a total length of 1.  
-	vVector.x /= magnitude;
-	vVector.y /= magnitude;
-	vVector.z /= magnitude;
-		
-	
-	// Finally, return our normalized vector
-	return vVector;										
-}
-CVector3 NewCVector3(float x,float y,float z)
-{
-	CVector3 v;
-	v.x = x;
-	v.y = y;
-	v.z = z;
-	return v;
-}
 @implementation Camera
 - (id)init
 {
@@ -149,7 +48,6 @@ CVector3 NewCVector3(float x,float y,float z)
 		// camera's view vector and up vector.  This will be the axis.
 		CVector3 vAxis = Cross(SubtractTwoVectors(m_vView , m_vPosition), m_vUpVector);
 		vAxis = Normalize(vAxis);
-		
 		// Rotate around our perpendicular axis and along the y-axis
 		[self RotateView:angleZ x:vAxis.x y:vAxis.y z:vAxis.z];
 		[self RotateView:-1*angleY x:0 y:0 z:1];
@@ -159,6 +57,10 @@ CVector3 NewCVector3(float x,float y,float z)
 - (void) OnlySetPosition:(float)x y:(float)y z:(float)z
 {
 	m_vPosition = NewCVector3(x,y,z);
+}
+- (void)orientUp
+{
+	[self RotateView:0 x:m_vPosition.x y:m_vPosition.y z:m_vPosition.z];
 }
 - (void) UpdateMouseMove:(int) DeltaX deltaY:(int) DeltaY
 {
@@ -214,7 +116,7 @@ CVector3 NewCVector3(float x,float y,float z)
 - (void) RotateView:(float) angle x:(float) x y:(float) y z:(float) z
 {
 	CVector3 vNewView;
-
+	allow_z = YES;
 	// Get the view vector (The direction we are facing)
 	CVector3 vView = SubtractTwoVectors(m_vView , m_vPosition);		
 
@@ -233,10 +135,14 @@ CVector3 NewCVector3(float x,float y,float z)
 	vNewView.y += ((1 - cosTheta) * y * z - x * sinTheta)	* vView.z;
 
 	// Find the new z position for the new rotated point
-	vNewView.z  = ((1 - cosTheta) * x * z - y * sinTheta)	* vView.x;
-	vNewView.z += ((1 - cosTheta) * y * z + x * sinTheta)	* vView.y;
-	vNewView.z += (cosTheta + (1 - cosTheta) * z * z)		* vView.z;
-
+	
+	if (allow_z)
+	{
+		vNewView.z  = ((1 - cosTheta) * x * z - y * sinTheta)	* vView.x;
+		vNewView.z += ((1 - cosTheta) * y * z + x * sinTheta)	* vView.y;
+		vNewView.z += (cosTheta + (1 - cosTheta) * z * z)		* vView.z;
+	}
+	
 	// Now we just add the newly rotated vector to our position to set
 	// our new rotated view of our camera.
 	m_vView = AddTwoVectors(m_vPosition , vNewView);
@@ -306,6 +212,7 @@ CVector3 NewCVector3(float x,float y,float z)
 	//m_vPosition.z += vVector.z * speed;		// Add our acceleration to our position's Z
 	//m_vView.x += vVector.x * speed;			// Add our acceleration to our view's X
 	//m_vView.z += vVector.z * speed;			// Add our acceleration to our view's Z
+//	delta = 1;
 	
     m_vPosition.x += vVector.x * delta;		// Add our acceleration to our position's X
 	m_vPosition.y += vVector.y * delta;		// Add our acceleration to our position's Z
@@ -313,6 +220,7 @@ CVector3 NewCVector3(float x,float y,float z)
 	m_vView.x += vVector.x * delta;			// Add our acceleration to our view's X
 	m_vView.y += vVector.y * delta;			// Add our acceleration to our view's Z
 	m_vView.z += vVector.z * delta;
+
 }
 - (void) LevitateCamera:(float)delta;
 {
@@ -357,7 +265,7 @@ CVector3 NewCVector3(float x,float y,float z)
 	//corner of the OpenGL context, but OpenGL expects 
 	//coordinates relative to the *lower* left corner of the 
 	//screen, so we need to reverse Y.
-	GLuint anViewport[4];
+	GLint anViewport[4];
 	glGetIntegerv(GL_VIEWPORT, anViewport);
 
 	if (ibUseZ)
@@ -385,6 +293,10 @@ CVector3 NewCVector3(float x,float y,float z)
 - (float*)position
 {
 	return (float *)&m_vPosition;
+}
+- (float *)vView
+{
+	return (float *)&m_vView;
 }
 - (void) Look;
 {

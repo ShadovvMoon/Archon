@@ -1,14 +1,16 @@
 //
 //  main.m
-//  SparkEdit
+//  swordedit
 //
-//  Created by Michael Edgar on Mon Jun 21 2004.
-//  Copyright (c) 2004 __MyCompanyName__. All rights reserved.
+//  Created by Fred Havemeyer on 10/21/07.
+//  Copyright __MyCompanyName__ 2007. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
+char *gExecutablePath = NULL;
 
 int main(int argc, char *argv[])
 {
-    return NSApplicationMain(argc, argv);
+	gExecutablePath = argv[0];	
+	return NSApplicationMain(argc,  (const char **) argv);
 }

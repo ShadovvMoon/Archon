@@ -1,30 +1,32 @@
-/* ModelView */
+//
+//  ModelView.h
+//  swordedit
+//
+//  Created by sword on 6/2/08.
+//  Copyright 2008 sword Inc. All rights reserved.
+//
 
 #import <Cocoa/Cocoa.h>
-#import <OpenGL/OpenGL.h>
-#import <OpenGL/gl.h>
-#import <OpenGL/glu.h>
-@class Geometry;
-@interface ModelView : NSOpenGLView
-{
-	Geometry *currentGeometry;
-	char submodel;
-	float zoom;
-	float xrot,yrot,zrot;
-	NSPoint downPoint;
-	float oldxrot,oldyrot,oldzrot;
-	float xtrans,ytrans,ztrans;
-	float oldxtrans,oldytrans,oldztrans;
-	char dragmode;
+
+#include  <OpenGL/OpenGL.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <OpenGL/glext.h>
+
+#define BITS_PER_PIXEL          32.0
+#define DEPTH_SIZE              32.0
+#define DEFAULT_TIME_INTERVAL   0.001
+
+@class HaloMap;
+@class ModelTag;
+
+@interface ModelView : NSOpenGLView {
+	HaloMap *_mapfile;
 }
-
-- (void)setFrameSize:(NSSize)newSize;
+- (id)initWithFrame:(NSRect)frame;
+- (void)initGL;
 - (void)reshape;
-- (void)setGeometry:(Geometry *)geo;
-- (void)prepareOpenGL;
-- (void)drawRect:(NSRect)aRect;
-- (void)awakeFromNib;
-- (void)scrollWheel:(NSEvent *)theEvent;
-
-- (void)increaseZoom:(float)inc;
+- (void)drawRect:(NSRect)rect;
+- (void)releaseAllObjects;
+- (void)setMapfile:(HaloMap *)mapfile;
 @end
