@@ -370,6 +370,9 @@
 	
 	// Now lets load all of the bitmaps for shit
 	[self loadAllBitmaps];
+	
+	//NSLog(@"LOGGING THE TARG INFO");
+	//NSLog([tagArray description]);
 
 	return 0;
 }
@@ -555,10 +558,13 @@
 	else
 		return NO;
 }
+
+
+
+
 - (BOOL)writeAnyDataAtAddress:(void *)data size:(unsigned int)size address:(unsigned long)address
 {
 	fseek(mapFile, address, SEEK_SET);
-
 	return [self write:data size:size];
 }
 - (BOOL)writeAnyArrayDataAtAddress:(void *)data size:(unsigned int)size array_size:(unsigned int)array_size address:(unsigned long)address
@@ -791,7 +797,9 @@
 }
 - (id)tagForId:(long)identity
 {
+	
 	return [tagArray objectAtIndex:[[tagLookupDict objectForKey:[NSNumber numberWithLong:identity]] intValue]];
+	
 }
 - (Scenario *)scenario
 {

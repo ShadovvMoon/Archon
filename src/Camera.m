@@ -58,7 +58,7 @@
 {
 	m_vPosition = NewCVector3(x,y,z);
 }
-- (void)orientUp
+- (void)lockZ
 {
 	[self RotateView:0 x:m_vPosition.x y:m_vPosition.y z:m_vPosition.z];
 }

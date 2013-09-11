@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>swordedit.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>net.samuco.starlight</string>
+	<string>net.samuco.starlight2</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

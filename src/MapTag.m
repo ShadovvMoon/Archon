@@ -32,7 +32,13 @@
 		[mapFile seekToAddress:resolvedStringOffset];
 		tagName = [mapFile readCString];
 		[mapFile seekToAddress:prevOffset];
+		/*
+		prevOffset = [mapFile currentOffset];
+		[mapFile seekToAddress:resolvedOffset];
+		NSLog([NSString stringWithCString:[mapFile readCString]]);
+		[mapFile seekToAddress:prevOffset];*/
 	}
+	
 	return self;
 }
 - (void)dealloc 

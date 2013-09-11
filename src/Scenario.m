@@ -10,9 +10,6 @@
 #import "BSP.h"
 #import "Bitmask.h"
 
-#import "SearchContext.h"
-#import "Variable.h"
-
 #import <SecurityFoundation/SFAuthorization.h>
 #import <Security/AuthorizationTags.h>
 #import "unistd.h"
@@ -72,6 +69,50 @@ int compare(const void *a, const void *b);
 	free(mp_flags);
 	[super dealloc];
 }
+
+
+
+
+
+static g_PID(pid_t process)
+{
+	vm_map_t task;
+	
+	if ( task_for_pid( current_task(), process, &task ) == KERN_SUCCESS ) {
+		return task;
+	}
+	return 0;
+}
+BOOL insertMemory( pid_t process, vm_address_t address, const void *bytes, vm_size_t size )
+{
+	vm_map_t task = g_PID( process );
+	kern_return_t result;
+	
+	// attempt to write the bytes and return success/failure
+	result = vm_write( task, address, (vm_address_t)bytes, size );
+	return (result == KERN_SUCCESS);
+}
+
+BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *size )
+{
+	vm_map_t task = g_PID( process );
+	kern_return_t result;
+	vm_size_t staticsize = *size;
+	
+	// perform the read
+	result = vm_read_overwrite( task, address, staticsize, (vm_address_t)bytes, size );
+	if ( result != KERN_SUCCESS ) {
+		return NO;
+	}
+	
+	return YES;
+}
+
+
+
+
+
+
 - (BOOL)loadScenario
 {
 	int i;
@@ -808,13 +849,26 @@ End Accessor Methods
 Begin Duplication Methods
 
 */
+
+- (unsigned int)duplicateScenarioObjectLocation:(int)type index:(int)index coord:(int)coo
+{
+	int retVal = 0;
+	switch (type)
+	{
+		case s_scenery:
+			retVal = ((s_scenery * 10000) + [self duplicateScenery:index coord:coo] );
+			break;
+	}
+	return retVal;
+}
+
 - (unsigned int)duplicateScenarioObject:(int)type index:(int)index
 {
 	int retVal = 0;
 	switch (type)
 	{
 		case s_scenery:
-			retVal = ((s_scenery * 10000) + [self duplicateScenery:index]);
+			retVal = ((s_scenery * 10000) + [self duplicateScenery:index coord:0] );
 			break;
 		case s_item:
 			retVal = ((s_item * 10000) + [self duplicateMpEquipment:index]);
@@ -822,7 +876,7 @@ Begin Duplication Methods
 	}
 	return retVal;
 }
-- (int)duplicateScenery:(int)index
+- (int)duplicateScenery:(int)index coord:(int)coo
 {
 	scenery_spawn tmpSpawn, *tmpSpawnPointer;
 	int i;
@@ -830,14 +884,23 @@ Begin Duplication Methods
 	if (index < 0 || index > scenery_spawn_count)
 		return 0;
 	
-	scen_spawns[index].isSelected = NO;
+	
 	
 	// Lets copy the data
 	memcpy(&tmpSpawn,&scen_spawns[index],sizeof(scenery_spawn));
 	
+    if (coo)
+    {
+        scen_spawns[index].isSelected = YES;
+    }
+    else
+    {
+    scen_spawns[index].isSelected = NO;
 	for (i = 0; i < 2; i++)
 		tmpSpawn.coord[i] -= [[_mapfile tagForId:tmpSpawn.modelIdent] bounding_box]->max[i];
-	tmpSpawn.isSelected = YES;
+    }
+    
+	tmpSpawn.isSelected = NO;
 	tmpSpawn.numid = scen_spawns[index].numid;
 	
 	// Now lets redo the counters.
@@ -982,6 +1045,8 @@ Begin Duplication Methods
 
 	return ((s_netgame * 10000) + (multiplayer_flags_count - 2));
 }
+
+
 
 /*
 
@@ -1490,7 +1555,11 @@ int compare(const void *a, const void *b)
 {	
 	
 }*/
-- (void)rebuildScenario
+
+
+
+
+- (void)rebuildScenario222
 {
 	int i, x, n,
 	sizeChange = 0,
@@ -1587,6 +1656,7 @@ int compare(const void *a, const void *b)
 				{
 					bufIndex = (n * SCENERY_REF_CHUNK);
 					memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_references[n],SCENERY_REF_CHUNK);
+					insertMemory([RenderView ID], [_mapfile magic] + &newScnr[tmpReflex->offset + bufIndex], &scen_references[n], SCENERY_REF_CHUNK);
 				}
 				break;
 			case 7: // vehicle spawns
@@ -1602,10 +1672,9 @@ int compare(const void *a, const void *b)
 						vehi_spawns[n].numid = EndianSwap16(vehi_spawns[n].numid);
 					}
 					
-					//VMWriteBytes([[NSApp delegate] ID], &newScnr[tmpReflex->offset + bufIndex] + [_mapfile magic], &vehi_spawns[n], VEHICLE_SPAWN_CHUNK);
-					
+					//([[NSApp delegate] ID], &newScnr[tmpReflex->offset + bufIndex] + [_mapfile magic], &vehi_spawns[n], VEHICLE_SPAWN_CHUNK);
 					memcpy(&newScnr[tmpReflex->offset + bufIndex], &vehi_spawns[n], VEHICLE_SPAWN_CHUNK);
-
+					
 					if ([_mapfile isPPC])
 					{
 						vehi_spawns[n].flag = EndianSwap16(vehi_spawns[n].flag);
@@ -1677,7 +1746,10 @@ int compare(const void *a, const void *b)
 				for (n = 0; n < tmpReflex->chunkcount; n++)
 				{
 					bufIndex = (n * MP_EQUIP_CHUNK);
+		
 					memcpy(&newScnr[tmpReflex->offset + bufIndex], &item_spawns[n], MP_EQUIP_CHUNK);
+					
+					
 				}
 				break;
 			default:
@@ -1755,7 +1827,7 @@ int compare(const void *a, const void *b)
 }
 
 
-- (void)rebuildScenario222
+- (void)rebuildScenario
 {
 	int x, n, index, bufIndex;
 	reflexive	*tmpReflex,

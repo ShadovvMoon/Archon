@@ -44,6 +44,7 @@
 	IBOutlet NSButton *buttonWireframe;
 	IBOutlet NSButton *buttonShadedFaces;
 	IBOutlet NSButton *buttonTextured;
+    IBOutlet NSButton *wall;
 	/* End Render Option Buttons */
 	IBOutlet NSWindow *selecte;
 	
@@ -142,6 +143,8 @@
 	float maxRenderDistance;
 	rgb meshColor;
 	
+	int dup;
+	
 	// Camera Variables
 	float cameraMoveSpeed;
 	float acceleration;
@@ -154,7 +157,7 @@
 	
 	// Current selection mode
 	int _mode;
-	dynamic_object map_objects[2048];
+	dynamic_object map_objects[8000];
 	// Scenario stuff
 	Selection *selee;
 	
@@ -202,7 +205,6 @@
 - (void)awakeFromNib;
 - (void)reshape;
 - (BOOL)acceptsFirstResponder;
-- (BOOL)becomeFirstResponder;
 - (void)keyDown:(NSEvent *)theEvent;
 - (void)keyUp:(NSEvent *)event;
 - (void)centerObj:(float *)coord move:(float *)move;

@@ -41,7 +41,11 @@ typedef struct
 	float x;
 	float y;
 	float z;
+	float sx;
+	float sy;
+	float sz;
 	int address;
+	long id_tag;
 	BOOL isSelected;
 } dynamic_object;
 

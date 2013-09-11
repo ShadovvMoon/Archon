@@ -128,28 +128,11 @@ bool amIWorthy(void)
 	
 	BOOL needsAuthorizationCheck = YES;
 	
-#ifdef __ppc__
-	// PPC machines whose operating system is below leopard do not need authorization
-	SInt32 osxMinorVersion;
-	Gestalt(gestaltSystemVersionMinor, &osxMinorVersion);
-	if (osxMinorVersion < 5)
-	{
-		needsAuthorizationCheck = NO;
-	}
-#endif
-	
 	if (needsAuthorizationCheck)
 	{
-		if (amIWorthy())
-		{
+
 			// when the app restarts from asking the user his adminstator's password, the app isn't activated for some reason, so we'll activate it
 			//[NSApp activateIgnoringOtherApps:YES];
-			
-#ifndef _DEBUG
-			// if we don't print this, the old instance of the app will stll be alive. this behavior is wanted in debug mode because xcode's debugger will remain opened
-			printf("Don't forget to flush! ;-) "); // signal back to close caller
-#endif
-			fflush(stdout);
 		
 	[NSApp setDelegate:self];
 	
@@ -202,17 +185,8 @@ bool amIWorthy(void)
 		[NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(LoadMaps:) userInfo:pat repeats:NO];
 		
 		}
-		
-		}
-		}
-		else
-		{
-			extern char *gExecutablePath;
-			authMe(gExecutablePath);
-			[[NSApplication sharedApplication] terminate:nil];
-		}
 	}
-	
+	}
 }
 
 -(void)OpenMap:(NSString *)t
@@ -229,7 +203,7 @@ bool amIWorthy(void)
 			[mainWindow makeKeyAndOrderFront:self];
 			
 			
-			
+			NSDate* startTime = [NSDate date];
 			[rendView setPID:[self PID]];
 			[rendView setMapObject:mapfile];
 			[bitmapView setMapfile:mapfile];
@@ -238,7 +212,7 @@ bool amIWorthy(void)
 			[selecte orderOut:nil];
 			[NSApp endSheet:selecte];
 			
-			[tpro stopAnimation];
+			[tpro stopAnimation:self];
 			
 #ifdef __DEBUG__
 			NSDate *endDate = [NSDate date];
@@ -358,8 +332,6 @@ bool amIWorthy(void)
 - (int)loadMapFile:(NSString *)location
 {
 	[opened setStringValue:location];
-	
-	
 	
 	[self closeMapFile];
 	mapfile = [[HaloMap alloc] initWithMapfiles:location bitmaps:bitmapFilePath];

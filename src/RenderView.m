@@ -2,7 +2,7 @@
 //  RenderView.m
 //  swordedit
 //
-//  Created by sword on 5/6/08.
+//  Created by sword on 5/6/08.renderO
 //  Copyright 2008 sword Inc. All rights reserved.
 //
 
@@ -19,15 +19,8 @@
 #import "TextureManager.h"
 
 #import "SpawnEditorController.h"
-
-#import "VMRegion.h"
-#import "SearchContext.h"
-#import "Variable.h"
-
-#import <SecurityFoundation/SFAuthorization.h>
-#import <Security/AuthorizationTags.h>
 #import "unistd.h"
-
+#import "math.h"
 
 /*
 	TODO:
@@ -54,7 +47,7 @@
 		unicodeCharacters[unicodeCharacterIndex] = CFSwapInt16BigToHost(unicodeCharacters[unicodeCharacterIndex]);
 	}
 	
-	VMWriteBytes(haloProcessID, address, unicodeCharacters, unicodeLength * sizeof(unichar));
+	//(haloProcessID, address, unicodeCharacters, unicodeLength * sizeof(unichar));
 	
 	if (requiredLength)
 	{
@@ -65,13 +58,13 @@
 		for (bytesIndex = 0; bytesIndex < numberOfBytesToWrite; bytesIndex++)
 		{
 			unichar zero = 0;
-			VMWriteBytes(haloProcessID, address + unicodeLength * sizeof(unichar) + bytesIndex, &zero, sizeof(unichar));
+			//(haloProcessID, address + unicodeLength * sizeof(unichar) + bytesIndex, &zero, sizeof(unichar));
 		}
 	}
 	else
 	{
 		unichar zero = 0;
-		VMWriteBytes(haloProcessID, address + unicodeLength * sizeof(unichar), &zero, sizeof(unichar));
+		//(haloProcessID, address + unicodeLength * sizeof(unichar), &zero, sizeof(unichar));
 	}
 }
 
@@ -80,7 +73,7 @@
 {
 	unichar unicodeCharacters[length];
 	vm_size_t size = length * sizeof(unichar);
-	VMReadBytes(haloProcessID, address, &unicodeCharacters, &size);
+	//VMReadBytes(haloProcessID, address, &unicodeCharacters, &size);
 	
 	int unicodeCharacterIndex;
 	for (unicodeCharacterIndex = 0; unicodeCharacterIndex < length && unicodeCharacters[unicodeCharacterIndex] != 0; unicodeCharacterIndex++)
@@ -222,7 +215,7 @@
 		
 		unsigned short hostObjectID;
 		vm_size_t size = sizeof(short);
-		VMReadBytes(haloProcessID, hostObjectIDAddress, &hostObjectID, &size);
+		//VMReadBytes(haloProcessID, hostObjectIDAddress, &hostObjectID, &size);
 		hostObjectID = CFSwapInt16BigToHost(hostObjectID);
 		
 		if (hostObjectID != 0 && hostObjectID != invalidHostObjectID)
@@ -233,7 +226,7 @@
 			
 			int haloObjectPointer;
 			size = sizeof(int);
-			VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
+			//VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
 			haloObjectPointer = CFSwapInt32BigToHost(haloObjectPointer);
 			
 			const int offsetToPlayerXCoordinate = 0x5C;
@@ -251,13 +244,13 @@
 			
 			
 			
-			VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerXCoordinate, &newHostXValue, &size);
-			VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerYCoordinate, &newHostYValue, &size);
-			VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerZCoordinate, &newHostZValue, &size);
+			//VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerXCoordinate, &newHostXValue, &size);
+			////VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerYCoordinate, &newHostYValue, &size);
+			//VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerZCoordinate, &newHostZValue, &size);
 			
-			VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerXCoordinate + 0x4 + 0x4 + 0x4 + 0x4 + 0x4 + 0x4, &newHostXValueR, &size);
-			VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerYCoordinate + 0x4 + 0x4 + 0x4 + 0x4 + 0x4 + 0x4, &newHostYValueR, &size);
-			VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerZCoordinate + 0x4 + 0x4 + 0x4 + 0x4 + 0x4 + 0x4, &newHostZValueR, &size);
+			//VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerXCoordinate + 0x4 + 0x4 + 0x4 + 0x4 + 0x4 + 0x4, &newHostXValueR, &size);
+			//VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerYCoordinate + 0x4 + 0x4 + 0x4 + 0x4 + 0x4 + 0x4, &newHostYValueR, &size);
+			//VMReadBytes(haloProcessID, haloObjectPointer + offsetToPlayerZCoordinate + 0x4 + 0x4 + 0x4 + 0x4 + 0x4 + 0x4, &newHostZValueR, &size);
 			
 			
 			// Kill the host!
@@ -287,18 +280,18 @@
 			playercoords[(i * 8) + 1] = newHostYValue;
 			playercoords[(i * 8) + 2] = newHostZValue;
 			
-			playercoords[(i * 8) + 5] = 360 * newHostXValueR + 180;
-			playercoords[(i * 8) + 6] = 360 * newHostYValueR + 180;
-			playercoords[(i * 8) + 7] = 360 * newHostZValueR + 180;
+			playercoords[(i * 8) + 5] = newHostXValueR * (180 / M_PI);
+			playercoords[(i * 8) + 6] = (180 / M_PI) * newHostYValueR;
+			playercoords[(i * 8) + 7] = (180 / M_PI) * newHostZValueR;
 			
-			[[self window] setLevel:100];
+			//[[self window] setLevel:100];
 			
 			//NSRunAlertPanel([NSString stringWithFormat:@"%f", playercoords[(i * 8) + 6]], @"", @"", nil, nil);
 			
 			//Get the team
 			short hostTeamNumber;
 			vm_size_t hostTeamNumberSize = sizeof(short);
-			VMReadBytes(haloProcessID, 0x4BD7AFEE + 0x200 * i, &hostTeamNumber, &hostTeamNumberSize);
+			//VMReadBytes(haloProcessID, 0x4BD7AFEE + 0x200 * i, &hostTeamNumber, &hostTeamNumberSize);
 			hostTeamNumber = CFSwapInt16BigToHost(hostTeamNumber);
 			
 			if (hostTeamNumber == 0)
@@ -343,6 +336,15 @@
 	//[_camera PositionCamera:(x + 0.01f) positionY:(y + 0.01f) positionZ:(z + 1.0f) viewX:1.0f viewY:1.0f viewZ:(z + 1.0f) upVectorX:0.0f upVectorY:0.0f upVectorZ:1.0f];
 }
 
+-(void)renderTimer:(id)object
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
+	[NSTimer scheduledTimerWithTimeInterval:0.01 target:self selector:@selector(updatePlayerPosition:) userInfo:nil repeats:YES];
+	[NSTimer scheduledTimerWithTimeInterval:0.01 target:self selector:@selector(getVehicles:) userInfo:nil repeats:YES];
+	[runLoop run];
+	[pool release];
+}
 
 
 - (void)awakeFromNib
@@ -372,16 +374,8 @@
 	
 	[[self window] setFrame:NSMakeRect(0, 0, [[NSScreen mainScreen] frame].size.width, [[NSScreen mainScreen] frame].size.height) display:YES];
 	
-	_fps = 50;
-	drawTimer = [[NSTimer timerWithTimeInterval:(1.0/_fps)
-										target:self
-										selector:@selector(timerTick:)
-										userInfo:nil
-										repeats:YES]
-										retain
-										];
-	[[NSRunLoop currentRunLoop] addTimer:drawTimer forMode:(NSString *)kCFRunLoopCommonModes];
-	
+	_fps = 100;
+	drawTimer = [[NSTimer scheduledTimerWithTimeInterval:(1.0/_fps) target:self selector:@selector(timerTick:) userInfo:nil repeats:YES] retain];
 	prefs = [NSUserDefaults standardUserDefaults];
 	[self loadPrefs];
 	
@@ -444,17 +438,19 @@
 	//NSTimer *playertimer = [[NSTimer timerWithTimeInterval:0.1 target:self selector:@selector(updatePlayerPosition:) userInfo:nil repeats:YES] retain];
 	//[[NSRunLoop currentRunLoop] addTimer:playertimer forMode:(NSString *)kCFRunLoopCommonModes];
 	
-	[NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(setTermination:) userInfo:nil repeats:NO];
-	[NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(updatePlayerPosition:) userInfo:nil repeats:YES];
-	[NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(getVehicles:) userInfo:nil repeats:YES];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
+	[NSApp setDelegate:self];
+	//NSThread* timerThread = [[NSThread alloc] initWithTarget:self selector:@selector(renderTimer:) object:nil]; //Create a new thread
+	//[timerThread start]; 
+	
 	[NSTimer scheduledTimerWithTimeInterval:2 target:self selector:@selector(updateQuickLink:) userInfo:nil repeats:YES];
 
 }
 
 -(void)setTermination:(NSTimer*)ti
 {
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
-	[NSApp setDelegate:self];
+	
+	
 }
 
 -(IBAction)FocusOnPlayer:(id)sender
@@ -491,8 +487,6 @@
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
-	if (haloProcessID)
-	{
 		//Save main screen window
 		NSRect main = [[self window] frame];
 		
@@ -505,7 +499,6 @@
 		float* view = [self getCameraView];
 		
 		[[NSString stringWithFormat:@"%@, %f, %f, %f, %f, %f, %f", [opened stringValue], pos[0],pos[1],pos[2], view[0],view[1],view[2]]  writeToFile:@"/tmp/starlight.auto" atomically:YES];
-	}
 }
 
 - (void)reshape
@@ -523,10 +516,6 @@
 }
 
 - (BOOL)acceptsFirstResponder
-{ 
-	return YES; 
-}
-- (BOOL)becomeFirstResponder
 { 
 	return YES; 
 }
@@ -715,11 +704,16 @@
 }
 - (void)mouseDown:(NSEvent *)event
 {
-	
+
+    
+    
+    
+    
+    
 	
 	
 	NSPoint downPoint = [event locationInWindow];
-	NSPoint local_point = [self convertPoint:downPoint fromView:nil];
+	NSPoint local_point = [self convertPoint:downPoint fromView:[[self window] contentView]];
 	prevDown = [NSEvent mouseLocation];
 	
 	if (_mode == select && _mapfile)
@@ -820,11 +814,13 @@
 			
 		}
 		else {
-			[self trySelection:local_point shiftDown:(([event modifierFlags] & NSShiftKeyMask) != 0) width:1.0f height:1.0f ];
+			[self trySelection:local_point shiftDown:(([event modifierFlags] & NSShiftKeyMask) != 0) width:2.0f height:2.0f ];
 		}
 
 		//[sel release];
 	}
+    
+    
 		
 }
 
@@ -832,10 +828,36 @@
 - (void)mouseDragged:(NSEvent *)theEvent
 {
 	NSPoint dragPoint = [NSEvent mouseLocation];
-	if (_mode == rotate_camera)
-		[_camera HandleMouseMove:(dragPoint.x - prevDown.x) dy:(dragPoint.y - prevDown.y)];
+	//if (_mode == rotate_camera)
+	//	[_camera HandleMouseMove:(dragPoint.x - prevDown.x) dy:(dragPoint.y - prevDown.y)];
 	if (_mode == translate)
 	{
+		if ([wall state])
+		{
+			
+			if (dup == 3)
+			{
+        unsigned int type, index, nameLookup;
+        
+        if (!selections || [selections count] == 0)
+            return;
+        
+        nameLookup = [[selections objectAtIndex:0] unsignedIntValue];
+        type = (unsigned int)(nameLookup / 10000);
+        index = (unsigned int)(nameLookup % 10000);
+
+        
+        [_scenario duplicateScenarioObjectLocation:type index:index coord:1];
+        _selectFocus = [[selections objectAtIndex:0] longValue];
+				dup=0;
+			}
+			else {
+				dup++;
+			}
+
+		}
+        
+        //[self performTranslation:dragPoint zEdit:(([theEvent modifierFlags] & NSControlKeyMask) != 0)];
 		[self performTranslation:dragPoint zEdit:(([theEvent modifierFlags] & NSControlKeyMask) != 0)];
 	}
 	else if (_mode == rotate)
@@ -982,6 +1004,11 @@
 	
 }
 
+-(int)usesColor
+{
+	return 4;
+}
+
 - (void)drawRect:(NSRect)rect
 {	
 	glLoadIdentity();
@@ -1070,7 +1097,9 @@
 	
 	
 	NSString *autoa = [NSString stringWithContentsOfFile:@"/tmp/starlight.auto"];
-	if (autoa)
+	
+	
+	if ([[NSFileManager defaultManager] fileExistsAtPath:@"/tmp/starlight.auto"])
 	{
 		
 		NSArray *settings = [autoa componentsSeparatedByString:@","];
@@ -1084,12 +1113,9 @@
 		}
 		
 	}
-	else {
-		
-	
-
-		[_camera PositionCamera:(x + 5.0f) positionY:(y + 5.0f) positionZ:(z + 5.0f) viewX:x viewY:y viewZ:z upVectorX:0.0f upVectorY:0.0f upVectorZ:1.0f];
-		
+	else
+	{
+		[self recenterCamera:self];
 	}
 		
 	activeBSPNumber = 0;
@@ -1119,6 +1145,7 @@
 						userInfo:nil
 						repeats:YES]
 						retain];
+	
 	[[NSRunLoop currentRunLoop] addTimer:drawTimer forMode:(NSString *)kCFRunLoopCommonModes];
 	shouldDraw = YES;
 }
@@ -1380,8 +1407,51 @@
 - (void)renderAllMapObjects
 {
 	
+	
 	int x, i, name = 1;
 	float pos[6], distanceTo;
+	
+	/*
+	for (x = 0; x < 2048; x++)
+	{
+		if (_lookup)
+			_lookup[name] = (long)(s_mapobject * 10000 + x);
+		glLoadName(name);
+		name++;
+		//NSRunAlertPanel([NSString stringWithFormat:@"%d",(int)map_objects[x].id_tag], @"", @"", @"", @"");
+		
+		
+		
+		//RETURN HERE
+		//NSLog(@"%d", (int)map_objects[x].id_tag);
+		
+		if ([_mapfile isTag:map_objects[x].id_tag])
+		{
+			
+			//NSRunAlertPanel(@"It is a tag...", @":)", @"", @"", @"");
+			pos[0] = map_objects[x].x;
+			pos[1] = map_objects[x].y;
+			pos[2] = map_objects[x].z;
+			pos[3] = map_objects[x].sx;
+			pos[4] = map_objects[x].sy;
+			pos[5] = map_objects[x].sz;
+			
+			distanceTo = [self distanceToObject:pos];
+			
+			if (distanceTo < rendDistance)
+				[[_mapfile tagForId:map_objects[x].id_tag] drawAtPoint:pos lod:_LOD isSelected:YES useAlphas:_useAlphas];
+		}
+		
+		//	[self renderObject:map_objects[x]];
+	}
+	for (x = 0; x < 16; x++)
+	{
+		if (_lookup)
+			_lookup[name] = (long)(s_playerobject * 10000 + x);
+		glLoadName(name);
+		name++;
+		[self renderPlayerCharacter:x team:1];
+	}*/
 	
 	vehicle_spawn *vehi_spawns;
 	scenery_spawn *scen_spawns;
@@ -1395,9 +1465,6 @@
 	// This one does its own namings
 	[self renderNetgameFlags:&name];
 	
-	/*SkyBox *tmpBox = [_scenario sky];
-	
-	[[_mapfile tagForId:tmpBox[0].modelIdent] drawAtPoint:pos lod:4 isSelected:NO];*/
 	
 	vehi_spawns = [_scenario vehi_spawns];
 		
@@ -1431,6 +1498,8 @@
 		name++;
 		if ([_mapfile isTag:equipSpawns[x].modelIdent])
 		{
+			//NSRunAlertPanel([NSString stringWithFormat:@"%d",(int)equipSpawns[x].modelIdent], @"", @"", @"", @"");
+			
 			for (i = 0; i < 3; i++)
 				pos[i] = equipSpawns[x].coord[i];
 			pos[3] = equipSpawns[x].yaw;
@@ -1440,6 +1509,7 @@
 				[[_mapfile tagForId:equipSpawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:equipSpawns[x].isSelected useAlphas:_useAlphas];
 		}
 	}
+	/*
 	for (x = 0; x < 16; x++)
 	{
 		if (_lookup)
@@ -1448,14 +1518,38 @@
 		name++;
 		[self renderPlayerCharacter:x team:1];
 	}
-	for (x = 0; x < 16; x++)
+	for (x = 0; x < 2048; x++)
 	{
 		if (_lookup)
 			_lookup[name] = (long)(s_mapobject * 10000 + x);
 		glLoadName(name);
 		name++;
-		[self renderObject:map_objects[x]];
-	}
+		//NSRunAlertPanel([NSString stringWithFormat:@"%d",(int)map_objects[x].id_tag], @"", @"", @"", @"");
+		
+		
+
+		//RETURN HERE
+			//NSLog(@"%d", (int)map_objects[x].id_tag);
+			
+		if ([_mapfile isTag:map_objects[x].id_tag])
+		{
+			
+			//NSRunAlertPanel(@"It is a tag...", @":)", @"", @"", @"");
+			pos[0] = map_objects[x].x;
+			pos[1] = map_objects[x].y;
+			pos[2] = map_objects[x].z;
+			pos[3] = 0;
+			pos[4] = 0;
+			pos[5] = 0;
+	
+			distanceTo = [self distanceToObject:pos];
+			
+			if (distanceTo < rendDistance)
+				[[_mapfile tagForId:map_objects[x].id_tag] drawAtPoint:pos lod:_LOD isSelected:NO useAlphas:_useAlphas];
+		}
+		
+	//	[self renderObject:map_objects[x]];
+	}*/
 	for (x = 0; x < [_scenario mach_spawn_count]; x++)
 	{
 		if (_lookup)
@@ -1464,10 +1558,6 @@
 		name++;
 		if ([_mapfile isTag:[_scenario mach_references][mach_spawns[x].numid].machTag.TagId])
 		{
-			/*for (i = 0; i < 3; i++)
-				pos[i] = mach_spawns[x].coord[i];
-			for (i = 3; i < 6; i++)
-				pos[i] = mach_spawns[x].rotation[i - 3];*/
 			distanceTo = [self distanceToObject:pos];
 			
 			if ((distanceTo < rendDistance || mach_spawns[x].isSelected) && mach_spawns[x].desired_permutation == activeBSPNumber)
@@ -1483,18 +1573,14 @@
 		name++;
 		if ([_mapfile isTag:vehi_spawns[x].modelIdent])
 		{	
+			//NSLog(@"%d", (int)vehi_spawns[x].modelIdent);
 			//NSLog(@"Vehi Model Ident: 0x%x", vehi_spawns[x].modelIdent);
 			for (i = 0; i < 3; i++)
 				pos[i] = vehi_spawns[x].coord[i];
 			for (i = 3; i < 6; i++)
 				pos[i] = vehi_spawns[x].rotation[i - 3];
 			distanceTo = [self distanceToObject:pos];
-			/*if (distanceTo > 40)
-				lod = 0;
-			else if (distanceTo > 25 && distanceTo < 40)
-				lod = 1;
-			else
-				lod = 4;*/
+
 			if ((distanceTo < rendDistance || vehi_spawns[x].isSelected) && vehi_spawns[x].desired_permutation == activeBSPNumber)
 				[[_mapfile tagForId:vehi_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:vehi_spawns[x].isSelected useAlphas:_useAlphas];
 		}
@@ -1513,17 +1599,12 @@
 			for (i = 3; i < 6; i++)
 				pos[i] = scen_spawns[x].rotation[i - 3];
 			distanceTo = [self distanceToObject:pos];
-			/*if (distanceTo > 40)
-				lod = 0;
-			else if (distanceTo > 25 && distanceTo < 40)
-				lod = 1;
-			else
-				lod = 4;*/
+
 			if ((distanceTo < rendDistance || scen_spawns[x].isSelected) && scen_spawns[x].desired_permutation == activeBSPNumber)
 				[[_mapfile tagForId:scen_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:scen_spawns[x].isSelected useAlphas:_useAlphas];
 		}
 	}		
-	//NSLog(@"Name count: %d", name);
+
 }
 
 
@@ -1996,6 +2077,13 @@
 	{
 		[self rotateFocusedItem:[s_xRotation floatValue] y:[s_yRotation floatValue] z:[s_zRotation floatValue]];
 	}
+	else if ((sender == s_xRotText) || (sender == s_yRotText) || (sender == s_zRotText))
+	{
+		[s_xRotation setFloatValue:[[s_xRotText stringValue] floatValue]];
+		[s_yRotation setFloatValue:[[s_yRotText stringValue] floatValue]];
+		[s_zRotation setFloatValue:[[s_zRotText stringValue] floatValue]];
+		[self rotateFocusedItem:[s_xRotText floatValue] y:[s_yRotText floatValue] z:[s_zRotText floatValue]];
+	}
 }
 
 
@@ -2033,7 +2121,7 @@
 	float newHostXValue;
 	vm_size_t size = sizeof(float);
 	
-	VMReadBytes(haloProcessID, address, &newHostXValue, &size);
+	//VMReadBytes(haloProcessID, address, &newHostXValue, &size);
 	int *newHostXValuePointer = (int *)&newHostXValue;
 	*newHostXValuePointer = CFSwapInt32BigToHost(*((int *)&newHostXValue));
 	return newHostXValue;
@@ -2047,7 +2135,7 @@
 	int *valueP = (int *)&new_value;
 	*valueP = CFSwapInt32HostToBig(*((int *)&new_value));
 	
-	VMWriteBytes(haloProcessID, address, &new_value, sizeof(float));
+	//(haloProcessID, address, &new_value, sizeof(float));
 }
 
 -(void)writeUInt16:(int)value to:(int)address
@@ -2055,7 +2143,29 @@
 	// Kill the host!
 	int new_value = value;
 	short teamNumber = CFSwapInt16HostToBig(new_value);
-	VMWriteBytes(haloProcessID, address, &teamNumber, sizeof(short));
+	//(haloProcessID, address, &teamNumber, sizeof(short));
+}
+
+-(int)readUInt16:(int)address
+{
+	short newHostXValue;
+	vm_size_t size = sizeof(short);
+	
+	////VMReadBytes(haloProcessID, address, &newHostXValue, &size);
+	int *newHostXValuePointer = (int *)&newHostXValue;
+	*newHostXValuePointer = CFSwapInt16BigToHost(*((int *)&newHostXValue));
+	return newHostXValue;
+}
+
+-(int)readUInt32:(int)address
+{
+	int newHostXValue;
+	vm_size_t size = sizeof(int);
+	
+	//VMReadBytes(haloProcessID, address, &newHostXValue, &size);
+	int *newHostXValuePointer = (int *)&newHostXValue;
+	*newHostXValuePointer = CFSwapInt32BigToHost(*((int *)&newHostXValue));
+	return newHostXValue;
 }
 
 -(void)killPlayer:(int)index
@@ -2087,6 +2197,7 @@
 
 -(void)getVehicles:(NSTimer*)at
 {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	if (haloProcessID)
 	{
 		
@@ -2109,28 +2220,57 @@
 		
 			int haloObjectPointer;
 			vm_size_t size = sizeof(int);
-			VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
+			//VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
 			haloObjectPointer = CFSwapInt32BigToHost(haloObjectPointer);
 			
 			//We have the object!
 			//int x = [self readFloat:haloObjectPointer + 0x5C];
 			dynamic_object object;
-			
-		//NSLog(@"0x%x", tablez_address);
 		
-			object.x = [self readFloat:haloObjectPointer + 0x5C];
-			object.y = [self readFloat:haloObjectPointer + 0x5C + 0x4];
-			object.z = [self readFloat:haloObjectPointer + 0x5C + 0x8];
+			object.x = [self readFloat:haloObjectPointer + 92];
+			object.y = [self readFloat:haloObjectPointer + 96];
+			object.z = [self readFloat:haloObjectPointer + 100];
+		
+		
+		    object.sx = [self readFloat:haloObjectPointer + 116];
+		    object.sy = [self readFloat:haloObjectPointer + 120];
+		    object.sz = [self readFloat:haloObjectPointer + 124];
 		
 			object.address = haloObjectPointer;
+	
+			
+			int haloObjectPointer222 = [self readUInt16:haloObjectPointer+0x2];
+			//I THINK this is some kind of tag?
+			//NSRunAlertPanel([NSString stringWithFormat:@"%d", haloObjectPointer222], @"", @"", @"", @"");
+			//Grrreaat >_>
+			//We need to somehow workout the tag of the weapon?
 		
-			map_objects[i] = object;
+		long IndexMagic = (long)[self readUInt32:0x4BF10000];
+		long BaseIdent = (long)[self readUInt32:0x006A2000+2+2+700+4];
+		long Unknown = (long)[self readUInt32:0x4BF10000+8];
+		long NumOfTags = (long)[self readUInt32:0x4BF10000+12];
+		long VertexObjectCount = (long)[self readUInt32:0x4BF10000+16];
+		long ModelRawDataOffset = (long)[self readUInt32:0x4BF10000+20];	
+		long IndicesObjectCount = (long)[self readUInt32:0x4BF10000+24];
+		long IndicesOffset = (long)[self readUInt32:0x4BF10000+28];
+		long ModelRawDataSize = (long)[self readUInt32:0x4BF10000+32];
 		
 		
-	}
+		long tagID = (long)[self readUInt32:IndexMagic + (haloObjectPointer222 * 32) + 12];
+		long newtagIdent;
 		
-	}
+		MapTag *tempTag = [_mapfile tagForId:tagID];
+		[_mapfile seekToAddress:([tempTag offsetInMap] + 0x34)];
+		[_mapfile readLong:&newtagIdent];
+	
+		object.id_tag = newtagIdent;
 
+
+		map_objects[i] = object;
+		}//RETURN HERE
+		
+	}
+	[pool release];
 }
 
 -(int)getDynamicPlayer:(int)index
@@ -2147,7 +2287,7 @@
 	
 	unsigned short hostObjectID;
 	vm_size_t size = sizeof(short);
-	VMReadBytes(haloProcessID, hostObjectIDAddress, &hostObjectID, &size);
+	//VMReadBytes(haloProcessID, hostObjectIDAddress, &hostObjectID, &size);
 	hostObjectID = CFSwapInt16BigToHost(hostObjectID);
 	
 	
@@ -2160,7 +2300,7 @@
 		
 		int haloObjectPointer;
 		size = sizeof(int);
-		VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
+		//VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
 		haloObjectPointer = CFSwapInt32BigToHost(haloObjectPointer);
 		
 		return haloObjectPointer;
@@ -2357,8 +2497,11 @@
 
 		if (!selections || [selections count] == 0)
 			return;
+		int i;
+		for (i = 0; i < [selections count]; i++)
+		{
 		
-		nameLookup = [[selections objectAtIndex:0] unsignedIntValue];
+		nameLookup = [[selections objectAtIndex:i] unsignedIntValue];
 	
 		type = (unsigned int)(nameLookup / 10000);
 		index = (unsigned int)(nameLookup % 10000);
@@ -2386,11 +2529,9 @@
 		}
 		else
 		{
-			
-		
-
 		
 		[_scenario deleteScenarioObject:type index:index];
+		}
 		}
 		
 		[self deselectAllObjects];
@@ -2462,9 +2603,9 @@
 		
 	}
 	
-	[_camera PositionCamera:[_camera position][0] positionY:[_camera position][1] positionZ:[_camera position][2] 
-							viewX:coord[0] viewY:coord[1] viewZ:coord[2] 
-							upVectorX:0.0f upVectorY:0.0f upVectorZ:1.0f];
+	//[_camera PositionCamera:[_camera position][0] positionY:[_camera position][1] positionZ:[_camera position][2] 
+	//						viewX:coord[0] viewY:coord[1] viewZ:coord[2] 
+	//						upVectorX:0.0f upVectorY:0.0f upVectorZ:1.0f];
 }
 
 -(float *)getCameraPos
@@ -2541,9 +2682,16 @@
 	[s_yRotation setFloatValue:y];
 	[s_zRotation setFloatValue:z];
 	
-	[s_xRotText setFloatValue:x];
-	[s_yRotText setFloatValue:y];
-	[s_zRotText setFloatValue:z];
+	[s_xRotText setStringValue:[NSString stringWithFormat:@"%f",x]];
+	[s_yRotText setStringValue:[NSString stringWithFormat:@"%f",y]];
+	[s_zRotText setStringValue:[NSString stringWithFormat:@"%f",z]];
+	
+	[s_xRotText setEnabled:YES];
+	[s_yRotText setEnabled:YES];
+	[s_zRotText setEnabled:YES];
+	[s_xRotText setEditable:YES];
+	[s_yRotText setEditable:YES];
+	[s_zRotText setEditable:YES];
 }
 - (void)unpressButtons
 {
@@ -2735,7 +2883,7 @@
 		}
 	}
 	@catch (NSException * e) {
-		
+		NSRunAlertPanel(@"SELECTION ERROR", @"", @"", @"", @"");
 	}
 	@finally {
 		
@@ -2771,7 +2919,7 @@
 			/*NSLog(@"Magic: [0x%x]", [_mapfile tagForId:vehi_spawns[x].modelIdent] + 0x5C);
 			
 			float h_speed = 8.000000;
-			VMWriteBytes(my_pid_v, 0x4BD7B038, &h_speed, sizeof(float));*/
+			(my_pid_v, 0x4BD7B038, &h_speed, sizeof(float));*/
 			
 			// if the host is alive, move the host's player position so he automatically dies
 			
@@ -2783,14 +2931,14 @@
 			
 			unsigned short hostObjectID;
 			vm_size_t size = sizeof(short);
-			VMReadBytes(haloProcessID, hostObjectIDAddress, &hostObjectID, &size);
+			//VMReadBytes(haloProcessID, hostObjectIDAddress, &hostObjectID, &size);
 			hostObjectID = CFSwapInt16BigToHost(hostObjectID);
 			
 			unsigned int haloObjectPointerAddress = firstTableObjectArrayAddress + hostObjectID * tableObjectArraySize + offsetToObjectArrayTablePointer;
 			
 			int haloObjectPointer;
 			size = sizeof(int);
-			VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
+			//VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
 			haloObjectPointer = CFSwapInt32BigToHost(haloObjectPointer);
 			
 			float newHostXValue = pos[0];
@@ -2808,13 +2956,13 @@
 			*newHostXValuePointer = CFSwapInt32HostToBig(*((int *)&newHostXValue));
 			*newHostYValuePointer = CFSwapInt32HostToBig(*((int *)&newHostYValue));
 			*newHostZValuePointer = CFSwapInt32HostToBig(*((int *)&newHostZValue));
-			VMWriteBytes(haloProcessID, haloObjectPointer + offsetToPlayerXCoordinate, &newHostXValue, sizeof(float));
-			VMWriteBytes(haloProcessID, haloObjectPointer + offsetToPlayerYCoordinate, &newHostYValue, sizeof(float));
-			VMWriteBytes(haloProcessID, haloObjectPointer + offsetToPlayerZCoordinate, &newHostZValue, sizeof(float));
+			//(haloProcessID, haloObjectPointer + offsetToPlayerXCoordinate, &newHostXValue, sizeof(float));
+			//(haloProcessID, haloObjectPointer + offsetToPlayerYCoordinate, &newHostYValue, sizeof(float));
+			//(haloProcessID, haloObjectPointer + offsetToPlayerZCoordinate, &newHostZValue, sizeof(float));
 			
-			/*VMWriteBytes(my_pid_v, [_mapfile magic] + [_mapfile tagForId:vehi_spawns[x].modelIdent] + 0x5C, &pos[0], sizeof(float));
-			VMWriteBytes(my_pid_v, [_mapfile magic] + [_mapfile tagForId:vehi_spawns[x].modelIdent] + 0x5C + 0x4, &pos[1], sizeof(float));
-			VMWriteBytes(my_pid_v, [_mapfile magic] + [_mapfile tagForId:vehi_spawns[x].modelIdent] + 0x5C + 0x4 + 0x4, &pos[2], sizeof(float));*/
+			/*(my_pid_v, [_mapfile magic] + [_mapfile tagForId:vehi_spawns[x].modelIdent] + 0x5C, &pos[0], sizeof(float));
+			(my_pid_v, [_mapfile magic] + [_mapfile tagForId:vehi_spawns[x].modelIdent] + 0x5C + 0x4, &pos[1], sizeof(float));
+			(my_pid_v, [_mapfile magic] + [_mapfile tagForId:vehi_spawns[x].modelIdent] + 0x5C + 0x4 + 0x4, &pos[2], sizeof(float));*/
 		}
 	}
 	//Get the object index
@@ -2925,6 +3073,7 @@
 			if (_selectType == s_all || _selectType == s_mapobject)
 			{
 				map_objects[index].isSelected = YES;
+				[selectedType setStringValue:[NSString stringWithFormat:@"%d",map_objects[index].address]];
 				[self setRotationSliders:0 y:0 z:0];
 			}
 			break;
@@ -3056,9 +3205,9 @@
 
 -(IBAction)MovetoBSD:(id)sender;
 {
-	[self DropCamera:sender];
+	//[self DropCamera:sender];
 	
-	/*
+	
 	unsigned int	i,
 	nameLookup,
 	type,
@@ -3094,7 +3243,7 @@
 				[self centerObj:[_scenario mach_spawns][index].coord move:nil];
 				break;
 		}
-	}*/
+	}
 	
 }
 
@@ -3488,7 +3637,7 @@
 	 
 	 unsigned short hostObjectID;
 	 vm_size_t size = sizeof(short);
-	 VMReadBytes(haloProcessID, hostObjectIDAddress, &hostObjectID, &size);
+	 //VMReadBytes(haloProcessID, hostObjectIDAddress, &hostObjectID, &size);
 	 hostObjectID = CFSwapInt16BigToHost(hostObjectID);
 	 
 	 
@@ -3500,7 +3649,7 @@
 		 
 		 int haloObjectPointer;
 		 size = sizeof(int);
-		 VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
+		 //VMReadBytes(haloProcessID, haloObjectPointerAddress, &haloObjectPointer, &size);
 		 haloObjectPointer = CFSwapInt32BigToHost(haloObjectPointer);
 		 
 		 const int offsetToPlayerXCoordinate = 0x5C;
@@ -3514,9 +3663,9 @@
 		 *newHostXValuePointer = CFSwapInt32HostToBig(*((int *)&newHostXValue));
 		 *newHostYValuePointer = CFSwapInt32HostToBig(*((int *)&newHostYValue));
 		 *newHostZValuePointer = CFSwapInt32HostToBig(*((int *)&newHostZValue));
-		 VMWriteBytes(haloProcessID, haloObjectPointer + offsetToPlayerXCoordinate, &newHostXValue, sizeof(float));
-		 VMWriteBytes(haloProcessID, haloObjectPointer + offsetToPlayerYCoordinate, &newHostYValue, sizeof(float));
-		 VMWriteBytes(haloProcessID, haloObjectPointer + offsetToPlayerZCoordinate, &newHostZValue, sizeof(float));
+		 //(haloProcessID, haloObjectPointer + offsetToPlayerXCoordinate, &newHostXValue, sizeof(float));
+		 //(haloProcessID, haloObjectPointer + offsetToPlayerYCoordinate, &newHostYValue, sizeof(float));
+		 //(haloProcessID, haloObjectPointer + offsetToPlayerZCoordinate, &newHostZValue, sizeof(float));
 	 }
 		}
 	 

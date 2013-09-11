@@ -168,7 +168,17 @@
 		glRotatef(point[5] * (57.29577951), 1, 0, 0);
 		glRotatef(-point[4] * (57.29577951), 0, 1, 0);
 		glRotatef(point[3] * (57.29577951), 0, 0, 1);
-		
+	
+		GLuint vertexShaderObject;
+	
+		//vertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
+		//long shader_index = [self shaderIdentForIndex:0];
+	
+		//NSLog(@"%d", [[_mapfile tagForId:shader_index] tagLocation]);
+	
+		//glShaderSourceARB(vertexShaderObject, 1, [shaders objectAtIndex:0], [[shaders objectAtIndex:0] length]);
+		//glCompileShaderARB(vertexShaderObject);
+	
 		if (isSelected)
 		{
 			[self drawBoundingBox];
@@ -234,7 +244,8 @@
 	    glVertex3f(bb->max[0],bb->min[1],bb->min[2]);
 		
 		// Now to try some other stuffs! Bwahaha!
-		[self drawAxes:TRUE];
+		//[self drawAxes:TRUE];
+	glEnd();
 }
 - (void)drawAxes:(BOOL)withPointerArrow
 {

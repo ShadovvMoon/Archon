@@ -10,12 +10,6 @@
 		1406E43B10F921C3004A983D /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E43A10F921C3004A983D /* Utility.m */; };
 		1406E51610F93B28004A983D /* Selection.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E51510F93B28004A983D /* Selection.m */; };
 		1406E5A510F93FBB004A983D /* SelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E5A410F93FBB004A983D /* SelectView.m */; };
-		141DAA61115DDBC700AE1BC4 /* VMRegion.m in Sources */ = {isa = PBXBuildFile; fileRef = 141DAA56115DDBC700AE1BC4 /* VMRegion.m */; };
-		141DAA62115DDBC700AE1BC4 /* SearchContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 141DAA58115DDBC700AE1BC4 /* SearchContext.m */; };
-		141DAA63115DDBC700AE1BC4 /* Variable.m in Sources */ = {isa = PBXBuildFile; fileRef = 141DAA5A115DDBC700AE1BC4 /* Variable.m */; };
-		141DAA64115DDBC700AE1BC4 /* CheaterTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = 141DAA5C115DDBC700AE1BC4 /* CheaterTypes.m */; };
-		141DAA65115DDBC700AE1BC4 /* Searching.m in Sources */ = {isa = PBXBuildFile; fileRef = 141DAA5E115DDBC700AE1BC4 /* Searching.m */; };
-		141DAA66115DDBC700AE1BC4 /* ThreadedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 141DAA60115DDBC700AE1BC4 /* ThreadedTask.m */; };
 		142F1A0910F8765100E69B8D /* BGHUDAppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */; };
 		142F1A2F10F8765A00E69B8D /* BGHUDAppKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */; };
 		144893AD10FA90130026A004 /* relaunch in Resources */ = {isa = PBXBuildFile; fileRef = 144893AC10FA90130026A004 /* relaunch */; };
@@ -89,18 +83,6 @@
 		1406E51510F93B28004A983D /* Selection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Selection.m; sourceTree = "<group>"; };
 		1406E5A310F93FBB004A983D /* SelectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SelectView.h; sourceTree = "<group>"; };
 		1406E5A410F93FBB004A983D /* SelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SelectView.m; sourceTree = "<group>"; };
-		141DAA55115DDBC700AE1BC4 /* VMRegion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VMRegion.h; sourceTree = "<group>"; };
-		141DAA56115DDBC700AE1BC4 /* VMRegion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VMRegion.m; sourceTree = "<group>"; };
-		141DAA57115DDBC700AE1BC4 /* SearchContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SearchContext.h; sourceTree = "<group>"; };
-		141DAA58115DDBC700AE1BC4 /* SearchContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SearchContext.m; sourceTree = "<group>"; };
-		141DAA59115DDBC700AE1BC4 /* Variable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Variable.h; sourceTree = "<group>"; };
-		141DAA5A115DDBC700AE1BC4 /* Variable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Variable.m; sourceTree = "<group>"; };
-		141DAA5B115DDBC700AE1BC4 /* CheaterTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CheaterTypes.h; sourceTree = "<group>"; };
-		141DAA5C115DDBC700AE1BC4 /* CheaterTypes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CheaterTypes.m; sourceTree = "<group>"; };
-		141DAA5D115DDBC700AE1BC4 /* Searching.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Searching.h; sourceTree = "<group>"; };
-		141DAA5E115DDBC700AE1BC4 /* Searching.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Searching.m; sourceTree = "<group>"; };
-		141DAA5F115DDBC700AE1BC4 /* ThreadedTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadedTask.h; sourceTree = "<group>"; };
-		141DAA60115DDBC700AE1BC4 /* ThreadedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ThreadedTask.m; sourceTree = "<group>"; };
 		142F19C110F8722100E69B8D /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = BGHUDAppKit.framework; sourceTree = "<group>"; };
 		144893AC10FA90130026A004 /* relaunch */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = relaunch; sourceTree = "<group>"; };
@@ -189,7 +171,6 @@
 			isa = PBXGroup;
 			children = (
 				1406E5A310F93FBB004A983D /* SelectView.h */,
-				141DAA54115DDBC700AE1BC4 /* The Cheat */,
 				1406E5A410F93FBB004A983D /* SelectView.m */,
 				1406E51410F93B28004A983D /* Selection.h */,
 				1406E51510F93B28004A983D /* Selection.m */,
@@ -199,7 +180,6 @@
 				5CDA37180E081F6C00F3F2B9 /* Math */,
 				5CEC79AE0DE23A6E00C33BFB /* Moved Aside Functions */,
 				5CEC796D0DE2394900C33BFB /* Global Headers */,
-				5CD87FE50DD1173B00DAA97D /* Map Related */,
 				5C14692B0DBE722E0080183E /* Memory Handler */,
 				5C46AC750CCB206300651C97 /* GUI Handlers */,
 			);
@@ -224,25 +204,6 @@
 				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
 			);
 			name = "Other Frameworks";
-			sourceTree = "<group>";
-		};
-		141DAA54115DDBC700AE1BC4 /* The Cheat */ = {
-			isa = PBXGroup;
-			children = (
-				141DAA55115DDBC700AE1BC4 /* VMRegion.h */,
-				141DAA56115DDBC700AE1BC4 /* VMRegion.m */,
-				141DAA57115DDBC700AE1BC4 /* SearchContext.h */,
-				141DAA58115DDBC700AE1BC4 /* SearchContext.m */,
-				141DAA59115DDBC700AE1BC4 /* Variable.h */,
-				141DAA5A115DDBC700AE1BC4 /* Variable.m */,
-				141DAA5B115DDBC700AE1BC4 /* CheaterTypes.h */,
-				141DAA5C115DDBC700AE1BC4 /* CheaterTypes.m */,
-				141DAA5D115DDBC700AE1BC4 /* Searching.h */,
-				141DAA5E115DDBC700AE1BC4 /* Searching.m */,
-				141DAA5F115DDBC700AE1BC4 /* ThreadedTask.h */,
-				141DAA60115DDBC700AE1BC4 /* ThreadedTask.m */,
-			);
-			name = "The Cheat";
 			sourceTree = "<group>";
 		};
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
@@ -432,6 +393,7 @@
 		5CEC796D0DE2394900C33BFB /* Global Headers */ = {
 			isa = PBXGroup;
 			children = (
+				5CD87FE50DD1173B00DAA97D /* Map Related */,
 				5CE01A160DD7E506007AA956 /* defines.h */,
 				5CEC796E0DE2395E00C33BFB /* VectorMath.h */,
 				5CEC7B9A0DE24E8300C33BFB /* GeneralMath.h */,
@@ -551,12 +513,6 @@
 				1406E43B10F921C3004A983D /* Utility.m in Sources */,
 				1406E51610F93B28004A983D /* Selection.m in Sources */,
 				1406E5A510F93FBB004A983D /* SelectView.m in Sources */,
-				141DAA61115DDBC700AE1BC4 /* VMRegion.m in Sources */,
-				141DAA62115DDBC700AE1BC4 /* SearchContext.m in Sources */,
-				141DAA63115DDBC700AE1BC4 /* Variable.m in Sources */,
-				141DAA64115DDBC700AE1BC4 /* CheaterTypes.m in Sources */,
-				141DAA65115DDBC700AE1BC4 /* Searching.m in Sources */,
-				141DAA66115DDBC700AE1BC4 /* ThreadedTask.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
