@@ -93,16 +93,36 @@
 
 		// Now lets upload it to OpenGL
 		glGenTextures(1,&_glTextureTable[texIndex][index]);
-		glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][index]);
-		glTexImage2D(GL_TEXTURE_2D,
-					0,
-					4,
-					[tmpBitm textureSizeForImageIndex:index].width,
-					[tmpBitm textureSizeForImageIndex:index].height,
-					0,
-					GL_RGBA,
-					GL_UNSIGNED_BYTE,
-					[tmpBitm imagePixelsForImageIndex:index]);
+        glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][index]);
+        
+        if (TRUE)//useNewRenderer() == 2)
+		{
+            if ([tmpBitm imagePixelsForImageIndex:index] !=  NULL)
+            {
+                gluBuild2DMipmaps(GL_TEXTURE_2D,
+                                      GL_RGBA,
+                                       [tmpBitm textureSizeForImageIndex:index].width,
+                                       [tmpBitm textureSizeForImageIndex:index].height,
+                                       GL_RGBA,
+                                       GL_UNSIGNED_BYTE,
+                                       [tmpBitm imagePixelsForImageIndex:index]);
+            }
+        }
+        else
+        {
+		
+            glTexImage2D(GL_TEXTURE_2D,
+                        0,
+                        GL_RGBA,
+                        [tmpBitm textureSizeForImageIndex:index].width,
+                        [tmpBitm textureSizeForImageIndex:index].height,
+                        0,
+                        GL_RGBA,
+                        GL_UNSIGNED_BYTE,
+                        [tmpBitm imagePixelsForImageIndex:index]);
+        }
+        
+        
 	}
 	
 	[tmpBitm release];
@@ -193,29 +213,64 @@
 	
 	[tmpBitm release];
 }
-- (void)activateTextureAndLightmap:(long)ident lightmap:(long)lightmap subImage:(int)subImage
+
+- (void)activateShader:(soso)shader
+{
+    
+}
+
+
+- (void)activateTextureAndLightmap:(long)ident lightmap:(long)lightmap secondary:(long)secondary subImage:(int)subImage
 {
 	if (!_textures)
 		return;
 		
 	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue],
-		lightmapIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:lightmap]] intValue];
+		lightmapIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:lightmap]] intValue],
+        secondaryIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:secondary]] intValue];
+    
 	BitmapTag	*mapBitmap = [[_textures objectAtIndex:texIndex] retain],
 				*lightmapBitmap = [[_textures objectAtIndex:lightmapIndex] retain];
-				
-	glActiveTextureARB(GL_TEXTURE0_ARB);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
+		
 	
-	glActiveTextureARB(GL_TEXTURE1_ARB);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, _glTextureTable[lightmapIndex][1]);
-	
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    
+    if (lightmapIndex)
+    {
+        glActiveTextureARB(GL_TEXTURE1_ARB);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, _glTextureTable[lightmapIndex][0]);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+        glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+        glTexEnvi( GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD );
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
+    }
+    
+    
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, _glTextureTable[texIndex][0]);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-				
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    
+   
+    if (secondaryIndex)
+    {
+        glActiveTextureARB(GL_TEXTURE2_ARB);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, _glTextureTable[secondaryIndex][subImage]);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+        glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    }
+    
+    
 	[mapBitmap release];
 	[lightmapBitmap release];
 }

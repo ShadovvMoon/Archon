@@ -17,12 +17,18 @@
 #define VBO 1
 //#define VBO2 1
 
-bool newR;
+int newR;
 bool drawO ;
+bool lightScene;
 
-
-bool useNewRenderer();
+int useNewRenderer();
 bool drawObjects();
+
+id renderV;
+BOOL performanceMode;
+
+NSThread* performanceThread;
+
 
 typedef struct 
 {
@@ -196,6 +202,64 @@ typedef struct
   long TagId;
 } TAG_REFERENCE;
 
+typedef struct
+{
+    unsigned long junk1[34];
+    TAG_REFERENCE baseMapBitm;
+    unsigned long junk2[7];
+    float primaryMapScale;
+    TAG_REFERENCE primaryMapBitm;
+    float secondaryMapScale;
+    TAG_REFERENCE secondaryMapBitm;
+    
+    //Rest is bleh
+} senv;
+
+typedef struct
+{
+    unsigned long junk1[41];
+    TAG_REFERENCE baseMap;
+    unsigned long junk3[2];
+    TAG_REFERENCE multiPurpose;
+    unsigned long junk2[3];
+    float detailScale;
+    TAG_REFERENCE detailMap;
+    
+} soso;
+
+typedef struct
+{
+    //unsigned long junk1[11];
+    short colorFunction;
+    short alphaFunction;
+    //unsigned long junk2[9];
+    float uscale;
+    float vscale;
+    //unsigned long junk4[4];
+    TAG_REFERENCE bitm;
+    //unsigned long junk3[24];
+    
+    GLfloat *texture_uv;
+} map;
+
+typedef struct
+{
+    //unsigned long junk1[21];
+    reflexive maps;
+    
+    map *read_maps;
+    
+} schi;
+
+typedef struct
+{
+    //unsigned long junk1[21];
+    reflexive maps;
+    reflexive maps2;
+    map *read_maps;
+    
+} scex;
+
 /* END MAP */
 /* BEGIN SCENARIO */
 
@@ -263,11 +327,48 @@ typedef struct
   reflexive ActorVariantRef; // 48
   reflexive Encounters; // 49
   //below this, structs still not confirmed
+    
+    
   reflexive CommandLists; // 50
+    
+    /*
+  reflexive AnimationRefs;
+  reflexive AiScriptRefs;
+    reflexive AiRecordingRefs;
+    reflexive AiConversations;
+    
+    long scriptSyntax;
+    long scriptSyntax2;
+    float scriptSyntax3;
+    long scriptSyntax4;
+    long scriptSyntax5;
+    float scriptSyntax6;
+
+    reflexive Scripts;
+    reflexive Globals;
+    
+    reflexive References;
+    reflexive SourceFiles;
+    reflexive CutsceneFlags;
+    reflexive CutsceneCameraPoints;
+    reflexive CutsceneTitles;
+    
+    reflexive UnknownRef[9];
+    
+    long con[2];
+    long ight[2];
+    long hud[2];
+    
+    reflexive StructBsp;
+    */
+    
+    
   reflexive Unknown2; // 51
   reflexive StartingLocations; // 52
   reflexive Platoons; // 53
   reflexive AiConversations; // 54
+  reflexive Unknown8[3]; // 71-78
+    
   unsigned long ScriptDataSize;
   unsigned long Unknown4;
   reflexive ScriptCrap; // 55
@@ -287,8 +388,11 @@ typedef struct
   reflexive CutsceneCameraPoi; // 69
   reflexive CutsceneTitles; // 70
   reflexive Unknown6[8]; // 71-78
+    reflexive Unknown61[14]; // 71-78
   unsigned long  Unknown7[2];
   reflexive StructBsp; // 79
+    
+    
 }SCNR_HEADER;
 
 typedef struct SkyBox
@@ -491,10 +595,15 @@ typedef struct machine_spawn
 	float coord[3];
 	float rotation[3];
 	
-	short flags;
-	short flags2;
+    unsigned long unknown1[2]; //32
+    
+    short powerGroup; //40
+    short positionGroup; //42
+    
+	short flags; //44
+	short flags2; //48
 	
-	long zeros[7];
+	short zeros[8]; //50
 	
 	// non-spawn data
 	BOOL isSelected;
@@ -523,7 +632,7 @@ typedef struct
 
 typedef struct device_group
 {
-	long name[8];
+	char name[32];
 	float initial_value;
 	short flags;
 	
@@ -532,7 +641,7 @@ typedef struct device_group
 
 typedef struct encounter
 {
-	long unknown[32];
+	unsigned long unknown[32];
 	reflexive_tag squads;
 	reflexive_tag platoons;
 	reflexive_tag firing;
@@ -604,9 +713,22 @@ typedef struct
 	indicesPointer indexPointer;
 	char junk2[4];
 	verticesPointer vertPointer;
-	char junk3[28];
+    verticesPointer compressedVertPointer;
+	char junk3[12];
 	Vector *vertices;
 	unsigned short *indices;
+    
+    //Additional stuff
+    long shaderBitmapIndexArray[30];
+    long lengthOfBitmapArray;
+    
+    long baseMapIndex;
+    long detailMapIndex;
+    float detailMapScale;
+    
+    int hasShader;
+    schi *shader;
+    scex *scexshader;
 } part;
 
 /* END MODELS */
@@ -758,6 +880,20 @@ typedef struct
   int							LightmapIndex;
   UNCOMPRESSED_LIGHTMAP_VERT	*pLightmapVert;
   COMPRESSED_LIGHTMAP_VERT		*pCompLightmapVert;
+    
+    
+  //Additioanl junk
+  unsigned long					baseMap;
+  unsigned long					primaryMap;
+  unsigned long					secondaryMap;
+  unsigned long					microMap;
+    
+    float primaryMapScale;
+    float secondaryMapScale;
+    float microMapScale;
+    
+    
+    
 }SUBMESH_INFO;
 typedef struct
 {

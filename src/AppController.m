@@ -93,6 +93,7 @@
 	{
 		[self selectBitmapLocation];
 	}
+        
 	[rendView loadPrefs];
 	[mainWindow makeKeyAndOrderFront:self];
 	//[mainWindow center];
@@ -100,6 +101,7 @@
 	NSString *autoa = [NSString stringWithContentsOfFile:@"/tmp/starlight.auto"];
 	if (autoa)
 	{
+        NSLog(autoa);
 		
 		NSArray *settings = [autoa componentsSeparatedByString:@","];
 		NSString *pat = [settings objectAtIndex:0];
@@ -115,7 +117,7 @@
 			[tpro startAnimation:nil];
 
 		
-		[NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(LoadMaps:) userInfo:pat repeats:NO];
+            [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(LoadMaps:) userInfo:pat repeats:NO];
 		
 		}
 	}
@@ -163,7 +165,7 @@
 		default:
 			break;
 	}
-	[mainWindow setTitle:[[NSString stringWithString:@"Moonlight : "] stringByAppendingString:[mapfile mapName]]];
+	[mainWindow setTitle:[[NSString stringWithString:@"Sunlight : "] stringByAppendingString:[mapfile mapName]]];
 }
 
 - (IBAction)loadMap:(id)sender
@@ -215,13 +217,13 @@
 		NSRunAlertPanel(@"Error!",@"No mapfile currently open!", @"Ok", nil,nil);
 		return;
 	} 
-	if ((NSRunAlertPanel(@"Saving...", @"Are you sure you want to save? Swordedit will quit after saving to ensure map stability.",@"Yes",@"No",nil)) == 1)
-	{
+	//if ((NSRunAlertPanel(@"Saving...", @"Are you sure you want to save? Swordedit will quit after saving to ensure map stability.",@"Yes",@"No",nil)) == 1)
+	//{
 		// do whatever the fuck you want
 		[mapfile saveMap];
 		
 		//Restart map
-		
+		return;
 		//Get camera positions
 		
 		float* pos = [rendView getCameraPos];
@@ -229,6 +231,7 @@
 		
 		[mapfile closeMap];
 
+    
 		[[NSString stringWithFormat:@"%@, %f, %f, %f, %f, %f, %f", [opened stringValue], pos[0],pos[1],pos[2], view[0],view[1],view[2]]  writeToFile:@"/tmp/starlight.auto" atomically:YES];
 		
 		//RElaunch
@@ -238,8 +241,8 @@
 		[NSTask launchedTaskWithLaunchPath:relaunch arguments:[NSArray arrayWithObjects:[[NSBundle mainBundle] bundlePath], [NSString stringWithFormat:@"%d",procid], nil]];
 		[NSApp terminate:NULL];
 		
-		///[self loadMapFile:opened];*/
-	}
+		//[self loadMapFile:opened];
+	//}
 }
 - (IBAction)close:(id)sender
 {
@@ -302,6 +305,17 @@
 	/*NSSound *genesis = [[NSSound alloc] initWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingString:@"/Genesis.mp3"] byReference:NO];
 	[genesis setDelegate:self];
 	[genesis play];*/
+    
+    //NSRunAlertPanel(@"Moonlight",@"This version of swordedit sets up everything for you automatically.",@":D",nil,nil);
+	
+    bitmapFilePath = [NSString stringWithFormat:@"%@/Library/Application Support/HaloMD/GameData/Maps/bitmaps.map", NSHomeDirectory()];
+    [bitmapFilePath retain];
+    [bitmapLocationText setStringValue:bitmapFilePath];
+    [userDefaults setBool:TRUE forKey:@"_firstTimeUse"];
+	[userDefaults synchronize];
+	[rendView loadPrefs];
+    
+    return;
 	NSRunAlertPanel(@"Starlight",@"Welcome to starlight. Before you can begin, you must first setup the program.",@"Continue",nil,nil);
 	NSRunAlertPanel(@"Halo Bitmap",@"You'll be asked to specify the location of the bitmaps file you wish to use in just a moment.",@"Locate...",nil,nil);
 	[self selectBitmapLocation];
@@ -336,7 +350,7 @@
 {
 	NSOpenPanel *open = [NSOpenPanel openPanel];
 	[open setTitle:@"Please select the bitmap file you wish to use."];
-	if ([open runModalForTypes:[NSArray arrayWithObjects:@"map", nil]] == NSOKButton)
+	if ([open runModalForDirectory:[NSString stringWithFormat:@"%@/Library/Application Support/HaloMD/GameData/Maps/", NSHomeDirectory()] file:@"bitmaps.map" types:[NSArray arrayWithObjects:@"map", nil]] == NSOKButton)
 	{
 		bitmapFilePath = [open filename];
 		//NSLog(@"Bitmap file path: %@", bitmapFilePath);

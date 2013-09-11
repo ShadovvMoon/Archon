@@ -13,7 +13,7 @@
          endingColumnNumber = "9223372036854775807"
          startingLineNumber = "3757"
          endingLineNumber = "3757"
-         landmarkName = "-GoFullscreen:"
+         landmarkName = "-GODPOWER:"
          landmarkType = "5">
       </FileBreakpoint>
       <FileBreakpoint
@@ -52,7 +52,7 @@
          endingColumnNumber = "9223372036854775807"
          startingLineNumber = "1848"
          endingLineNumber = "1848"
-         landmarkName = "-renderBSPAsTexturedAndLightmaps:"
+         landmarkName = "-renderBSPAsWireframe:"
          landmarkType = "5">
       </FileBreakpoint>
       <FileBreakpoint

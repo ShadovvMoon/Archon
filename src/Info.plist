@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>swordedit.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>net.samuco.starlight2</string>
+	<string>net.samuco.sunlight</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -19,7 +19,7 @@
 	<key>CFBundleSignature</key>
 	<string>sword</string>
 	<key>CFBundleVersion</key>
-	<string>Genesis</string>
+	<string>Sunlight</string>
 	<key>NSMainNibFile</key>
 	<string>Main</string>
 	<key>NSPrincipalClass</key>

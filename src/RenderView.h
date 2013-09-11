@@ -282,7 +282,7 @@
 -(float *)getCameraPos;
 -(float *)getCameraView;
 /* End BSP rendering */
-
+-(NSNumber*)isAboveGround:(float*)pos;
 /* Begin scenario rendering */
 - (void)renderAllMapObjects;
 - (void)renderPlayerSpawn:(float *)coord team:(int)team isSelected:(BOOL)isSelected;

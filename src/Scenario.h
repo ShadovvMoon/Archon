@@ -47,6 +47,7 @@ enum
 	vehicle_spawn *vehi_spawns;
 	int vehicle_spawn_count;
 	int vehi_ref_count;
+    int skies_count;
 	
 	scenery_reference *scen_references;
 	scenery_spawn *scen_spawns;

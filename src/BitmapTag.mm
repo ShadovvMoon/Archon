@@ -17,6 +17,7 @@ int getImageSize (int format, int width, int height);
 unsigned int rgba_to_int (rgba_color_t color);
 void DecodeLinearX8R8G8B8 (int width, int height, const char *texdata, unsigned int *outdata);
 void DecodeLinearA8R8G8B8 (int width, int height, const char *texdata, unsigned int *outdata);
+void DecodeLinearR5G6B5 (int width, int height, const char *texdata, unsigned int *outdata);
 inline long bmpEndianSwap32(unsigned int x);
 
 int getImageSize (int format, int width, int height)
@@ -49,6 +50,8 @@ int getImageSize (int format, int width, int height)
 		
 		case BITM_FORMAT_A8Y8:
 		case BITM_FORMAT_R5G6B5:
+            size = width * height * 2;
+            break;
 		case BITM_FORMAT_A1R5G5B5:
 		case BITM_FORMAT_A4R4G4B4:
 			//NSLog(@"A8Y8 / R5G6B5 / A1R5G5B5 / A4R4G4B4!");
@@ -101,7 +104,7 @@ void DecodeLinearX8R8G8B8 (int width, int height, const char *texdata, unsigned 
 			color.g = (cdata >>  8) & 0xFF;
 			color.b = (cdata >>  0) & 0xFF;
 
-			outdata[(y * width) + x] = rgba_to_int (color);
+			outdata[(y * width) + x] = rgba_to_int (color); //0xff000000 | cdata & 0xffffff;
 		}
 	}
 }
@@ -125,6 +128,35 @@ void DecodeLinearA8R8G8B8 (int width, int height, const char *texdata, unsigned 
 			color.b = (cdata >>  0) & 0xFF;
 
 			outdata[(y * width) + x] = rgba_to_int (color);
+		}
+	}
+}
+
+/*================================
+ * DecodeLinearR5G6B5
+ ================================*/
+void DecodeLinearR5G6B5 (int width, int height, const char *texdata, unsigned int *outdata)
+{
+    //NSLog(@"BITM_FORMAT_A8R8G8B8");
+	rgba_color_t	color;
+	short cdata;
+	int x,y;
+	for (y = 0; y < height; y++)
+	{
+		for (x = 0; x < width; x++)
+		{
+            //NSLog(@"decoding..");
+			cdata = ((short *)texdata)[(y * width) + x];
+            //cdata *= 255.0f;
+
+            //rgb = ((cdata & 0xF800) << 8) | ((cdata & 0x7E0) << 5) | ((cdata & 0x1F) << 3);
+            
+            
+            //NSLog(@"loading..");
+			outdata[(y * width) + x]  = 0xFF000000 |
+            		((cdata & 0xF800) << 8)|
+            		((cdata & 0x07E0) << 5)|
+            		((cdata & 0x001F) << 3); //rgba_to_int (color);
 		}
 	}
 }
@@ -187,6 +219,8 @@ inline long bmpEndianSwap32(unsigned int x)
 			[_mapfile readLong:&tempImage->unknown9];
 			[_mapfile readLong:&tempImage->unknown10];
 			[_mapfile readLong:&tempImage->unknown11];
+            
+            
 			//NSLog(@"Maybe internalized flag? 0x%d", tempImage->flags);
 		}
 	}
@@ -284,6 +318,7 @@ inline long bmpEndianSwap32(unsigned int x)
 }
 - (BOOL)loadImage:(int)index
 {
+    
 	char *inData;
 	unsigned int *imageBytes = NULL;
 	int lengthOfData;
@@ -298,6 +333,7 @@ inline long bmpEndianSwap32(unsigned int x)
 		
 	lengthOfData = getImageSize(images[index].format, images[index].width, images[index].height);
 	
+    
 	inData = (char *)malloc(lengthOfData);
 	
 	if (images[index].internalized == 0)
@@ -312,7 +348,7 @@ inline long bmpEndianSwap32(unsigned int x)
 	}
 	
 	imageBytes = (unsigned int *)malloc(4 * images[index].width * images[index].height);
-	
+    
 	switch (images[index].format)
 	{
 		case BITM_FORMAT_DXT2AND3:
@@ -330,13 +366,74 @@ inline long bmpEndianSwap32(unsigned int x)
 			//NSLog(@"BITM_FORMAT_A8R8G8B8");
 			DecodeLinearA8R8G8B8(images[index].width,images[index].height,inData,imageBytes);
 			break;
+        case BITM_FORMAT_R5G6B5:
+			//NSLog(@"BITM_FORMAT_A8R8G8B8");
+            //free(imageBytes);
+			DecodeLinearR5G6B5(images[index].width,images[index].height,inData,imageBytes);
+            
+            //imageBytesLookup[index] = (unsigned int)imageBytes;
+            //return (imageLoaded[index] = FALSE);
+            
+			break;
 		case BITM_FORMAT_DXT1:
 			//NSLog(@"DXT 1");
 			DecompressImage((u8 *)imageBytes,images[index].width,images[index].height,inData,kDxt1);
 			break;
 	
 	}
-	
+    
+   
+    
+    /*
+    float width    = images[index].width;
+    float height   = images[index].height;
+    int   channels = 4;
+    
+    // create a buffer for our image after converting it from 565 rgb to 8888rgba
+    u_int8_t* rawData = (u_int8_t*)malloc(width*height*channels);
+    
+    // unpack the 5,6,5 pixel data into 24 bit RGBA
+    for (int i=0; i<width*height; ++i)
+    {
+        // append two adjacent bytes in texture->data into a 16 bit int
+        u_int16_t pixel16 = (imageBytes[i*2] << 8) + imageBytes[i*2+1];
+        // mask and shift each pixel into a single 8 bit unsigned, then normalize by 5/6 bit
+        // max to 8 bit integer max.  Alpha set to 0.
+        rawData[channels*i]   = ((pixel16 & 63488)       >> 11) / 31.0 * 255;
+        rawData[channels*i+1] = ((pixel16 & 2016)  << 5  >> 10) / 63.0 * 255;
+        rawData[channels*i+2] = ((pixel16 & 31)    << 11 >> 11) / 31.0 * 255;
+        
+        rawData[channels*4+3] = 0;
+    }
+    
+    // same as before
+    int                    bitsPerComponent = 8;
+    int                    bitsPerPixel     = channels*bitsPerComponent;
+    int                    bytesPerRow      = channels*width;
+    CGColorSpaceRef        colorSpaceRef    = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo           bitmapInfo       = kCGBitmapByteOrderDefault;
+    CGColorRenderingIntent renderingIntent  = kCGRenderingIntentDefault;
+    
+    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL,
+                                                              rawData,
+                                                              channels*width*height,
+                                                              NULL);
+    free( rawData );
+    CGImageRef        imageRef = CGImageCreate(width,
+                                               height,
+                                               bitsPerComponent,
+                                               bitsPerPixel,
+                                               bytesPerRow,
+                                               colorSpaceRef,
+                                               bitmapInfo,
+                                               provider,NULL,NO,renderingIntent);
+    
+    
+    
+    [[[[NSImage alloc] initWithCGImage:imageRef size:NSMakeSize(width, height)] TIFFRepresentation] writeToFile:@"/Users/colbrans/Desktop/Images/bitmap.tif" atomically:YES];
+    */
+    
+    
 	imageBytesLookup[index] = (unsigned int)imageBytes;
 	return (imageLoaded[index] = TRUE);
 }

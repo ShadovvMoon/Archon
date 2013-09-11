@@ -107,6 +107,7 @@
                 <outlet property="bitmapLocationText" destination="842" id="844"/>
                 <outlet property="loadWindow" destination="831" id="833"/>
                 <outlet property="mainWindow" destination="367" id="830"/>
+                <outlet property="opened" destination="miV-C1-Br6" id="I2o-fs-Kbw"/>
                 <outlet property="rendView" destination="845" id="846"/>
                 <outlet property="selecte" destination="834" id="836"/>
             </connections>
@@ -505,9 +506,12 @@
                             <action selector="buttonPressed:" destination="imh-Lf-Pz7" id="fVR-fh-2Oq"/>
                             <action selector="buttonPressed:" destination="8mI-4B-7lM" id="ihx-sO-vzw"/>
                             <action selector="buttonPressed:" destination="B2h-YY-RV2" id="tN6-KO-o7G"/>
-                            <action selector="changeRenderer:" destination="5sM-CE-yDP" id="gdT-bb-FfZ"/>
+                            <action selector="changeRenderer:" destination="7e7-St-LDq" id="xfU-05-9yx"/>
                             <action selector="recenterCamera:" destination="847" id="849"/>
                             <action selector="reloadBitmapsForMap:" destination="YqH-xt-1Kg" id="B57-ee-POS"/>
+                            <action selector="renderBSPNumber:" destination="FDh-7E-Pq8" id="k7x-VK-WoE"/>
+                            <action selector="setSelectionMode:" destination="1zK-EB-mjz" id="XLR-aH-MDH"/>
+                            <action selector="sliderChanged:" destination="KMu-bn-uvd" id="4lV-xR-LLl"/>
                             <action selector="sliderChanged:" destination="jC4-jG-b7b" id="54z-76-nk6"/>
                             <action selector="sliderChanged:" destination="mQu-4r-F6v" id="8Hd-Us-wfi"/>
                             <action selector="sliderChanged:" destination="Udf-qo-XZm" id="Mea-lV-CCR"/>
@@ -516,16 +520,18 @@
                             <action selector="sliderChanged:" destination="vfW-aZ-Wwn" id="fJB-yz-7y1"/>
                             <action selector="sliderChanged:" destination="PD2-A5-f1U" id="iY6-Hx-5xa"/>
                             <action selector="sliderChanged:" destination="Ff1-7G-7yZ" id="jkx-df-q6l"/>
+                            <action selector="sliderChanged:" destination="DRH-Kd-Amh" id="s7t-ge-GRl"/>
                             <action selector="sliderChanged:" destination="t0v-6O-yqn" id="tm7-pI-TRE"/>
                             <outlet property="b_deleteSelected" destination="vY6-Si-dvS" id="dFv-QA-Npc"/>
+                            <outlet property="bspNumbersButton" destination="FDh-7E-Pq8" id="NnC-2N-sVd"/>
                             <outlet property="createType" destination="wl3-vo-k5a" id="dr7-RK-V9b"/>
                             <outlet property="cspeed" destination="w4c-uW-tI3" id="6Pc-o4-f1G"/>
                             <outlet property="duplicateSelected" destination="8mI-4B-7lM" id="edc-hA-LIl"/>
                             <outlet property="first_person_mode" destination="o5a-6N-Py1" id="Ycg-zM-RwQ"/>
                             <outlet property="framesSlider" destination="mQu-4r-F6v" id="5Rr-aD-uTH"/>
                             <outlet property="msel" destination="WoQ-sS-6KX" id="b83-Cj-1RH"/>
+                            <outlet property="opened" destination="miV-C1-Br6" id="VQE-Bc-6gg"/>
                             <outlet property="renderGametype" destination="omc-qZ-Vav" id="xfy-bB-unK"/>
-                            <outlet property="rendererSwitch" destination="5sM-CE-yDP" id="gsT-Wf-Elx"/>
                             <outlet property="s_spawnCreateButton" destination="B2h-YY-RV2" id="qzs-cb-PWL"/>
                             <outlet property="s_xRotText" destination="Wk3-FJ-H32" id="oza-aA-Pcm"/>
                             <outlet property="s_xRotation" destination="vfW-aZ-Wwn" id="vFI-6i-mvQ"/>
@@ -580,7 +586,7 @@
         <window title="Selection" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" frameAutosaveName="Selection" animationBehavior="default" id="KBm-ea-KaS" customClass="NSPanel">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" utility="YES" HUD="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="272" y="172" width="312" height="335"/>
+            <rect key="contentRect" x="2248" y="1083" width="312" height="335"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1418"/>
             <view key="contentView" wantsLayer="YES" id="Mnn-Ua-PHy">
                 <rect key="frame" x="0.0" y="0.0" width="312" height="335"/>
@@ -792,7 +798,7 @@
                     <ciFilter name="CIFalseColor">
                         <configuration>
                             <ciColor key="inputColor0" red="1" green="1" blue="1" alpha="1"/>
-                            <ciColor key="inputColor1" red="0.44313728810000003" green="0.47058826679999999" blue="0.50196081400000003" alpha="1"/>
+                            <ciColor key="inputColor1" red="0.44313728809356689" green="0.47058826684951782" blue="0.50196081399917603" alpha="1"/>
                             <null key="inputImage"/>
                         </configuration>
                     </ciFilter>
@@ -805,7 +811,7 @@
         <window title="Editor" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" frameAutosaveName="Camera" animationBehavior="default" id="zaw-aB-PYo" customClass="NonKeyPanels">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" utility="YES" HUD="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="272" y="172" width="312" height="294"/>
+            <rect key="contentRect" x="2248" y="748" width="312" height="294"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1418"/>
             <view key="contentView" wantsLayer="YES" id="X3G-WD-N2A">
                 <rect key="frame" x="0.0" y="0.0" width="312" height="294"/>
@@ -828,7 +834,7 @@
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                     <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="NSHomeTemplate" imagePosition="only" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="848">
                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                        <font key="font" metaFont="cellTitle"/>
+                                        <font key="font" metaFont="titleBar" size="12"/>
                                     </buttonCell>
                                 </button>
                                 <button appearanceType="lightContent" id="o5a-6N-Py1">
@@ -963,12 +969,12 @@ CA
                                 <popUpButton verticalHuggingPriority="750" id="wl3-vo-k5a">
                                     <rect key="frame" x="15" y="11" width="214" height="22"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="nyh-a0-jQV">
+                                    <popUpButtonCell key="cell" type="push" title="Teleporter Pair" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="nyh-a0-jQV">
                                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                                         <font key="font" metaFont="smallSystem"/>
                                         <menu key="menu" title="OtherViews" id="6OS-LI-Ava">
                                             <items>
-                                                <menuItem title="Teleporter Pair" id="3Pa-uG-DLu">
+                                                <menuItem title="Teleporter Pair" state="on" id="3Pa-uG-DLu">
                                                     <modifierMask key="keyEquivalentModifierMask"/>
                                                 </menuItem>
                                                 <menuItem title="Red Spawn" id="WCl-Oh-7Pz">
@@ -998,7 +1004,7 @@ CA
                                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                     <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="NSAddTemplate" imagePosition="only" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="xUZ-QI-KSP">
                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                        <font key="font" metaFont="cellTitle"/>
+                                        <font key="font" metaFont="titleBar" size="12"/>
                                     </buttonCell>
                                 </button>
                             </subviews>
@@ -1006,12 +1012,21 @@ CA
                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </box>
+                    <textField hidden="YES" verticalHuggingPriority="750" id="miV-C1-Br6">
+                        <rect key="frame" x="83" y="272" width="96" height="22"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="h2B-Fb-qOX">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
                 </subviews>
                 <contentFilters>
                     <ciFilter name="CIFalseColor">
                         <configuration>
                             <ciColor key="inputColor0" red="1" green="1" blue="1" alpha="1"/>
-                            <ciColor key="inputColor1" red="0.44313728810000003" green="0.47058826679999999" blue="0.50196081400000003" alpha="1"/>
+                            <ciColor key="inputColor1" red="0.44313728809356689" green="0.47058826684951782" blue="0.50196081399917603" alpha="1"/>
                             <null key="inputImage"/>
                         </configuration>
                     </ciFilter>
@@ -1024,21 +1039,21 @@ CA
         <window title="Rendering" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" frameAutosaveName="Render" animationBehavior="default" id="Ilx-CL-l46" customClass="NonKeyPanels">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" utility="YES" HUD="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="272" y="172" width="312" height="215"/>
+            <rect key="contentRect" x="2248" y="454" width="312" height="241"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1418"/>
             <view key="contentView" wantsLayer="YES" id="Hal-lM-2OR">
-                <rect key="frame" x="0.0" y="0.0" width="312" height="215"/>
+                <rect key="frame" x="0.0" y="0.0" width="312" height="241"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <box autoresizesSubviews="NO" title="Renderer" borderType="line" id="Nwt-c5-NS1">
-                        <rect key="frame" x="17" y="140" width="278" height="55"/>
+                        <rect key="frame" x="17" y="140" width="278" height="81"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                         <view key="contentView">
-                            <rect key="frame" x="1" y="1" width="276" height="39"/>
+                            <rect key="frame" x="1" y="1" width="276" height="65"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
                                 <popUpButton verticalHuggingPriority="750" id="omc-qZ-Vav">
-                                    <rect key="frame" x="94" y="11" width="135" height="22"/>
+                                    <rect key="frame" x="94" y="37" width="135" height="22"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                     <popUpButtonCell key="cell" type="push" title="CTF" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" tag="1" imageScaling="proportionallyDown" inset="2" selectedItem="Fen-ZT-N2n" id="rvk-qv-3QQ">
                                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
@@ -1059,22 +1074,53 @@ CA
                                         </menu>
                                     </popUpButtonCell>
                                 </popUpButton>
-                                <button id="5sM-CE-yDP">
-                                    <rect key="frame" x="15" y="14" width="76" height="18"/>
-                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                    <buttonCell key="cell" type="check" title="Moonlight" bezelStyle="regularSquare" imagePosition="left" controlSize="small" state="on" inset="2" id="n9c-Uu-urA">
-                                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <popUpButton verticalHuggingPriority="750" id="FDh-7E-Pq8">
+                                    <rect key="frame" x="94" y="11" width="135" height="22"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                    <popUpButtonCell key="cell" type="push" title="BSP" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" tag="14" imageScaling="proportionallyDown" inset="2" selectedItem="R4N-dA-tQr" id="ZXU-WA-ygS">
+                                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                                         <font key="font" metaFont="smallSystem"/>
-                                    </buttonCell>
-                                </button>
+                                        <menu key="menu" title="OtherViews" id="x4n-1X-Yom">
+                                            <items>
+                                                <menuItem title="BSP" state="on" tag="14" id="R4N-dA-tQr">
+                                                    <modifierMask key="keyEquivalentModifierMask"/>
+                                                </menuItem>
+                                            </items>
+                                        </menu>
+                                    </popUpButtonCell>
+                                </popUpButton>
                                 <button appearanceType="lightContent" verticalHuggingPriority="750" id="YqH-xt-1Kg">
-                                    <rect key="frame" x="234" y="13" width="24" height="19"/>
+                                    <rect key="frame" x="234" y="39" width="24" height="19"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                     <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="NSRefreshFreestandingTemplate" imagePosition="only" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="xjR-qg-2K1">
                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                        <font key="font" metaFont="cellTitle"/>
+                                        <font key="font" metaFont="titleBar" size="12"/>
                                     </buttonCell>
                                 </button>
+                                <popUpButton verticalHuggingPriority="750" id="7e7-St-LDq">
+                                    <rect key="frame" x="17" y="41" width="74" height="15"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                    <popUpButtonCell key="cell" type="push" title="Sunlight" bezelStyle="rounded" alignment="left" controlSize="mini" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="Dyn-3f-zLI" id="5Gi-vT-558">
+                                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                        <font key="font" metaFont="miniSystem"/>
+                                        <menu key="menu" title="OtherViews" id="0K7-ts-XJS">
+                                            <items>
+                                                <menuItem title="Starlight" id="2QX-Cz-t5L"/>
+                                                <menuItem title="Moonlight" id="ynL-2l-cah"/>
+                                                <menuItem title="Sunlight" state="on" id="Dyn-3f-zLI"/>
+                                            </items>
+                                        </menu>
+                                    </popUpButtonCell>
+                                </popUpButton>
+                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="fIk-HN-ncH">
+                                    <rect key="frame" x="15" y="15" width="77" height="17"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="BSP" id="TJj-f2-9a9">
+                                        <font key="font" metaFont="system"/>
+                                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                    </textFieldCell>
+                                </textField>
                             </subviews>
                         </view>
                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
@@ -1118,7 +1164,7 @@ CA
                                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                     <buttonCell key="cell" type="roundRect" title="..." bezelStyle="roundedRect" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="lV4-zA-fEz">
                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                        <font key="font" metaFont="cellTitle"/>
+                                        <font key="font" metaFont="titleBar" size="12"/>
                                     </buttonCell>
                                 </button>
                             </subviews>
@@ -1144,7 +1190,7 @@ CA
         <window title="Selection Settings" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" frameAutosaveName="Selection Settings" animationBehavior="default" id="hXy-lS-BgW" customClass="NonKeyPanels">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" utility="YES" HUD="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="272" y="172" width="312" height="90"/>
+            <rect key="contentRect" x="2248" y="239" width="312" height="90"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1418"/>
             <view key="contentView" wantsLayer="YES" id="soL-RQ-fjS" customClass="Non">
                 <rect key="frame" x="0.0" y="0.0" width="312" height="90"/>

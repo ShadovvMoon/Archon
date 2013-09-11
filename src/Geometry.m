@@ -44,20 +44,22 @@
 		for (x = 0; x < partsref.chunkcount; x++)
 		{
 			part *currentPart = &parts[x];
-			[_mapfile readBlockOfData:currentPart->junk4 size_of_buffer:4];
-			[_mapfile readShort:&currentPart->shaderIndex];
+			[_mapfile readBlockOfData:currentPart->junk4 size_of_buffer:4]; //FLAGS
+			[_mapfile readShort:&currentPart->shaderIndex]; //SHADER INDEX
 			
+            //NSLog(@"%d", currentPart->shaderIndex);
+            
 			[_mapfile readBlockOfData:&currentPart->junk size_of_buffer:66];// <-- This little baby was causing a buffer overrun on PPC macs, so I'm just skipping it
 			//[_mapfile skipBytes:66];
 			
-			[_mapfile readLong:&currentPart->indexPointer.count];
+			[_mapfile readLong:&currentPart->indexPointer.count]; 
 			[_mapfile readLong:&currentPart->indexPointer.rawPointer[0]];
 			[_mapfile readLong:&currentPart->indexPointer.rawPointer[1]];
 			
-			#ifdef __DEBUG__
+			//#ifdef __DEBUG__
 			if (currentPart->indexPointer.rawPointer[1] != currentPart->indexPointer.rawPointer[0])
 				NSLog(@"BadPartInt!"); // Whatever the hell that is
-			#endif
+			//#endif
 				
 			[_mapfile readBlockOfData:currentPart->junk2 size_of_buffer:4];
 			
@@ -65,14 +67,18 @@
 			[_mapfile readBlockOfData:currentPart->vertPointer.junk size_of_buffer:8];
 			[_mapfile readLong:&currentPart->vertPointer.rawPointer];
 			
-			[_mapfile readBlockOfData:currentPart->junk3 size_of_buffer:28];
+            [_mapfile readLong:&currentPart->compressedVertPointer.count];
+			[_mapfile readBlockOfData:currentPart->compressedVertPointer.junk size_of_buffer:8];
+			[_mapfile readLong:&currentPart->compressedVertPointer.rawPointer];
+            
+			[_mapfile readBlockOfData:currentPart->junk3 size_of_buffer:12];
 			
 			endOfPart = [_mapfile currentOffset];
 			
+            //NSLog(@"%d %d", currentPart->vertPointer.count, currentPart->compressedVertPointer.count);
+            
 			[_mapfile seekToAddress:currentPart->vertPointer.rawPointer+vertexOffset];
-			
 			currentPart->vertices = (Vector *)malloc(sizeof(Vector) * currentPart->vertPointer.count);
-			
 			for (i = 0; i < currentPart->vertPointer.count; i++)
 			{
 				Vector *currentVertex = &currentPart->vertices[i];
@@ -140,32 +146,111 @@
 	
 	for (x = 0; x < partsref.chunkcount; x++)
 	{
-		
-		int graphics_insane = 0;
+		parts[x].hasShader = 2;
+        
+		int graphics_insane = 1;
 		if (graphics_insane)
 		{
+            
+            //[parent shaderIdentForIndex:parts[x].shaderIndex]
+            //[parent shaderIdentForIndex:parts[x].shaderIndex]
 			
-			NSMutableArray *bitmaps = [_mapfile bitmsTagForShaderId:[parent shaderIdentForIndex:parts[x].shaderIndex]];
-			if ([bitmaps count] > 0)
-			{
-				parts[x].shaderBitmapIndex = [[bitmaps objectAtIndex:0] idOfTag];
-				[[parent _texManager] loadTextureOfIdent:parts[x].shaderBitmapIndex subImage:0];
-				
-				int i;
-				for (i=0;i<[bitmaps count]; i++)
-				{
-					//[[parent _texManager] loadTextureOfIdent:[[bitmaps objectAtIndex:i] idOfTag] subImage:0];
-				}
-			}
-			else
-			{
-				parts[x].shaderBitmapIndex = nil;
-			}
+            NSString *type = [parent shaderTypeForIndex:parts[x].shaderIndex];
+           // NSLog([parent tagName]);
+            //NSLog(type);
+            
+            if ([type isEqualToString:@"osos"])
+            {
+                soso *shader = (soso *)malloc(sizeof(soso));
+                [_mapfile loadSOSO:shader forID:[parent shaderIdentForIndex:parts[x].shaderIndex]];
+                
+                parts[x].baseMapIndex = shader->baseMap.TagId;
+                parts[x].detailMapIndex = shader->detailMap.TagId;
+                parts[x].detailMapScale = shader->detailScale;
+                parts[x].shaderBitmapIndex = shader->baseMap.TagId;
+                
+                [[parent _texManager] loadTextureOfIdent:parts[x].baseMapIndex subImage:0];
+                [[parent _texManager] loadTextureOfIdent:parts[x].detailMapIndex subImage:0];
+            }
+            else if ([type isEqualToString:@"ihcs"])
+            {
+                //NSLog(@"Loading ichs");
+                
+                schi *shader = (schi *)malloc(sizeof(schi));
+                [_mapfile loadSCHI:shader forID:[parent shaderIdentForIndex:parts[x].shaderIndex]];
+                
+                parts[x].shader = shader;
+                parts[x].hasShader = 3;
+                parts[x].baseMapIndex = -1;
+
+                int g;
+                for (g=0; g < parts[x].shader->maps.chunkcount; g++)
+                {
+                    [[parent _texManager] loadTextureOfIdent:parts[x].shader->read_maps[g].bitm.TagId subImage:0];
+                }
+                
+                parts[x].lengthOfBitmapArray = -1;
+                
+                //NSLog(@"ICHS loaded");
+            }
+            else if ([type isEqualToString:@"xecs"])
+            {
+               // NSLog(@"Loading xecs");
+                
+                scex *shader = (scex *)malloc(sizeof(scex));
+                [_mapfile loadSCEX:shader forID:[parent shaderIdentForIndex:parts[x].shaderIndex]];
+                
+                parts[x].scexshader = shader;
+                parts[x].hasShader = 4;
+                parts[x].baseMapIndex = -1;
+                //NSLog(@"Loading parts %d", (parts[x].scexshader->maps.chunkcount + ((scex*)parts[x].scexshader)->maps2.chunkcount));
+                
+                int g;
+                for (g=0; g < (parts[x].scexshader->maps.chunkcount + ((scex*)parts[x].scexshader)->maps2.chunkcount); g++)
+                {
+                    //NSLog(@"%d %ld", g, parts[x].scexshader->read_maps[g].bitm.TagId);
+                    [[parent _texManager] loadTextureOfIdent:parts[x].scexshader->read_maps[g].bitm.TagId subImage:0];
+                }
+                
+
+                parts[x].lengthOfBitmapArray = -1;
+                
+                //NSLog(@"SCEX loaded");
+            }
+            else if ([type isEqualToString:@"vnes"])
+            {
+                senv *shader = (senv *)malloc(sizeof(senv));
+                [_mapfile loadShader:shader forID:[parent shaderIdentForIndex:parts[x].shaderIndex]];
+                
+                //BASE MAP
+				parts[x].baseMapIndex = shader->baseMapBitm.TagId;
+                parts[x].detailMapIndex = shader->primaryMapBitm.TagId;
+                parts[x].detailMapScale = shader->primaryMapScale;
+                parts[x].shaderBitmapIndex = shader->baseMapBitm.TagId;
+                
+                [[parent _texManager] loadTextureOfIdent:parts[x].baseMapIndex subImage:0];
+                [[parent _texManager] loadTextureOfIdent:parts[x].detailMapIndex subImage:0];
+            }
+            else
+            {
+                
+                parts[x].baseMapIndex = -1;
+                parts[x].shaderBitmapIndex = [[_mapfile bitmTagForShaderId:[parent shaderIdentForIndex:parts[x].shaderIndex]] idOfTag];
+                //NSLog(@"Load bitmaps %ld",parts[x].shaderBitmapIndex);
+                
+                parts[x].lengthOfBitmapArray = -1;
+                [[parent _texManager] loadTextureOfIdent:parts[x].shaderBitmapIndex subImage:0];
+                
+            }
 		}
 		else
 		{
 		
+            parts[x].baseMapIndex = -1;
 			parts[x].shaderBitmapIndex = [[_mapfile bitmTagForShaderId:[parent shaderIdentForIndex:parts[x].shaderIndex]] idOfTag];
+            //NSLog(@"Load bitmaps %ld",parts[x].shaderBitmapIndex);
+            
+            parts[x].lengthOfBitmapArray = -1;
 			[[parent _texManager] loadTextureOfIdent:parts[x].shaderBitmapIndex subImage:0];
 			
 		}
@@ -213,7 +298,7 @@
     int i, x;
 	part currentPart;
     
-    NSLog(@"Initialing drawing");
+    //NSLog(@"Initialing drawing");
     
     float u_scale, v_scale;
     
@@ -255,28 +340,72 @@
                 ind++;
             }
         
-            for (x=0; x < currentPart.vertPointer.count; x++)
+            if (0)//currentPart.hasShader == 3)
             {
-                Vector vertex = currentPart.vertices[x];
-                vertex_array[a] = vertex.x;
-                vertex_array[a+1] = vertex.y;
-                vertex_array[a+2] = vertex.z;
-                //normals[a]=vertex.normalx;
-                //normals[a+2]=vertex.normaly;
-                //normals[a+3]=vertex.normalz;
-                texture_uv[uvr] = vertex.u*u_scale;
-                texture_uv[uvr+1] = vertex.v*v_scale;
+                //Get the UV Scale
                 
-                uvr+=2;
-                a+=3;
+                
+                int aa;
+                for(aa=0; aa < currentPart.shader->maps.chunkcount; aa++)
+                {
+                    currentPart.shader->read_maps[aa].texture_uv = (GLfloat*)malloc(requiredSize * 2 * sizeof(GLfloat));
+                    int avr=0;
+                    
+                    int f;
+                    for (f = 0; f < cC; f++)
+                    {
+                        for (x=0; x < parts[f].vertPointer.count; x++)
+                        {
+                            Vector vertex = parts[f].vertices[x];
+                            currentPart.shader->read_maps[aa].texture_uv[avr] = vertex.u*currentPart.shader->read_maps[aa].uscale;
+                            currentPart.shader->read_maps[aa].texture_uv[avr+1] = vertex.u*currentPart.shader->read_maps[aa].vscale;
+                            
+                            avr+=2;
+                        }
+                    }
+                    
+                }
+                
+                
+                
+            }
+            else
+            {
+                u_scale = [parent u_scale];
+                v_scale = [parent v_scale];
+                
+                for (x=0; x < currentPart.vertPointer.count; x++)
+                {
+                    Vector vertex = currentPart.vertices[x];
+                    vertex_array[a] = vertex.x;
+                    vertex_array[a+1] = vertex.y;
+                    vertex_array[a+2] = vertex.z;
+                    //normals[a]=vertex.normalx;
+                    //normals[a+2]=vertex.normaly;
+                    //normals[a+3]=vertex.normalz;
+                    
+                    
+                    
+                    
+                    
+                    
+                    texture_uv[uvr] = vertex.u*u_scale;
+                    texture_uv[uvr+1] = vertex.v*v_scale;
+                    
+                    uvr+=2;
+                    a+=3;
+                }
+                
+                
             }
             
+           
             
             
         }
     }
     indexCount_R = ind;
-    NSLog(@"Complete");
+    //NSLog(@"Complete");
     
     
     
@@ -301,13 +430,11 @@
     //The copyright for other smaller segments that are not identified by these comments are also owned by Samuel Colbran (Samuco).
     //--------------------------------
     
-    
     if (useNewRenderer())
     {
        
         glVertexPointer(3, GL_FLOAT, 0, vertex_array);
-        glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);
-        //glNormalPointer(GL_FLOAT, 0, normals);
+        glNormalPointer(GL_FLOAT, 0, normals);
         
         int currentIndex = 0;
         for (i = 0; i < partsref.chunkcount; i++)
@@ -315,15 +442,245 @@
             currentPart = parts[i];
             if (currentPart.indexPointer.rawPointer[0] == currentPart.indexPointer.rawPointer[1])
             {
-                if (currentPart.shaderIndex != -1)
+                
+                
+                currentPart.lengthOfBitmapArray = -1;
+                
+                if ((currentPart.hasShader==3 || currentPart.hasShader == 4) && useNewRenderer() == 2)
                 {
-                    [[parent _texManager] activateTextureOfIdent:currentPart.shaderBitmapIndex subImage:0 useAlphas:useAlphas];
+                 
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
+                    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+                    
+
+                    //NSLog(@"1");
+                    int maps;
+                    if (currentPart.hasShader == 4)
+                    {
+                        maps = currentPart.scexshader->maps.chunkcount + currentPart.scexshader->maps2.chunkcount;
+                    }
+                    else
+                    {
+                        maps = currentPart.shader->maps.chunkcount;
+                    }
+                    
+                    //glColor4f(1.0, 1.0, 1.0, 1.0);
+                    int g;
+                    
+                    glDepthFunc(GL_LEQUAL);
+                    
+          
+                    
+                    if ([parent _texManager]._textures)
+                    {
+                        
+                        for (g=0; g < maps; g++)
+                        {
+        
+                            //scexshader
+                            int texIndex;
+                            
+                            if (currentPart.hasShader == 4)
+                                texIndex = [[[parent _texManager]._textureLookupByID objectForKey:[NSNumber numberWithLong:currentPart.scexshader->read_maps[g].bitm.TagId]] intValue];
+                            else
+                                texIndex = [[[parent _texManager]._textureLookupByID objectForKey:[NSNumber numberWithLong:currentPart.shader->read_maps[g].bitm.TagId]] intValue];
+                            
+                            
+                            glActiveTextureARB(g);
+                            glEnable(GL_TEXTURE_2D);
+                            glBindTexture(GL_TEXTURE_2D, [parent _texManager]._glTextureTable[texIndex][0]);
+                            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+                            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+                            glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+                            glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+                            
+                            if (currentPart.hasShader == 4)
+                            {
+                                if (currentPart.scexshader->read_maps[g].colorFunction == 0)
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                                else if (currentPart.scexshader->read_maps[g].colorFunction == 4)
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                                else
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                            }
+                            else
+                            {
+                            
+                                if (currentPart.shader->read_maps[g].colorFunction == 0)
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                                else if (currentPart.shader->read_maps[g].colorFunction == 4)
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                                else
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                            }
+                            
+                            
+                            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                        }
+                    
+                    
+                        for (g=0; g < maps; g++)
+                        {
+                            glClientActiveTextureARB(g);
+                            glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);//&currentPart.shader->read_maps[g].texture_uv);
+                            glEnableClientState(GL_TEXTURE_COORD_ARRAY); // enable array data to shader
+                            
+                            
+                            
+                            //uscale, vscale
+                        }
+                        
+                        if (currentPart.hasShader == 4)
+                        {
+                            glActiveTextureARB(0);
+                            glMatrixMode(GL_TEXTURE);
+                            glPushMatrix();
+                            glScalef(currentPart.scexshader->read_maps[maps-1].uscale,currentPart.scexshader->read_maps[maps-1].vscale, 0.0);
+                        }
+                        else if (currentPart.hasShader == 3)
+                        {
+                            glActiveTextureARB(0);
+                            glMatrixMode(GL_TEXTURE);
+                            glPushMatrix();
+                            glScalef(currentPart.shader->read_maps[0].uscale,currentPart.shader->read_maps[0].vscale, 0.0);
+                        }
+                        
+                        if (currentIndex+currentPart.indexPointer.count+2 <= indexCount_R)
+                        {
+                            glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
+                        }
+                        
+                        if (currentPart.hasShader == 4)
+                        {
+                            glActiveTextureARB(0);
+                            glPopMatrix();
+                            glMatrixMode(GL_MODELVIEW);
+                        }
+                        else if (currentPart.hasShader == 3)
+                        {
+                            glActiveTextureARB(0);
+                            glPopMatrix();
+                            glMatrixMode(GL_MODELVIEW);
+                        }
+                        
+                        for (g=0; g < maps; g++)
+                        {
+                            
+                            
+                            glClientActiveTextureARB(g);
+                            glBindTexture(GL_TEXTURE_2D, 0);
+                            glDisable(GL_TEXTURE_2D);
+                        }
+                    }
+     
+                    glDisable(GL_ALPHA_TEST);
+                    //currentPart.shader;
+
+                    //int g;
+                    //for (g=0; g < parts[x].shader->maps.chunkcount; g++)
+                    //{
+                    //    [[parent _texManager] loadTextureOfIdent:parts[x].shader->read_maps[g].bitm.TagId subImage:0];
+                    //}
+                    
+                }
+                else if (currentPart.baseMapIndex != -1 && useNewRenderer() == 2) //Candlelight
+                {
+                            //glEnable(GL_BLEND);
+                    
+             
+                    
+                            
+                    bool showDetail = true;
+                    
+                    
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
+                    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+                    
+                    
+                    //glPushMatrix();
+                    [[parent _texManager] activateTextureAndLightmap:currentPart.baseMapIndex lightmap:currentPart.detailMapIndex secondary:0 subImage:0];
+                    
+                    //glColor4f(1.0, 1.0, 1.0, 1.5);
+                    
+                    
+                    
+                    glActiveTextureARB(GL_TEXTURE0_ARB);
+   
+                    
+                    // texture coord 0
+                    glClientActiveTextureARB(GL_TEXTURE0_ARB); // program texcoord unit 0
+                    glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY); // enable array data to shader
+                    
+                    if (showDetail)
+                    {
+                        //texture coord 1
+                        glClientActiveTextureARB(GL_TEXTURE1_ARB);
+                        glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);
+                        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                        
+                        glActiveTextureARB(GL_TEXTURE1_ARB);
+                        glMatrixMode(GL_TEXTURE);
+                        glPushMatrix();
+                        glScalef(currentPart.detailMapScale,currentPart.detailMapScale, 0.0);
+                    }
+                    
+                    
+                    glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
+                    
+                    
+                    if (showDetail)
+                    {
+                        glActiveTextureARB(GL_TEXTURE1_ARB);
+                        glPopMatrix();
+                        glMatrixMode(GL_MODELVIEW);
+                        
+                        glClientActiveTextureARB(GL_TEXTURE1_ARB);
+                        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    }
+                    
+                    glClientActiveTextureARB(GL_TEXTURE0_ARB);
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    
+                    glActiveTextureARB(GL_TEXTURE2_ARB);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                    glDisable(GL_TEXTURE_2D);
+                    
+                    glActiveTextureARB(GL_TEXTURE1_ARB);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                    glDisable(GL_TEXTURE_2D);
+                    
+                    glActiveTextureARB(GL_TEXTURE0_ARB);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                    glDisable(GL_TEXTURE_2D);
+                    glDisable(GL_BLEND);
+                    
+                    
+                }
+                else if (currentPart.shaderIndex != -1)
+                {
+      
+                    if (useNewRenderer() == 2)
+                        continue;
+                    
+                    [[parent _texManager] activateTextureOfIdent:currentPart.shaderBitmapIndex subImage:0 useAlphas:true ];
+                    
+                    //glColor4f(1.0, 1.0, 1.0, 0.5);
+                    glClientActiveTextureARB(GL_TEXTURE0_ARB); // program texcoord unit 0
+                    glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY); // enable array data to shader
+                    
+                    glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
+                    //glColor4f(1.0, 1.0, 1.0, 1.5);
+                    
+                    glClientActiveTextureARB(GL_TEXTURE0_ARB);
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    
                 }
                 
-                if (currentIndex+currentPart.indexPointer.count+2 <= indexCount_R)
-                {
-                    glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
-                }
+                
                 currentIndex+=currentPart.indexPointer.count+2;
             }
         }

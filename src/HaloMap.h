@@ -79,6 +79,7 @@ enum MapFileReadResult
 - (void)closeMap;
 - (FILE *)currentFile;
 - (BOOL)isPPC;
+- (void)loadShader:(senv*)shader forID:(long)shaderId ;
 - (void)seekToAddress:(unsigned long)address;
 - (void)skipBytes:(long)bytesToSkip;
 - (BOOL)writeByte:(void *)byte;

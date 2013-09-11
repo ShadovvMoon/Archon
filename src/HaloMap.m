@@ -241,7 +241,7 @@
 		tempTag = [[MapTag alloc] initWithDataFromFile:self];
 		nextOffset = [self currentOffset];
 		
-		//NSLog(@"Tag name: %@, id: 0x%x, offset in map: 0x%x", [tempTag tagName], [tempTag idOfTag], [tempTag offsetInMap]);
+		//NSLog(@"Tag name: %@, id: 0x%x, offset in map: 0x%x %@", [tempTag tagName], [tempTag idOfTag], [tempTag offsetInMap], [NSString stringWithCString:[tempTag tagClassHigh] encoding:NSMacOSRomanStringEncoding]);
 		
 		if (i != 0)
 			[[tagArray objectAtIndex:(i -1)] setTagLength:([tempTag offsetInMap] - [[tagArray objectAtIndex:(i - 1)] offsetInMap])];
@@ -266,6 +266,13 @@
 		else if (memcmp([tempTag tagClassHigh], (isPPC ? "mod2" : "2dom"), 4) == 0)
 		{
 			[self skipBytes:IndexTagSize];
+            if ([[tempTag tagName] rangeOfString:@"warthog"].location != NSNotFound)
+            {
+                NSLog([tempTag tagName]);
+                
+            }
+            
+            
 			ModelTag *tempModel = [[ModelTag alloc] initWithMapFile:self texManager:_texManager];
 			[tagArray addObject:tempModel];
             
@@ -273,11 +280,13 @@
             {
                 NSLog([tempTag tagName]);
                 NSLog(@"FOUND SKY");
-                bipd = tempModel;
-                [bipd loadAllBitmaps];
-                [bipd retain];
+                //bipd = tempModel;
+                //[tempModel loadAllBitmaps];
+                //[bipd retain];
             }
             
+            
+           
             
 			[tempModel releaseGeometryObjects];
 			[tempModel release];
@@ -431,7 +440,7 @@
 		if (response != NSOKButton)
 		{
 		
-		//	[mapScenario resetMachineReferences];
+			[mapScenario resetMachineReferences];
 			
 			NSLog(@"CREATING MACHINE REFERENCES");
 			//CREATE THE MACHINE REFERENCES
@@ -439,13 +448,16 @@
 			for (i=0; i<[mach_offsets count];i++)
 			{
 				MapTag *tag = [mach_offsets objectAtIndex:i];
+                NSLog([tag stringTagClassHigh]);
+                
 				TAG_REFERENCE machine;
 				
-				machine.tag[0] = [[tag stringTagClassHigh] characterAtIndex:0];
-				machine.tag[1] = [[tag stringTagClassHigh] characterAtIndex:1];
-				machine.tag[2] = [[tag stringTagClassHigh] characterAtIndex:2];
-				machine.tag[3] = [[tag stringTagClassHigh] characterAtIndex:3];
+				machine.tag[0] = 'h';
+				machine.tag[1] = 'c';
+				machine.tag[2] = 'a';
+				machine.tag[3] = 'm';
 				
+                machine.unknown = 0;
 				machine.NamePtr = [tag stringOffset];
 				machine.TagId = [tag idOfTag];
 				
@@ -470,7 +482,10 @@
 	// Now lets load all of the bitmaps for shit
     
     if ([self respondsToSelector:@selector(loadAllBitmaps)])
+    {
+        NSLog(@"LOADING BITMAPS");
         [self loadAllBitmaps];
+    }
 	
 	//NSLog(@"LOGGING THE TARG INFO");
 	//NSLog([tagArray description]);
@@ -842,7 +857,137 @@
 	ref.NamePtr -= _magic;
 	[self readLong:&ref.unknown];
 	[self readLong:&ref.TagId];
+    
+    //NSLog(@"Reference unknown %ld", ref.unknown);
 	return ref;
+}
+
+- (void)loadSCEX:(scex*)shader forID:(long)shaderId //FUNCTION WHICH FINDS MULTIPLE BITMAPS
+{
+    long currentOffset = [self currentOffset];
+	
+	// ok, so lets lookup the shader tag
+	MapTag *tempShaderTag = [[self tagForId:shaderId] retain]; // Now we have the shader! Yay!
+	[self seekToAddress:[tempShaderTag offsetInMap]];
+    int i;
+    [self skipBytes:21*4];
+    
+    shader->maps = [self readReflexive];
+    shader->maps2 = [self readReflexive];
+    
+    shader->read_maps = (map*)malloc(sizeof(map) * (shader->maps.chunkcount + shader->maps2.chunkcount));
+    [self seekToAddress:shader->maps.offset];
+    for (i=0; i < shader->maps.chunkcount; i++)
+    {
+        [self skipBytes:11*4];
+        [self readShort:&shader->read_maps[shader->maps.chunkcount-1-i].colorFunction];
+        [self readShort:&shader->read_maps[shader->maps.chunkcount-1-i].alphaFunction];
+        [self skipBytes:9*4];
+        [self readFloat:&shader->read_maps[shader->maps.chunkcount-1-i].uscale];
+        [self readFloat:&shader->read_maps[shader->maps.chunkcount-1-i].vscale];
+        [self skipBytes:4*4];
+        shader->read_maps[shader->maps.chunkcount-1-i].bitm = [self readReference];
+        [self skipBytes:24*4];
+    }
+    [self seekToAddress:shader->maps2.offset];
+    for (i=0; i < shader->maps2.chunkcount; i++)
+    {
+        [self skipBytes:11*4];
+        [self readShort:&shader->read_maps[shader->maps.chunkcount+shader->maps2.chunkcount-1-i].colorFunction];
+        [self readShort:&shader->read_maps[shader->maps.chunkcount+shader->maps2.chunkcount-1-+i].alphaFunction];
+        [self skipBytes:9*4];
+        [self readFloat:&shader->read_maps[shader->maps.chunkcount+shader->maps2.chunkcount-1-+i].uscale];
+        [self readFloat:&shader->read_maps[shader->maps.chunkcount+shader->maps2.chunkcount-1-+i].vscale];
+        [self skipBytes:4*4];
+        shader->read_maps[shader->maps.chunkcount+shader->maps2.chunkcount-1-+i].bitm = [self readReference];
+        [self skipBytes:24*4];
+    }
+    [self seekToAddress:currentOffset];
+}
+
+
+- (void)loadSCHI:(schi*)shader forID:(long)shaderId //FUNCTION WHICH FINDS MULTIPLE BITMAPS
+{
+    long currentOffset = [self currentOffset];
+	
+	// ok, so lets lookup the shader tag
+	MapTag *tempShaderTag = [[self tagForId:shaderId] retain]; // Now we have the shader! Yay!
+	[self seekToAddress:[tempShaderTag offsetInMap]];
+    int i;
+    [self skipBytes:21*4];
+    
+    shader->maps = [self readReflexive];
+    shader->read_maps = (map*)malloc(sizeof(map) * shader->maps.chunkcount);
+    [self seekToAddress:shader->maps.offset];
+    for (i=0; i < shader->maps.chunkcount; i++)
+    {
+        int a;
+        [self skipBytes:11*4];
+        [self readShort:&shader->read_maps[i].colorFunction];
+        [self readShort:&shader->read_maps[i].alphaFunction];
+        [self skipBytes:9*4];
+        [self readFloat:&shader->read_maps[i].uscale];
+        [self readFloat:&shader->read_maps[i].vscale];
+        [self skipBytes:4*4];
+        shader->read_maps[i].bitm = [self readReference];
+        [self skipBytes:24*4];
+    }
+    [self seekToAddress:currentOffset];
+}
+
+- (void)loadSOSO:(soso*)shader forID:(long)shaderId //FUNCTION WHICH FINDS MULTIPLE BITMAPS
+{
+    long currentOffset = [self currentOffset];
+	
+	// ok, so lets lookup the shader tag
+	MapTag *tempShaderTag = [[self tagForId:shaderId] retain]; // Now we have the shader! Yay!
+	[self seekToAddress:[tempShaderTag offsetInMap]];
+    
+    int i;
+    for (i=0; i<41; i++)
+        [self readLong:&shader->junk1[i]];
+    
+    shader->baseMap = [self readReference];
+    for (i=0; i<2; i++)
+        [self readLong:&shader->junk3[i]];
+    
+    shader->multiPurpose = [self readReference];
+    
+    for (i=0; i<3; i++)
+        [self readLong:&shader->junk2[i]];
+    
+    [self readFloat:&shader->detailScale];
+    shader->detailMap = [self readReference];
+    
+    [self seekToAddress:currentOffset];
+}
+
+- (void)loadShader:(senv*)shader forID:(long)shaderId //FUNCTION WHICH FINDS MULTIPLE BITMAPS
+{
+    
+    //NSLog(@"LOADING SHADER");
+    long currentOffset = [self currentOffset];
+	
+	// ok, so lets lookup the shader tag
+	MapTag *tempShaderTag = [[self tagForId:shaderId] retain]; // Now we have the shader! Yay!
+	[self seekToAddress:[tempShaderTag offsetInMap]];
+    
+    int i;
+    for (i=0; i<34; i++)
+        [self readLong:&shader->junk1[i]];
+    
+    shader->baseMapBitm = [self readReference];
+    for (i=0; i<7; i++)
+        [self readLong:&shader->junk2[i]];
+    
+    [self readFloat:&shader->primaryMapScale];
+    shader->primaryMapBitm = [self readReference];
+    
+    [self readFloat:&shader->secondaryMapScale];
+    shader->secondaryMapBitm = [self readReference];
+    
+    [self seekToAddress:currentOffset];
+   // NSLog(@"DONE");
 }
 
 - (NSMutableArray*)bitmsTagForShaderId:(long)shaderId //FUNCTION WHICH FINDS MULTIPLE BITMAPS
@@ -905,6 +1050,7 @@
 		[self readLong:&tempInt];
 		x++;
 	} while (tempInt != bitm && x < 1000);
+    
 	if (x != 1000)
 	{
 		[self skipBytes:8];
@@ -979,12 +1125,16 @@
 	for (x = 0; x < [mapScenario vehi_ref_count]; x++)
 	{
 		if ([self isTag:vehi_ref[x].vehi_ref.TagId])
+        {
 			[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:vehi_ref[x].vehi_ref.TagId]] loadAllBitmaps];
+        }
 	}
     for (x = 0; x < [mapScenario bipd_ref_count]; x++)
 	{
 		if ([self isTag:bipd_ref[x].bipd_ref.TagId])
+        {
 			[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:bipd_ref[x].bipd_ref.TagId]] loadAllBitmaps];
+        }
 	}
 	for (x = 0; x < [mapScenario scen_ref_count]; x++)
 	{
@@ -992,24 +1142,34 @@
 		{
 			//NSLog(@"Tag id and index: [%d], index:[0x%x], next tag index:[0x%x]", x, scen_ref[x].scen_ref.TagId, scen_ref[x+1].scen_ref.TagId);
 			if ([self tagForId:[mapScenario baseModelIdent:scen_ref[x].scen_ref.TagId]] != mapScenario)
+            {
 				[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:scen_ref[x].scen_ref.TagId]] loadAllBitmaps];
+            }
 		}
 	}
-    if ([self isTag:[mapScenario sky][0].modelIdent])
-    {
-	[(ModelTag *)[self tagForId:[mapScenario sky][0].modelIdent] loadAllBitmaps];
+    for (x = 0; x < [mapScenario skybox_count]; x++)
+	{
+        if ([self isTag:[mapScenario sky][x].modelIdent])
+        {
+            [(ModelTag *)[self tagForId:[mapScenario sky][x].modelIdent] loadAllBitmaps];
+        }
     }
 	for (x = 0; x < [mapScenario item_spawn_count]; x++)
 	{
 		[self seekToAddress:([[self tagForId:mp_equip[x].itmc.TagId] offsetInMap] + 0x8C)];
 		[self readLong:&tempIdent];
 		if ([self isTag:tempIdent])
-			[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:tempIdent]] loadAllBitmaps];
+        {
+            if ([[self tagForId:[mapScenario baseModelIdent:tempIdent]] respondsToSelector:@selector(loadAllBitmaps)])
+                [(ModelTag *)[self tagForId:[mapScenario baseModelIdent:tempIdent]] loadAllBitmaps];
+        }
 	}
 	for (x = 0; x < [mapScenario mach_ref_count]; x++)
 	{
 		if ([self tagForId:[mapScenario mach_references][x].modelIdent] != mapScenario)
+        {
 			[(ModelTag *)[self tagForId:[mapScenario mach_references][x].modelIdent] loadAllBitmaps];
+        }
 	}
 	// Then we put netgame flags in a bit
 }
@@ -1154,7 +1314,8 @@
 	[mapScenario saveScenario];
 	NSLog(@"Asdf.");
 	
-	
+	//[mapScenario loadScenario];
+    
 	//bspHandler
 	
 	

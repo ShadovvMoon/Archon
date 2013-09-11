@@ -87,7 +87,7 @@
 {
 	[_mapfile seekToAddress:BspHeaderOffset];
 	m_BspHeader.LightmapsTag = [_mapfile readReference];
-	NSLog(@"Lightmap tag stuff: ID:[0x%x], name:[%@]", m_BspHeader.LightmapsTag.TagId, [[_mapfile tagForId:m_BspHeader.LightmapsTag.TagId] tagName]);
+	NSLog(@"Lightmap tag stuff: ID:[0x%x], %@ name:[%@]", m_BspHeader.LightmapsTag.TagId, [NSString stringWithCString:[[_mapfile tagForId:m_BspHeader.LightmapsTag.TagId] tagClassHigh] encoding:NSMacOSRomanStringEncoding], [[_mapfile tagForId:m_BspHeader.LightmapsTag.TagId] tagName]);
 	[_mapfile skipBytes:(0x25 * sizeof(long))];
 	m_BspHeader.Shaders = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.CollBspHeader = [_mapfile readBspReflexive:_bspMagic];
@@ -96,7 +96,7 @@
 	m_BspHeader.Leaves = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.LeafSurfaces = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.SubmeshTriIndices = [_mapfile readBspReflexive:_bspMagic];
-	m_BspHeader.SubmeshHeader = [_mapfile readBspReflexive:_bspMagic];
+	m_BspHeader.SubmeshHeader = [_mapfile readBspReflexive:_bspMagic]; //Lightmaps in eschaton
 	m_BspHeader.Chunk10 = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.Chunk11 = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.Chunk12 = [_mapfile readBspReflexive:_bspMagic];
@@ -131,10 +131,13 @@
 	[_mapfile skipBytes:(9 * sizeof(unsigned long))];
     
     
-	
+	NSLog(@"LM1");
 	[self LoadMaterialMeshHeaders];
+    NSLog(@"LM2");
 	[self LoadCollisionMeshHeaders];
+    NSLog(@"LM3");
 	[self LoadPcSubmeshes];
+    NSLog(@"LM4");
 }
 - (void)LoadPcSubmeshes
 {
@@ -170,10 +173,10 @@
 		
 		
 	
+		//[_mapfile bitmTagForShaderId:pPcSubMesh->header.ShaderTag.TagId]
 		
-		
-		
-		pPcSubMesh->RenderTextureIndex = [[_mapfile bitmTagForShaderId:pPcSubMesh->header.ShaderTag.TagId] idOfTag];
+
+		pPcSubMesh->RenderTextureIndex = [_mapfile bitmTagForShaderId:pPcSubMesh->header.ShaderTag.TagId];
 	}
 }
 
@@ -261,49 +264,60 @@ struct Leaf3d
 	
 	NSLog(@"SUbmeshes: %d", m_SubMeshCount);
 	
+    
 	for (i = 0; i < m_SubMeshCount; i++)
 	{
 		
 		int gm = 1;
-		if (gm)
+		if (TRUE)//useNewRenderer() == 2)
 		{
-			m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
-			
-			[_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
-			//[_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:0];
-			
-			/*
-			NSMutableArray *bitmaps = [_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId];
-			NSLog(@"%d", [bitmaps count]);
-			if ([bitmaps count] > 0)
-			{
-				m_pMesh[i].DefaultBitmapIndex = [[bitmaps objectAtIndex:0] idOfTag];
-				[_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
-				w
-				int i;
-				for (i=0;i<[bitmaps count]; i++)
-				{
-					NSLog(@"BLAAAHHH %@", [[bitmaps objectAtIndex:i] tagName]);
-					[_texManager loadTextureOfIdent:[[bitmaps objectAtIndex:i] idOfTag] subImage:0];
-				}
-			}
-			else
-			{
-				m_pMesh[i].DefaultBitmapIndex  = 0xFFFFFFFFF;
-			}
-			*/
+            //NSMutableArray *bitms = [_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId];
+            m_pMesh[i].DefaultLightmapIndex = m_BspHeader.LightmapsTag.TagId;
+            
+            if ([[NSString stringWithCString: m_pMesh[i].header.ShaderTag.tag length:4] isEqualToString:@"vnes"])
+            {  
+                m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
+                [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
+                
+                senv *shader = (senv *)malloc(sizeof(senv));
+                [_mapfile loadShader:shader forID:m_pMesh[i].header.ShaderTag.TagId];
+                
+            
+                //BASE MAP
+				m_pMesh[i].baseMap = shader->baseMapBitm.TagId;
+				[_texManager loadTextureOfIdent:m_pMesh[i].baseMap subImage:0];
+ 
+                m_pMesh[i].primaryMap = shader->primaryMapBitm.TagId;
+                m_pMesh[i].primaryMapScale = shader->primaryMapScale;
+                [_texManager loadTextureOfIdent:m_pMesh[i].primaryMap subImage:0];
+            
+                //SECONDARY DETAIL MAP
+                m_pMesh[i].secondaryMap = shader->secondaryMapBitm.TagId;
+                m_pMesh[i].secondaryMapScale = shader->secondaryMapScale;
+                [_texManager loadTextureOfIdent:m_pMesh[i].secondaryMap subImage:0];
+				
+                //MICRO DETAIL MAP
+                //m_pMesh[i].microMap = [[bitmaps objectAtIndex:3] idOfTag];
+                //[_texManager loadTextureOfIdent:m_pMesh[i].microMap subImage:0];
+            }
+            else
+            {
+                m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
+                [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
+                m_pMesh[i].baseMap = -1;
+            }
 			
 		}
 		else
 		{
-		
-		//m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
-		m_pMesh[i].DefaultBitmapIndex = m_BspHeader.LightmapsTag.TagId;
-		
-		[_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
-		//[_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:0];
-		
-		
+            
+            m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
+           // m_pMesh[i].DefaultBitmapIndex = m_BspHeader.LightmapsTag.TagId;
+            
+            [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
+            //[_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:0];
+            
+            
 		}
 		
 	}
@@ -495,13 +509,21 @@ struct Leaf3d
 	m_SubMeshCount = 0;
 	for (x = 0; x< m_BspHeader.SubmeshHeader.chunkcount; x++)
 	{
+        
+        
 		[_mapfile readShort:&m_pLightmaps[x].LightmapIndex];
 		[_mapfile readShort:&m_pLightmaps[x].unk1];
 		[_mapfile skipBytes:(4 * sizeof(unsigned long))];
+        
+        
 		m_pLightmaps[x].Material = [_mapfile readBspReflexive:_bspMagic];
 		m_SubMeshCount += m_pLightmaps[x].Material.chunkcount;
+        
+        
+        
+        
 	}
-	
+	NSLog(@"Complete. Loading verticies");
 	m_pMesh = malloc(m_SubMeshCount * sizeof(SUBMESH_INFO));
 	hdr_count = 0;
 	for (i = 0; i < m_BspHeader.SubmeshHeader.chunkcount; i++)
@@ -522,6 +544,13 @@ struct Leaf3d
 			hdr_count++;
 		}
 	}
+    
+    for (i = 0; i< m_BspHeader.SubmeshHeader.chunkcount; i++)
+	{
+        NSLog(@"%d %d", i, (short)m_pLightmaps[i].LightmapIndex);
+        if (m_pLightmaps[i].LightmapIndex != -1 && [_mapfile isTag:m_BspHeader.LightmapsTag.TagId])
+            [_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:m_pLightmaps[i].LightmapIndex];
+    }
 }
 
 

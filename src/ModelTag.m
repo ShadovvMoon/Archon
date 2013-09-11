@@ -9,6 +9,7 @@
 #import "Geometry.h"
 
 #import "TextureManager.h"
+#import "RenderView.h"
 
 @implementation ModelTag
 - (id)initWithMapFile:(HaloMap *)map texManager:(TextureManager *)texManager
@@ -46,15 +47,19 @@
 			
 			currentOffset = [_mapfile currentOffset];
 			
+            
 			regions[i].modPermutations = (MODEL_REGION_PERMUTATION *)malloc(regions[i].Permutations.chunkcount * sizeof(MODEL_REGION_PERMUTATION));
-		
+            [_mapfile seekToAddress:regions[i].Permutations.offset];
 			for (x = 0; x < regions[i].Permutations.chunkcount; x++)
 			{
 				[_mapfile readBlockOfData:regions[i].modPermutations[x].Name size_of_buffer:32];
 				[_mapfile readBlockOfData:regions[i].modPermutations[x].Flags size_of_buffer:32];
 				for (j = 0; j < 5; j++)
+                {
 					[_mapfile readShort:&regions[i].modPermutations[x].LOD_MeshIndex[j]];
-				[_mapfile skipBytes:14];
+                    //NSLog(@"%@ %d %d %d %d",  [[NSString alloc] initWithCString:regions[i].modPermutations[x].Name  encoding:NSMacOSRomanStringEncoding], i,x, j, (short)regions[i].modPermutations[x].LOD_MeshIndex[j]);
+                }
+				[_mapfile readBlockOfData:&regions[i].modPermutations[x].Reserved size_of_buffer:14];
 			}
 			[_mapfile seekToAddress:currentOffset];
 		}
@@ -64,9 +69,10 @@
 		
 		subModels = [[NSMutableArray alloc] initWithCapacity:geometryRef.chunkcount];
 		
-        NSLog(@"Geometry: %ld", geometryRef.chunkcount);
+        //NSLog(@"Geometry: %ld", geometryRef.chunkcount);
 		for (i = 0; i < geometryRef.chunkcount; i++)
 		{
+            //NSLog(@"Building geometry chunk %d", i);
 			[_mapfile seekToAddress:(geometryRef.offset + (i * 48))];
 			tmpGeo = [[Geometry alloc] initWithMap:_mapfile parent:self];
 			[subModels addObject:tmpGeo];
@@ -76,12 +82,18 @@
 		[_mapfile seekToAddress:shaderRef.offset];
 		
 		shaders = [[NSMutableArray alloc] initWithCapacity:shaderRef.chunkcount];
+		shaderTypes = [[NSMutableArray alloc] initWithCapacity:shaderRef.chunkcount];
 		
 		for (i = 0; i < shaderRef.chunkcount; i++)
 		{
-			[_mapfile skipBytes:12];
-			[_mapfile readLong:&ID];
-			[shaders addObject:[NSNumber numberWithLong:ID]];
+            TAG_REFERENCE ref = [_mapfile readReference];
+			
+            //NSLog(@"ADDING SHADER: %@", [[NSString alloc] initWithCString:ref.tag length:4]);
+            
+            [shaderTypes addObject:[[NSString alloc] initWithCString:ref.tag length:4]];
+            [shaders addObject:[NSNumber numberWithLong:ref.TagId]];
+            
+            
 			[_mapfile skipBytes:16];
 		}
 	}
@@ -102,9 +114,11 @@
 	
 	[subModels removeAllObjects];
 	[shaders removeAllObjects];
-	
+	[shaderTypes removeAllObjects];
+    
 	[subModels release];
 	[shaders release];
+    [shaderTypes release];
 	
 	[super dealloc];
 }
@@ -164,13 +178,17 @@
     [self drawAtPoint:point lod:lod isSelected:isSelected useAlphas:useAlphas distance:0.0];
 }
 
+
 - (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas distance:(float)dist
 {
 	int i, x;
 	
+    
+    
 	if (bb == NULL)
 		[self determineBoundingBox];
 	
+    
     
 	glPushMatrix();
     glTranslatef(point[0],point[1],point[2]);
@@ -218,6 +236,40 @@
     glRotatef(point[3] * (57.29577951), 0, 0, 1);
     
     
+    if (bb->max[2]-bb->min[2]<= 0.001)
+    {
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        
+        glColor4f(1.0, 0.0, 0.0, 0.5);
+        
+        GLUquadric *sphere=gluNewQuadric();
+        gluQuadricDrawStyle( sphere, GLU_FILL);
+        gluQuadricNormals( sphere, GLU_SMOOTH);
+        gluQuadricOrientation( sphere, GLU_OUTSIDE);
+        gluQuadricTexture( sphere, GL_TRUE);
+        
+        gluSphere(sphere,0.05,5,5);
+        glDisable(GL_BLEND);
+        
+        
+        glBegin(GL_LINES);
+        {
+            // pointer arrow
+            glColor3f(1.0f,1.0f,1.0f);
+            glVertex3f(0.5f,0.0f,0.0f);
+            glVertex3f(0.3f,0.2f,0.0f);
+            glVertex3f(0.5f,0.0f,0.0f);
+            glVertex3f(0.3f,-0.2f,0.0f);
+        }
+        glEnd();
+        
+    }
+    
+    
+    
+    
+    
     //--------------------------------
     //The copyright for the following code is owned by Samuel Colbran (Samuco).
     //The copyright for other smaller segments that are not identified by these comments are also owned by Samuel Colbran (Samuco).
@@ -235,8 +287,23 @@
         }
         
         glColor4f(1.0f,1.0f,0.0f,4.0f);
+        
+        if (renderV)
+        {
+                if (![[renderV isAboveGround:point] boolValue])
+                    glColor4f(1.0f,0.0f,0.0f,0.2f);
+                else
+                    glColor4f(1.0f,1.0f,0.0f,4.0f);
+            
+        }
+        else
+            glColor4f(1.0f,1.0f,0.0f,4.0f);
+        
+        //isAboveGround
+       
         [self drawBoundingBox];
-        glColor4f(1.0f,1.0f,0.0f,4.0f);
+        
+        
         
         if (useNewRenderer())
         {
@@ -248,6 +315,7 @@
         
     }
  
+    
     int z;
     for (i = 0; i < numRegions; i++)
     {
@@ -261,16 +329,17 @@
             int g = regions[i].modPermutations[x].Flags[0];
             if ((g & 0xFF) == 1)
             {
+                
                 //NSLog([NSString stringWithCString:regions[i].modPermutations[x].Name encoding:NSUTF8StringEncoding]);
                 //continue;
             }
             else
             {
                 int index;
-                if (dist < 10.0)
+                //if (dist < 10.0)
                     index = regions[i].modPermutations[x].LOD_MeshIndex[4];
-                else
-                    index = regions[i].modPermutations[x].LOD_MeshIndex[0];
+                //else
+                //  index = regions[i].modPermutations[x].LOD_MeshIndex[0];
                 
 
                 if (index>=[subModels count])
@@ -288,6 +357,10 @@
     #ifdef fasterRendering
                     glEnd();
     #endif
+                }
+                else
+                {
+                    NSLog(@"NO MODEL?");
                 }
             }
             
@@ -308,11 +381,15 @@
 {
 	return [[shaders objectAtIndex:index] longValue];
 }
+-(NSString*)shaderTypeForIndex:(int)index
+{
+    return [shaderTypes objectAtIndex:index];
+}
 - (void)drawBoundingBox
 {
     glFlush();
     glLineWidth(1.0f);
-    glColor4f(1.0f,1.0f,0.0f, 5.0f);
+    //glColor4f(1.0f,1.0f,0.0f, 5.0f);
 	glBegin(GL_LINES);
 	    glVertex3f(bb->max[0],bb->max[1],bb->max[2]);
 	    glVertex3f(bb->max[0],bb->max[1],bb->min[2]);

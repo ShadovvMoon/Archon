@@ -29,6 +29,7 @@
 #include <mach/mach_time.h>
 #include <unistd.h>
 
+GLfloat lightPos[]={50.371590,-50.247974,100,0.0};
 
 /* create a matrix that will project the desired shadow */
 void
@@ -66,12 +67,18 @@ shadowmatrix(GLfloat shadowMat[4][4],
     
 }
 
+bool   gp;                      // G Pressed? ( New )
+GLuint filter;                      // Which Filter To Use
+GLuint fogMode[]= { GL_EXP, GL_EXP2, GL_LINEAR };   // Storage For Three Types Of Fog
+GLuint fogfilter= 0;                    // Which Fog To Use
+GLfloat fogColor[4]= {1.0f, 1.0f, 1.0f, 1.0f};      // Fog Color
+
 /*
 	TODO:
 		Fucking lookup selection lookup table is being fed very large values for some reason. Something to do with the names, have to check it out.
 */
 
-bool useNewRenderer()
+int useNewRenderer()
 {
     return newR;
 }
@@ -90,7 +97,7 @@ bool drawObjects()
 
 -(IBAction)changeRenderer:(id)sender
 {
-    newR = [sender state];
+    newR = (int)[sender indexOfItem:[sender selectedItem]];
 }
 
 -(IBAction)changeDrawObjects:(id)sender
@@ -179,11 +186,16 @@ bool drawObjects()
 
 - (id)initWithFrame: (NSRect) frame
 {
+    renderV = self;
+    
 	// First, we must create an NSOpenGLPixelFormatAttribute
 	NSOpenGLPixelFormat *nsglFormat;
 	NSOpenGLPixelFormatAttribute attr[] = 
 	{
 		NSOpenGLPFADoubleBuffer,
+        NSOpenGLPFASupersample,
+        NSOpenGLPFASampleBuffers, 1,
+        NSOpenGLPFASamples, 4,
 		NSOpenGLPFAAccelerated,
 		NSOpenGLPFAColorSize, 
 		BITS_PER_PIXEL,
@@ -192,6 +204,7 @@ bool drawObjects()
 		0 
 	};
 
+    lightScene = false;
     [self setPostsFrameChangedNotifications: YES];
 	
 	// Next, we initialize the NSOpenGLPixelFormat itself
@@ -218,12 +231,33 @@ bool drawObjects()
 }
 - (void)initGL
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.5f,0.5f,0.5f,1.0f);          // We'll Clear To The Color Of The Fog ( Modified )
+    
+
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_DEPTH_TEST);
 	
+   
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
+    
+    
+    if (lightScene)
+    {
+        GLfloat ambientLight[]={0.2,0.2,0.2,1.0};    	             // set ambient light parameters
+        glLightfv(GL_LIGHT0,GL_AMBIENT,ambientLight);
+        
+        GLfloat diffuseLight[]={1.0,1.0,1.0,1.0};    	             // set diffuse light parameters
+        glLightfv(GL_LIGHT0,GL_DIFFUSE,diffuseLight);
+
+        
+        glEnable(GL_LIGHT0);                         	              // activate light0
+        glEnable(GL_LIGHTING);                       	              // enable lighting
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientLight); 	     // set light model
+        glEnable(GL_COLOR_MATERIAL);                 	              // activate material
+        glColorMaterial(GL_FRONT,GL_AMBIENT_AND_DIFFUSE);
+        glEnable(GL_NORMALIZE);                      	              // normalize normal vectors
+    }
 	
 	first = YES;
 }
@@ -456,7 +490,8 @@ bool drawObjects()
             double fps = ((1000000000.0 * averageFPS)/ elapsed);
             [fpsText performSelectorOnMainThread:@selector(setStringValue:) withObject:[NSString stringWithFormat:@"FPS: %f", fps] waitUntilDone:YES];
             
-        
+        if (!performanceMode)
+            break;
         //NSLog(@"%f", fps);
          
     }
@@ -496,6 +531,42 @@ bool drawObjects()
 }
 -(IBAction)reloadBitmapsForMap:(id)sender
 {
+    
+    if (performanceMode)
+    {
+        [performanceThread cancel];
+        performanceMode = FALSE;
+        
+        [self resetTimerWithClassVariable];
+    }
+    else
+    {
+        
+        if (NSRunAlertPanel(@"Are you sure you want to enter performance mode?", @"Performance mode will render frames as fast as it can. Presents a smooth visual performance but may stutter on large maps.", @"Cancel", @"Enter Performance Mode", nil) == NSOKButton)
+        {
+            
+        }
+        else
+        {
+            [drawTimer invalidate];
+            [drawTimer release];
+            drawTimer = nil;
+            
+            performanceMode = TRUE;
+            
+            performanceThread = [[NSThread alloc] initWithTarget:self selector:@selector(renderTimer:) object:nil]; //Create a new thread
+            [performanceThread start];
+        }
+        
+    }
+    
+    
+    
+    
+    //[_texManager deleteAllTextures];
+    //[mapBSP setActiveBsp:0];
+    
+    return;
     // First, we must create an NSOpenGLPixelFormatAttribute
 	NSOpenGLPixelFormat *nsglFormat;
 	NSOpenGLPixelFormatAttribute attr[] =
@@ -586,7 +657,7 @@ bool drawObjects()
 	
 	color_index = alphaIndex;
     drawO = true;
-    newR = true;
+    newR = 2;
    
 	
 	currentRenderStyle = textured_tris;
@@ -777,7 +848,7 @@ bool drawObjects()
    
     [self rotateFocusedItem:[s_xRotation floatValue] y:[s_yRotation floatValue] z:[s_zRotation floatValue]];
     
-    NSLog(@"test");
+    //NSLog(@"test");
 }
 
 
@@ -1116,13 +1187,14 @@ bool drawObjects()
                     break;
                 case s_playerspawn:
                 {
-                    float *gg = (float*)[self coordtoGround:(float*)[_scenario spawns][index].coord];
+                    /*float *gg = (float*)[self coordtoGround:(float*)[_scenario spawns][index].coord];
                     if (gg[0] != 0.0)
                     {
                         [_scenario spawns][index].coord[0] = gg[0];
                         [_scenario spawns][index].coord[1] = gg[1];
                         [_scenario spawns][index].coord[2] = gg[2];
-                    }
+                    }*/
+                    
                     [self setPositionSliders:[_scenario spawns][index].coord[0] y:[_scenario spawns][index].coord[1] z:[_scenario spawns][index].coord[2]];
                     break;
                 }
@@ -1154,7 +1226,19 @@ bool drawObjects()
 
 - (void)mouseMoved:(NSEvent *)theEvent
 {
+    
+    /*
+    if ([first_person_mode state])
+    {
+        NSPoint dragPoint = [NSEvent mouseLocation];
+        
+        [_camera HandleMouseMove:(dragPoint.x - prevDown.x) dy:(dragPoint.y - prevDown.y)];
+        
+        prevDown = dragPoint;
+    }
+    */
 	//NSPoint pt = [theEvent locationInWindow];
+    
 }
 - (void)rightMouseDown:(NSEvent *)event
 {
@@ -1163,7 +1247,7 @@ bool drawObjects()
 }
 - (void)rightMouseUp:(NSEvent *)theEvent
 {
-
+    
 }
 
 - (void)rightMouseDragged:(NSEvent *)theEvent
@@ -1406,25 +1490,83 @@ bool drawObjects()
 
 -(void)drawView
 {
+    if (![NSApp isActive])
+        return;
+    
     glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	[_camera Look];
 	[_camera Update];
 	
-	[self drawAxes];
+	//[self drawAxes];
 	
 	if (shouldDraw)
 	{
+        
+        if (useNewRenderer() == 2)
+        {
+            
+            glFogi(GL_FOG_MODE, GL_LINEAR);        // Fog Mode
+            glFogfv(GL_FOG_COLOR, fogColor);            // Set Fog Color
+            glFogf(GL_FOG_DENSITY, 0.1f);              // How Dense Will The Fog Be
+            glHint(GL_FOG_HINT, GL_NICEST);          // Fog Hint Value
+            glFogf(GL_FOG_START, 1.0f);             // Fog Start Depth
+            glFogf(GL_FOG_END, 200.0f);               // Fog End Depth
+                           // Enables GL_FOG
+            
+        }
+        if (useNewRenderer() == 2)
+        {
+            glEnable(GL_FOG);
+            glEnable(GL_MULTISAMPLE);
+            glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+            
+        }
+        else
+        {
+            glDisable(GL_FOG);
+            glDisable(GL_MULTISAMPLE);
+            
+        }
+        
+        
+        
+        if (lightScene)
+        {
+        
+        glPushMatrix();
+        glTranslatef(lightPos[0], lightPos[1], lightPos[2]);
+        glColor3f(1.0, 1.0, 0.0);
+            
+        GLUquadric *sphere=gluNewQuadric();
+        gluQuadricDrawStyle( sphere, GLU_FILL);
+        gluQuadricNormals( sphere, GLU_SMOOTH);
+        gluQuadricOrientation( sphere, GLU_OUTSIDE);
+        gluQuadricTexture( sphere, GL_TRUE);
+        
+        gluSphere(sphere,0.5,5,5);
+        
+        glPopMatrix();
+        
+        
+        
+        }
+        
+        
+        
 		if (mapBSP)
 		{
 			[self renderVisibleBSP:FALSE];
 		}
-		
+       
 		if (_scenario)
 		{
 			[self renderAllMapObjects];
 		}
+        
+       
+        
 	}
 	
 	[[self openGLContext] flushBuffer];
@@ -1692,7 +1834,7 @@ bool drawObjects()
 					//[self renderBSPAsWireframe:i];
 					//[self renderBSPAsPoints:i];
 					glLineWidth(2.0f);
-					glColor3f(0.5f, 0.5f, 0.5f);
+					glColor3f(1.0, 1.0, 1.0);
 					break;
 			}
 			 
@@ -1837,32 +1979,269 @@ bool drawObjects()
 	
 		if (pMesh->LightmapIndex != -1)
 		{
-			glEnable(GL_TEXTURE_2D);
+			//glEnable(GL_TEXTURE_2D);
 		}
-		
-		[_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:NO];
-		
-		glColor4f(1,1,1,1);
-			
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	
-		glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
-		glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
-		
-		glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
-		
         
-
+        if (pMesh->baseMap != -1 && useNewRenderer() == 2)
+        {
+            
+      
+            bool useLightmaps = TRUE;
+            
+            
+            if (false)
+            {
+                [_texManager activateTextureOfIdent:pMesh->DefaultLightmapIndex subImage:pMesh->LightmapIndex useAlphas:NO];
+                
+                glColor4f(1,1,1,1);
+                
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                
+                glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
+                glTexCoordPointer(2, GL_FLOAT, 20, pMesh->pLightmapVert[0].uv);
+                
+                glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+                
+                glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_BLEND);
+            }
+            else
+            {
+                
+            
+               
+                    glDepthFunc(GL_LEQUAL);
+                
+                
+                    glDisable(GL_BLEND);
+                    glColor4f(1,1,1,5);
+                    
+                    bool showDetail = true;
+                    bool showDetail2 = true;
+                
+                
+                    //glPushMatrix();
+                    [_texManager activateTextureAndLightmap:pMesh->baseMap lightmap:pMesh->secondaryMap secondary:pMesh->DefaultLightmapIndex subImage:pMesh->LightmapIndex];
+                    
+                    //glColor4f(1,1,1,1);
+                    glActiveTextureARB(GL_TEXTURE2_ARB);
+                
+                    glEnableClientState(GL_VERTEX_ARRAY);
+                    glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
+                    
+                    // texture coord 0
+                    glClientActiveTextureARB(GL_TEXTURE0_ARB); // program texcoord unit 0
+                    glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
+                    glNormalPointer(GL_FLOAT, 56, pMesh->pVert[0].normal);
+                    
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY); // enable array data to shader
+                
+                    if (useLightmaps)
+                    {
+                        glClientActiveTextureARB(GL_TEXTURE2_ARB);
+                        glTexCoordPointer(2, GL_FLOAT, 20, pMesh->pLightmapVert[0].uv);
+                        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    }
+                
+                    if (showDetail)
+                    {
+                        //texture coord 1
+                        glClientActiveTextureARB(GL_TEXTURE1_ARB);
+                        glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
+                        glNormalPointer(GL_FLOAT, 56, pMesh->pVert[0].normal);
+                        
+                        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                        
+                        glActiveTextureARB(GL_TEXTURE1_ARB);
+                        glMatrixMode(GL_TEXTURE);
+                        glPushMatrix();
+                        glScalef(pMesh->secondaryMapScale,pMesh->secondaryMapScale, 0.0);
+                    }
+                
+                
+                
+                    
+                    glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+                    
+                    if (showDetail)
+                    {
+                        glActiveTextureARB(GL_TEXTURE1_ARB);
+                        glPopMatrix();
+                        glMatrixMode(GL_MODELVIEW);
+                        
+                        glClientActiveTextureARB(GL_TEXTURE1_ARB);
+                        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    }
+                    
+                    glClientActiveTextureARB(GL_TEXTURE0_ARB);
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    
+                    glDisableClientState(GL_VERTEX_ARRAY);
+                
+                    glActiveTextureARB(GL_TEXTURE2_ARB);
+                    glDisable(GL_TEXTURE_2D);
+                
+                    glActiveTextureARB(GL_TEXTURE1_ARB);
+                    glDisable(GL_TEXTURE_2D);
+                    
+                    glActiveTextureARB(GL_TEXTURE0_ARB);
+                    glDisable(GL_TEXTURE_2D);
+                    glDisable(GL_BLEND);
+                
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    //[_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:NO];
+                    glEnable(GL_BLEND);
+  
+                
+                
+                    glColor4f(1,1,1,5);
+                    
+                    
+                    //glPushMatrix();
+                    [_texManager activateTextureAndLightmap:pMesh->baseMap lightmap:pMesh->primaryMap secondary:pMesh->DefaultLightmapIndex subImage:pMesh->LightmapIndex];
+                    
+                    //glColor4f(1,1,1,1);
+                glActiveTextureARB(GL_TEXTURE0_ARB);
+                
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
+                
+                // texture coord 0
+                glClientActiveTextureARB(GL_TEXTURE0_ARB); // program texcoord unit 0
+                glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
+                glNormalPointer(GL_FLOAT, 56, pMesh->pVert[0].normal);
+                
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY); // enable array data to shader
+                
+                if (useLightmaps)
+                {
+                    glClientActiveTextureARB(GL_TEXTURE2_ARB);
+                    glTexCoordPointer(2, GL_FLOAT, 20, pMesh->pLightmapVert[0].uv);
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                }
+                
+                if (showDetail)
+                {
+                    //texture coord 1
+                    glClientActiveTextureARB(GL_TEXTURE1_ARB);
+                    glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
+                    glNormalPointer(GL_FLOAT, 56, pMesh->pVert[0].normal);
+                    
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    
+                    glActiveTextureARB(GL_TEXTURE1_ARB);
+                    glMatrixMode(GL_TEXTURE);
+                    glPushMatrix();
+                    glScalef(pMesh->primaryMapScale,pMesh->primaryMapScale, 0.0);
+                }
+                
+                
+                
+                
+                glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+                
+                if (showDetail)
+                {
+                    glActiveTextureARB(GL_TEXTURE1_ARB);
+                    glPopMatrix();
+                    glMatrixMode(GL_MODELVIEW);
+                    
+                    glClientActiveTextureARB(GL_TEXTURE1_ARB);
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                }
+                
+                glClientActiveTextureARB(GL_TEXTURE0_ARB);
+                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                
+                glDisableClientState(GL_VERTEX_ARRAY);
+                
+                glActiveTextureARB(GL_TEXTURE2_ARB);
+                glDisable(GL_TEXTURE_2D);
+                
+                glActiveTextureARB(GL_TEXTURE1_ARB);
+                glDisable(GL_TEXTURE_2D);
+                
+                glActiveTextureARB(GL_TEXTURE0_ARB);
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_BLEND);
+                
+                    glDepthFunc(GL_LESS);
+                
+            
+            }
+            //glPopMatrix();
+        }
+        else if (true)
+        {
         
+            if (useNewRenderer() == 2)
+                [_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:YES];
+            else
+                [_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:NO];
+            
+            
+            glColor4f(1,1,1,1);
+                
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         
-        
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-			
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_BLEND);
-		
+            glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
+            glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
+            
+            glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+            
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_BLEND);
+                
+        }
+		else
+        {
+            int x;
+            unsigned short index, index2, index3;
+            
+    
+            [_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:NO];
+            
+            
+            glBegin(GL_TRIANGLES);
+            for (x = 0; x < (pMesh->IndexCount); x++)
+            {
+                index = pMesh->pIndex[x].tri_ind[0];
+                index2 = pMesh->pIndex[x].tri_ind[1];
+                index3 = pMesh->pIndex[x].tri_ind[2];
+                
+                Vector *tempVector = pMesh->pVert[index].vertex_k;
+                glNormal3f(tempVector->normalx,tempVector->normaly,tempVector->normalz);
+                glTexCoord2f(pMesh->pVert[index].uv[0],pMesh->pVert[index].uv[1]);
+                glVertex3f(tempVector->x,tempVector->y,tempVector->z);
+                
+                Vector *tempVector2 = pMesh->pVert[index2].vertex_k;
+                glNormal3f(tempVector2->normalx,tempVector2->normaly,tempVector2->normalz);
+                glTexCoord2f(pMesh->pVert[index2].uv[0], pMesh->pVert[index2].uv[1]);
+                glVertex3f(tempVector2->x,tempVector2->y,tempVector2->z);
+                
+                Vector *tempVector3 = pMesh->pVert[index3].vertex_k;
+                glNormal3f(tempVector3->normalx,tempVector3->normaly,tempVector3->normalz);
+                glTexCoord2f(pMesh->pVert[index3].uv[0],pMesh->pVert[index3].uv[1]);
+                glVertex3f(tempVector3->x,tempVector3->y,tempVector3->z);
+            }
+            glEnd();
+        }
 	}
     
     
@@ -1886,7 +2265,7 @@ bool drawObjects()
 		glVertex3f(0.0f, 0.0f, 15.0f);
 		glVertex3f(0.0f, 0.0f, -15.0f);
 	glEnd();*/
-	glBegin(GL_LINES);
+        glBegin(GL_LINES);
 		// Z
 		glColor3f(0,0,1);
 		glVertex3f(0,0,0);
@@ -2138,8 +2517,8 @@ bool drawObjects()
     }
         
     
-    
-	/*for (x = 0; x < bsp_point_count; x++)
+    /*
+	for (x = 0; x < bsp_point_count; x++)
 	{
 		// Lookup goes hur
 		if (_lookup)
@@ -2147,8 +2526,8 @@ bool drawObjects()
 		glLoadName(name);
 		name++;
 		[self renderPoint:bsp_points[x].coord isSelected:bsp_points[x].isSelected];
-	}*/
-    /*
+	}
+    
 	for (x = 0; x < [[mapBSP mesh] coll_count]; x++)
 	{
 		// Lookup goes hur
@@ -2294,7 +2673,11 @@ if (drawObjects())
 
     
     
-	for (x = 0; x < 1; x++)
+    if (useNewRenderer() == 2)
+        glDisable(GL_FOG);
+    
+    
+	for (x = 0; x < [_scenario skybox_count]; x++)
 	{
 		// Lookup goes hur
 
@@ -2313,7 +2696,9 @@ if (drawObjects())
 		}
 	}
     
-
+    if (useNewRenderer() == 2)
+        glEnable(GL_FOG);
+    
     if (useNewRenderer())
     {
         glDisableClientState(GL_VERTEX_ARRAY);
@@ -2615,6 +3000,57 @@ if (drawObjects())
 
 - (void)renderBox:(float *)coord rotation:(float *)rotation color:(float *)color selected:(BOOL)selected
 {
+
+    if (useNewRenderer() == 2)
+    {
+        glPushMatrix();
+        glTranslatef(coord[0], coord[1], coord[2]);
+        glRotatef(piradToDeg( rotation[0]),0,0,1);
+        glColor3f(color[0],color[1],color[2]);
+        
+        if (selected)
+            glColor3f(0.0f, 1.0f, 0.0f);
+		if (selected)
+        {
+            glBegin(GL_LINES);
+            {
+                // Now to try some other stuffs! Bwahaha!
+                // set these lines to white
+                glLineWidth(4.0f);
+                // x
+                glColor3f(1.0f,0.0f,0.0f);
+                glVertex3f(0.0f,0.0f,0.0f);
+                glVertex3f(50.0f,0.0f,0.0f);
+                // y
+                glColor3f(0.0f,1.0f,0.0f);
+                glVertex3f(0.0f,0.0f,0.0f);
+                glVertex3f(0.0f,50.0f,0.0f);
+                // z
+                glColor3f(0.0f,0.0f,1.0f);
+                glVertex3f(0.0f,0.0f,0.0f);
+                glVertex3f(0.0f,0.0f,50.0f);
+                
+                // pointer arrow
+                glColor3f(1.0f,1.0f,1.0f);
+                glVertex3f(0.5f,0.0f,0.0f);
+                glVertex3f(0.3f,0.2f,0.0f);
+                glVertex3f(0.5f,0.0f,0.0f);
+                glVertex3f(0.3f,-0.2f,0.0f);
+            }
+            glEnd();
+        }
+        
+        
+        GLUquadric *sphere=gluNewQuadric();
+        gluQuadricDrawStyle( sphere, GLU_FILL);
+        gluQuadricOrientation( sphere, GLU_OUTSIDE);
+
+        gluSphere(sphere,0.1,5,5);
+        
+        glPopMatrix();
+        return;
+    }
+    
 	glPushMatrix();
 	glTranslatef(coord[0], coord[1], coord[2]);
 	glRotatef(piradToDeg( rotation[0]),0,0,1);
@@ -2763,13 +3199,33 @@ if (drawObjects())
 }
 
 - (void)renderPoint:(float *)coord isSelected:(BOOL)isSelected
-{	
+{
+    
+    glPushMatrix();
+    glTranslatef(coord[0], coord[1], coord[2]);
+    glColor3f(0.0, 1.0, 1.0);
+    
+    if (isSelected)
+        glColor3f(0.0f, 1.0f, 0.0f);
+    
+    GLUquadric *sphere=gluNewQuadric();
+    gluQuadricDrawStyle( sphere, GLU_FILL);
+    gluQuadricNormals( sphere, GLU_SMOOTH);
+    gluQuadricOrientation( sphere, GLU_OUTSIDE);
+    gluQuadricTexture( sphere, GL_TRUE);
+    
+    gluSphere(sphere,0.01,5,5);
+    
+    glPopMatrix();
+    
+    return;
+    
 	glPushMatrix();
 	glTranslatef(coord[0], coord[1], coord[2]);
 	
 	if (isSelected)
 		glColor3f(1.0f, 1.0f, 0.0f);
-	else 
+	else
 		glColor3f(0.0,1.0,0.0);
 	
 	glBegin(GL_QUADS);
@@ -2934,6 +3390,8 @@ if (drawObjects())
 				//NSLog(@"Oddball attempt ID: 0x%x", mp_flags[i].item_used.TagId);
 				break;
 			case race_track:
+                color[0] = 0.5f; color [1] = 0.2f; color[2] = 0.0f;
+				[self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
 				break;
 			case race_vehicle:
 				break;
@@ -3028,6 +3486,11 @@ if (drawObjects())
 {
 	if (sender == framesSlider)
 	{
+        if (performanceMode)
+        {
+            NSRunAlertPanel(@"You cannot change the frames per second while in performance mode.", @"Please turn off performance mode and try again.", @"OK", nil, nil);
+            return;
+        }
 		_fps = roundf([framesSlider floatValue]);
 		[fpsText setFloatValue:_fps];
 		[self resetTimerWithClassVariable];
@@ -3048,6 +3511,7 @@ if (drawObjects())
 		[s_xRotation setFloatValue:[[s_xRotText stringValue] floatValue]];
 		[s_yRotation setFloatValue:[[s_yRotText stringValue] floatValue]];
 		[s_zRotation setFloatValue:[[s_zRotText stringValue] floatValue]];
+        
 		[self rotateFocusedItem:[s_xRotText floatValue] y:[s_yRotText floatValue] z:[s_zRotText floatValue]];
 	}
     else if ((sender == s_xText) || (sender == s_yText) || (sender == s_zText))
@@ -4042,6 +4506,16 @@ int check_intersect_tri(fpoint pt1, fpoint pt2, fpoint pt3, fpoint linept, fpoin
     return ret;
 }
 
+-(NSNumber*)isAboveGround:(float*)pos
+{
+    
+    float *gg = [self coordtoGround:pos];
+    
+    if (pos[2] >= (gg[2]-0.00001))
+        return [NSNumber numberWithBool:TRUE];
+    return [NSNumber numberWithBool:FALSE];
+}
+
 - (void)trySelection:(NSPoint)downPoint shiftDown:(BOOL)shiftDown width:(CGFloat)w height:(CGFloat)h
 {
 	_lookup = NULL;
@@ -4379,14 +4853,24 @@ char *int2bin(int a, char *buffer, int buf_size) {
     
     float totalHeight = border;
     
-    NSArray *subviews = [[settings_Window_Object contentView] subviews];
-    int i;
-    for (i=0; i < [subviews count]; i++)
-    {
-        [[subviews objectAtIndex:i] removeFromSuperview];
-    }
+    //NSArray *subviews = [[settings_Window_Object contentView] subviews];
     
-    [settings_Window_Object setFrame:NSMakeRect([settings_Window_Object frame].origin.x, settings_Window_Object.frame.origin.y, settings_Window_Object.frame.size.width, 2*border + (elementHeight+10)*([settings count])) display:YES];
+    [[settings_Window_Object contentView] setSubviews:[NSArray array]];
+    
+    int i;
+    //for (i=0; i < [subviews count]; i++)
+    //{
+     //   [[subviews objectAtIndex:i] removeFromSuperview];
+    //}
+    
+    
+    
+    NSRect old = [settings_Window_Object frame];
+    NSRect new = NSMakeRect([settings_Window_Object frame].origin.x, settings_Window_Object.frame.origin.y, settings_Window_Object.frame.size.width, 2*border + (elementHeight+10)*([settings count]));
+    
+    [settings_Window_Object setFrame:NSMakeRect(new.origin.x - (new.size.width - old.size.width), new.origin.y - (new.size.height - old.size.height), new.size.width, new.size.height) display:YES];
+    
+    
     float y = [[settings_Window_Object contentView] bounds].size.height - border;
     
     
@@ -4618,6 +5102,17 @@ char *int2bin(int a, char *buffer, int buf_size) {
 			if (_selectType == s_all || _selectType == s_machine)
 			{
                 
+                NSArray *shorts = @[@"1", @"2", @"3", @"4", @"5", @"6", @"7", @"8", @"9", @"10",
+                                    @"11", @"12", @"13", @"14", @"15", @"16", @"17", @"18", @"19", @"20",
+                                    @"21", @"22", @"23", @"24", @"25", @"26", @"27", @"28", @"29", @"30",
+                                    @"31", @"32", @"33", @"34", @"35", @"36", @"37", @"38", @"39", @"40",
+                                    @"41", @"42", @"43", @"44", @"45", @"46", @"47", @"48", @"49", @"50",
+                                    @"51", @"52", @"53", @"54", @"55", @"56", @"57", @"58", @"59", @"60"];
+                NSArray *settings = @[@{kName:@"Power Group", kType:kPopup, kData:shorts, kSelection:[NSNumber numberWithShort:[_scenario mach_spawns][index].powerGroup], kPointer:[NSNumber numberWithLong:&([_scenario mach_spawns][index].powerGroup)]},
+                                      @{kName:@"Position Group", kType:kPopup, kData:shorts, kSelection:[NSNumber numberWithShort:[_scenario mach_spawns][index].positionGroup], kPointer:[NSNumber numberWithLong:&([_scenario mach_spawns][index].positionGroup)]}
+                                      ];
+                [self performSelectorOnMainThread:@selector(createUserInterfaceForSettings:) withObject:settings waitUntilDone:YES];
+                
                 
 				[_scenario mach_spawns][index].isSelected = YES;
 				mapIndex = [_scenario mach_references][[_scenario mach_spawns][index].numid].machTag.TagId;
@@ -4630,9 +5125,32 @@ char *int2bin(int a, char *buffer, int buf_size) {
 			if (_selectType == s_all || _selectType == s_netgame)
 			{
                 NSArray *gametypeList = @[@"CTF Flag", @"CTF Vehicle", @"Oddball Spawn", @"Race Track", @"Race Vehicle", @"Vegas Bank", @"Teleport From", @"Teleport To", @"Hill Flag"];
-                NSArray *settings = @[@{kName:@"Type", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].type], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].type)]},
-                                      @{kName:@"Team Index", kType:kPopup, kData:@[@"Red", @"Blue", @"Yellow"], kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].team_index)]}];
-                [self performSelectorOnMainThread:@selector(createUserInterfaceForSettings:) withObject:settings waitUntilDone:YES];
+                NSArray *settings = nil;
+                NSArray *channels = @[@"Alpha", @"Bravo", @"Charlie", @"Delta", @"Echo", @"Foxtrot", @"Golf", @"Hotel", @"India", @"Juliet", @"Kilo",
+                                      @"Lima", @"Mike", @"November", @"Oscar", @"Papa", @"Quebec", @"Romeo", @"Sierra", @"Tango", @"Uniform", @"Victor", @"Whiskey", @"X-ray", @"Yankee", @"Zulu"];
+                NSArray *teams = @[@"Red", @"Blue"];
+                
+                switch ([_scenario netgame_flags][index].type)
+				{
+					case teleporter_entrance:
+						settings = @[@{kName:@"Type", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].type], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].type)]},
+                                     @{kName:@"Channel", kType:kPopup, kData:channels, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].team_index)]}];
+						break;
+					case teleporter_exit:
+						settings = @[@{kName:@"Type", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].type], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].type)]},
+                                     @{kName:@"Channel", kType:kPopup, kData:channels, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].team_index)]}];
+						break;
+					default:
+                        settings = @[@{kName:@"Type", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].type], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].type)]},
+                                     @{kName:@"Team Index", kType:kPopup, kData:teams, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].team_index)]}];
+                        
+                        break;
+                }
+                
+                
+                
+                if (settings != nil)
+                    [self performSelectorOnMainThread:@selector(createUserInterfaceForSettings:) withObject:settings waitUntilDone:YES];
                 
 				[_scenario netgame_flags][index].isSelected = YES;
 				switch ([_scenario netgame_flags][index].type)

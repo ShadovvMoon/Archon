@@ -21,6 +21,7 @@
 	
 	NSMutableArray *subModels;
 	NSMutableArray *shaders;
+	NSMutableArray *shaderTypes;
 	
 	float u_scale;
 	float v_scale;

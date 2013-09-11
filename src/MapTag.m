@@ -48,7 +48,7 @@
 }
 - (NSString *)stringTagClassHigh
 {
-	return [NSString stringWithCString:classA];
+	return [[[NSString alloc] initWithCString:classA encoding:NSMacOSRomanStringEncoding] autorelease];
 }
 - (char *)tagClassHigh
 {
