@@ -5,8 +5,12 @@
 //  Created by sword on 5/6/08.
 //  Copyright 2008 sword Inc. All rights reserved.
 //
+#ifndef MACVERSION
+#import "glew.h"
+#endif
 
 #import <Cocoa/Cocoa.h>
+
 
 #import  <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
@@ -30,7 +34,8 @@
 @class SpawnEditorController;
 
 
-@interface RenderView : NSOpenGLView {
+@interface RenderView : NSOpenGLView
+{
 	/* Render Option Buttons */
 	IBOutlet NSMenuItem *pointsItem;
 	IBOutlet NSMenuItem *wireframeItem;
@@ -67,6 +72,10 @@
 	/* Begin mouse movement style */
 	IBOutlet NSButton *selectMode;
 	IBOutlet NSButton *translateMode;
+    IBOutlet NSButton *dirtMode;
+    IBOutlet NSButton *grassMode;
+    IBOutlet NSButton *eyedropperMode;
+    IBOutlet NSButton *lightmapMode;
 	IBOutlet NSButton *moveCameraMode;
 	IBOutlet NSButton *duplicateSelected;
 	IBOutlet NSButton *b_deleteSelected;
@@ -79,7 +88,7 @@
 	IBOutlet NSMenuItem *m_duplicateSelected;
 	IBOutlet NSMenuItem *m_deleteFocused;
 	/* End mouse movement style */
-	
+	IBOutlet NSSlider *paintSize;
 	/* Begin Selction Related */
 	IBOutlet NSTextField *selectText;
 	IBOutlet NSTextField *selectedName;
@@ -120,7 +129,7 @@
 	
     IBOutlet NSButton *rendererSwitch;
     IBOutlet NSButton *renderObject;
-    
+    IBOutlet NSColorWell *paintColor;
 	NSUserDefaults *prefs;
 	
 	bool shouldDraw;
@@ -229,12 +238,13 @@
     IBOutlet NSPanel *settings_Window_Object;
     
 	SUBMESH_INFO *pMesh;
-    NSPopover *popover;
+    id popover;
     NSViewController *c;
     IBOutlet NSView *settingsView;
     
     BOOL duplicatedAlready;
 }
+
 
 -(IBAction)reloadBitmapsForMap:(id)sender;
 -(IBAction)openSettingsPopup:(id)sender;
@@ -442,3 +452,10 @@
 @property (retain) NSButton *player_15;
 @property (retain) NSSlider *duplicate_amount;
 @end
+
+
+float uva1;
+float uva2;
+float uva3;
+
+int selectedPIndex;

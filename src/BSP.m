@@ -248,12 +248,18 @@
 {
 	return [m_pBsp count];
 }
+
+-(void)updateTextures
+{
+    [[m_pBsp objectAtIndex:m_ActiveBsp] LoadPcSubmeshTextures];
+}
+
 - (void)setActiveBsp:(unsigned long)bsp
 {
 	#ifdef __DEBUG__
 	NSLog(@"Setting active BSP!");
 	#endif
-	
+	NSLog(@"Set active bsp");
 	//if (m_ActiveBsp != bsp)
 	//{
 		[[m_pBsp objectAtIndex:bsp] LoadPcSubmeshTextures];

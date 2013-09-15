@@ -34,6 +34,8 @@
 
 - (id)init
 {
+    NSLog(@"Fade view");
+    
 	if ( self = [super init] ) {
 		[self setFadeDuration:1.0];
 		[self setFadeInterval:5.0/60.0];

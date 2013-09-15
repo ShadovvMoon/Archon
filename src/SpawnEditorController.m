@@ -43,6 +43,11 @@ typedef enum
 @implementation SpawnEditorController
 - (void)awakeFromNib
 {
+    NSLog(@"Checking mac spawn editor");
+#ifndef MACVERSION
+    return;
+#endif
+    
 	spawnEditorOptions = [[NSMutableArray alloc] initWithCapacity:7];
 	[spawnEditorOptions addObject:@"Scenery References"];
 	[spawnEditorOptions addObject:@"Scenery Spawns"];

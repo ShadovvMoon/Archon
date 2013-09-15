@@ -18,6 +18,8 @@ static AboutBox *sharedInstance = nil;
 }
 - (id)init
 {
+    NSLog(@"About window");
+    
 	if (sharedInstance)
 		[self dealloc];
 	else
@@ -50,9 +52,11 @@ static AboutBox *sharedInstance = nil;
 		infoDictionary = [[NSBundle mainBundle] infoDictionary];
 
 		
+        #ifdef MACVERSION
 		localInfoBundle = CFBundleGetMainBundle();
 		localInfoDict = (NSDictionary *)CFBundleGetLocalInfoDictionary(localInfoBundle);
-		
+#endif
+        
 		// Set the app name field
 		appName = @"swordedit 'starlight'";
 		[appNameField setStringValue:appName];

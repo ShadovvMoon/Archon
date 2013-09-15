@@ -449,7 +449,7 @@
 	free(mp_flags_buf);
 	free(mp_equip_buf);
 	
-	FILE *tmpFile = fopen("test.scnr","w+");
+	FILE *tmpFile = fopen("test.scnr","wb+");
 	
 	fwrite(scnr,[self tagLength],1,tmpFile);
 	
@@ -710,7 +710,7 @@
 	/* Set the scenario pointer to the new scenario */
 	scnr = (char *)newScnr;
 	
-	FILE *tmpFile = fopen("test.scnr","w+");
+	FILE *tmpFile = fopen("test.scnr","wb+");
 	
 	fwrite(scnr,[self tagLength],1,tmpFile);
 	

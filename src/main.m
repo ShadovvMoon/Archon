@@ -7,21 +7,28 @@
 //
 
 #import <Cocoa/Cocoa.h>
+
+#ifndef MACVERSION
+#include <glew.h>
+#endif
+
 char *gExecutablePath = NULL;
 
 int main(int argc, char *argv[])
 {
-	gExecutablePath = argv[0];	
-	
+	gExecutablePath = argv[0];
+ 
     
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
     int retVal = -1;
     @try {
         retVal = NSApplicationMain(argc,  (const char **) argv);
+        NSLog(@"Closing?");
+        
     }
     @catch (NSException* exception) {
         NSLog(@"Uncaught exception: %@", exception.description);
-        NSLog(@"Stack trace: %@", [exception callStackSymbols]);
+       // NSLog(@"Stack trace: %@", [exception callStackSymbols]);
     }
     [pool release];
     return retVal;

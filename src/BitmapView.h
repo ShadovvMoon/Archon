@@ -8,6 +8,10 @@
 
 #import <Cocoa/Cocoa.h>
 
+#ifndef MACVERSION
+#import "glew.h"
+#endif
+
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>

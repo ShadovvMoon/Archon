@@ -98,8 +98,9 @@ typedef struct
 	unsigned int *imageBytesLookup;
 	BOOL *imageLoaded;
 	
-	NSMutableArray *subImages;
+	NSMutableArray *subImageee;
 }
+- (void)setImagePixelsForImageIndex:(int)index withBytes:(unsigned int)imageBytes;
 - (id)initWithMapFiles:(HaloMap *)mapfile bitmap:(FILE *)bitmap ppc:(BOOL)ppc;
 - (void)dealloc;
 - (void)freeImagePixels:(int)image;

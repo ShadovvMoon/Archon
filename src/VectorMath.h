@@ -53,6 +53,19 @@ CVector3 DivideTwoVectors(CVector3 v1, CVector3 v2)
 	return retVector;
 }
 
+
+/////////////////////////////////////// CROSS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+/////
+/////	This returns a perpendicular vector from 2 given vectors by taking the cross product.
+/////
+/////////////////////////////////////// CROSS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+
+float Dot(CVector3 vVector1, CVector3 vVector2)
+{
+	return vVector1.x*vVector2.x+vVector1.y*vVector2.y+vVector1.z*vVector2.z;
+}
+
+
 /////////////////////////////////////// CROSS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
 /////
 /////	This returns a perpendicular vector from 2 given vectors by taking the cross product.

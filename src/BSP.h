@@ -7,6 +7,9 @@
 //
 //	sword@clanhalo.net
 //
+#ifndef MACVERSION
+#import "glew.h"
+#endif
 
 #import <Cocoa/Cocoa.h>
 /*#import <OpenGL/OpenGL.h>

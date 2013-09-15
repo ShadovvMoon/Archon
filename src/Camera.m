@@ -4,6 +4,8 @@
 @implementation Camera
 - (id)init
 {
+    NSLog(@"Init camera");
+    
 	if (self = [super init])
 	{
 	CVector3 vZero = NewCVector3(0.0, 0.0, 0.0);		// Init a vVector to 0 0 0 for our position
@@ -298,6 +300,16 @@
 {
 	return (float *)&m_vView;
 }
+- (float *)vUp
+{
+	return (float *)&m_vUpVector;
+}
+- (float *)vStrafe
+{
+	return (float *)&m_vStrafe;
+}
+
+
 - (void) Look;
 {
 	// Give openGL our camera position, then camera view, then camera up vector

@@ -74,6 +74,137 @@
 	_textureCounter++;
 }
 
+
+- (void)exportTextureOfIdent:(long)ident subImage:(int)index
+{
+
+    
+    if (!_textures)
+		return;
+    
+	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
+    
+	//NSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
+    
+	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
+
+	//if (![tmpBitm imageAlreadyLoaded:index])
+	//{
+		//[tmpBitm loadImage:index];
+
+        if (TRUE)//useNewRenderer() == 2)
+		{
+            NSSize size = NSMakeSize([tmpBitm textureSizeForImageIndex:index].width, [tmpBitm textureSizeForImageIndex:index].height);
+            NSImage *renderImage = [[NSImage alloc] initWithSize:size];
+            
+            unsigned int *pixels = [tmpBitm imagePixelsForImageIndex:index];
+            
+            NSBitmapImageRep *imgRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&pixels
+                                                    pixelsWide:size.width
+                                                    pixelsHigh:size.height
+                                                 bitsPerSample:8
+                                               samplesPerPixel:4
+                                                      hasAlpha:true
+                                                      isPlanar:false
+                                                colorSpaceName:NSDeviceRGBColorSpace
+
+                                                   bytesPerRow:0
+                                                  bitsPerPixel:0];
+            
+            NSBitmapImageRep *new_bitmap = [[[NSBitmapImageRep alloc] initWithBitmapDataPlanes: NULL
+                                                                                    pixelsWide: size.width
+                                                                                    pixelsHigh: size.height
+                                                                                 bitsPerSample: 8
+                                                                               samplesPerPixel: 4
+                                                                                      hasAlpha: YES
+                                                                                      isPlanar: NO
+                                                                                colorSpaceName: NSCalibratedRGBColorSpace
+                                                                                   bytesPerRow: 0
+                                                                                  bitsPerPixel: 0] autorelease];
+            NSBitmapImageRep *new_bitmap2 = [[[NSBitmapImageRep alloc] initWithBitmapDataPlanes: NULL
+                                                                                    pixelsWide: size.width
+                                                                                    pixelsHigh: size.height
+                                                                                 bitsPerSample: 8
+                                                                               samplesPerPixel: 4
+                                                                                      hasAlpha: YES
+                                                                                      isPlanar: NO
+                                                                                colorSpaceName: NSCalibratedRGBColorSpace
+                                                                                   bytesPerRow: 0
+                                                                                  bitsPerPixel: 0] autorelease];
+            
+            unsigned char *newbytes = (unsigned char *)[new_bitmap bitmapData];
+            unsigned char *newbytes2 = (unsigned char *)[new_bitmap2 bitmapData];
+            
+            unsigned char *from = [imgRep bitmapData];
+            
+            
+            int j = 0;
+            int i;
+            
+            for (i = 0; i < size.width * size.height * 4; i += 4) {
+                unsigned char r, g, b, a;
+                r = *(from + i+0);
+                g = *(from + i+1);
+                b = *(from + i+2);
+                a = *(from + i + 3);
+                
+              
+                *(newbytes + j + 0) = r;
+                *(newbytes + j + 1) = g;
+                *(newbytes + j + 2) = b;
+                *(newbytes + j + 3) = 255;
+    
+                j += 4;
+            }
+            
+            for (i = 0; i < size.width * size.height * 4; i += 4) {
+                unsigned char r, g, b, a;
+                r = *(from + i+0);
+                g = *(from + i+1);
+                b = *(from + i+2);
+                a = *(from + i + 3);
+                
+                
+                *(newbytes2 + i + 0) = a;
+                *(newbytes2 + i + 1) = a;
+                *(newbytes2 + i + 2) = a;
+                *(newbytes2 + i + 3) = 255;
+                
+                j += 4;
+            }
+            
+            [renderImage addRepresentation:new_bitmap2];
+            NSImage *newImage = [[NSImage alloc] initWithSize:NSMakeSize(size.width,size.height)];
+            [newImage lockFocus];
+            [new_bitmap draw];
+            [newImage unlockFocus];
+            
+            [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/swordedit" attributes:nil];
+            
+            NSData *data = [newImage TIFFRepresentation];
+            
+            NSString *output = [NSString stringWithFormat:@"/tmp/swordedit/%@_original.tiff", [tmpBitm tagName]];
+            [data writeToFile:output atomically: YES];
+    
+            
+            
+           
+            NSString *file = [NSString stringWithFormat:@"/tmp/swordedit/%@_alpha.tiff", [tmpBitm tagName]];
+            if (![[NSFileManager defaultManager] fileExistsAtPath:file isDirectory:NO])
+            {
+                //Write the texture images to the desktop
+                [[renderImage TIFFRepresentation] writeToFile:file atomically:YES];
+
+            }
+            
+            
+
+        }
+    //}
+    return;
+
+}
+
 - (void)loadTextureOfIdent:(long)ident subImage:(int)index
 {
 	
@@ -85,7 +216,7 @@
 	//NSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
 		
 	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
-	
+
 	if (![tmpBitm imageAlreadyLoaded:index])
 	{
 		[tmpBitm loadImage:index];
@@ -97,6 +228,7 @@
         
         if (TRUE)//useNewRenderer() == 2)
 		{
+            
             if ([tmpBitm imagePixelsForImageIndex:index] !=  NULL)
             {
                 gluBuild2DMipmaps(GL_TEXTURE_2D,
@@ -107,6 +239,11 @@
                                        GL_UNSIGNED_BYTE,
                                        [tmpBitm imagePixelsForImageIndex:index]);
             }
+            else
+            {
+                NSLog(@"Missing bytes?");
+            }
+            
         }
         else
         {
@@ -177,6 +314,285 @@
 	}
 	[tmpBitm release];
 }
+
+-(NSString*)nameForImage:(long)ident
+{
+    if (!_textures)
+		return @"";
+    
+    int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
+	BitmapTag *tmpBitm = [_textures objectAtIndex:texIndex];
+    return [tmpBitm tagName];
+}
+
+-(BitmapTag*)updateBitmapDataWithIdent:(long)ident data:(unsigned char*)dat index:(int)index
+{
+    if (!_textures)
+		return nil;
+    
+    int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
+    BitmapTag *temp = [_textures objectAtIndex:texIndex];
+    [temp setImagePixelsForImageIndex:index withBytes:(unsigned int*)dat];
+    [_textures replaceObjectAtIndex:texIndex withObject:temp];
+}
+
+
+-(BitmapTag*)bitmapWithIdent:(long)ident
+{
+    if (!_textures)
+		return nil;
+    
+    int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
+    return [_textures objectAtIndex:texIndex];
+}
+
+- (void)refreshTextureOfIdent:(long)ident
+{
+    [self refreshTextureOfIdent:ident index:0];
+}
+
+/* Ok, here comes the fun part. */
+- (void)refreshTextureOfIdent:(long)ident index:(int)index
+{
+	if (!_textures)
+		return;
+    
+    int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
+	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
+    
+    
+    //Delete texture
+    if( &_glTextureTable[texIndex][index] != 0 )
+    {
+        glDeleteTextures( 1, &_glTextureTable[texIndex][index] );
+    }
+    
+    // Now lets upload it to OpenGL
+    glGenTextures(1,&_glTextureTable[texIndex][index]);
+    glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][index]);
+        
+    if ([tmpBitm imagePixelsForImageIndex:index] !=  NULL)
+    {
+        gluBuild2DMipmaps(GL_TEXTURE_2D,
+                          GL_RGBA,
+                          [tmpBitm textureSizeForImageIndex:index].width,
+                          [tmpBitm textureSizeForImageIndex:index].height,
+                          GL_RGBA,
+                          GL_UNSIGNED_BYTE,
+                          [tmpBitm imagePixelsForImageIndex:index]);
+    }
+    else
+    {
+        NSLog(@"Missing texture?");
+    }
+	
+	[tmpBitm release];
+}
+
+
+/* Ok, here comes the fun part. */
+- (void)refreshTextureOfIdentOld:(long)ident
+{
+    
+	if (!_textures)
+		return;
+    
+    int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
+	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
+	//imagePixelsForImageIndex
+    NSString *file = [NSString stringWithFormat:@"%@/Desktop/Images/%@_original.tiff", NSHomeDirectory(), [tmpBitm tagName]];
+    NSString *alphaim = [NSString stringWithFormat:@"%@/Desktop/Images/%@_alpha.tiff", NSHomeDirectory(), [tmpBitm tagName]];
+    //NSImage *image = [[NSImage alloc] initWithContentsOfFile:file];
+    
+    NSRect bigRect;
+    NSBitmapImageRep *upsideDown, *_imageRep, *alpha;
+    int bytesPerRow, bitsPerPixel, height, hasAlpha, i;
+    unsigned char *from, *to, *ald;
+    
+    bigRect.origin = NSZeroPoint;
+    
+    /*[image setBackgroundColor:[NSColor clearColor]];
+    [image lockFocus];
+    upsideDown = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0, 0, image.size.width, image.size.height)];
+    [image unlockFocus];*/
+    
+    upsideDown = [[NSBitmapImageRep imageRepWithContentsOfFile:file] retain];
+    alpha = [[NSBitmapImageRep imageRepWithContentsOfFile:alphaim] retain];
+    bigRect.size = [upsideDown size];
+
+    
+    from = [upsideDown bitmapData];
+    ald = [alpha bitmapData];
+    [upsideDown release];
+    [alpha release];
+    
+    int j;
+    int cell_width = [upsideDown pixelsWide];
+    int cell_height = [upsideDown pixelsHigh];
+    
+    NSBitmapImageRep *new_bitmap = [[[NSBitmapImageRep alloc] initWithBitmapDataPlanes: NULL
+                                                                            pixelsWide: cell_width
+                                                                            pixelsHigh: cell_height
+                                                                         bitsPerSample: 8
+                                                                       samplesPerPixel: 4
+                                                                              hasAlpha: YES
+                                                                              isPlanar: NO
+                                                                        colorSpaceName: NSCalibratedRGBColorSpace
+                                                                           bytesPerRow: 0
+                                                                          bitsPerPixel: 0] autorelease];
+    unsigned char *newbytes = (unsigned char *)[new_bitmap bitmapData];
+    
+    j = 0;
+    for (i = 0; i < cell_width * cell_height * 4; i += 4) {
+        unsigned char r, g, b, a;
+        r = *(from + i+0);
+        g = *(from + i+1);
+        b = *(from + i+2);
+        a = *(ald  + i);
+        
+     
+        *(newbytes + j + 0) = r;
+        *(newbytes + j + 1) = g;
+        *(newbytes + j + 2) = b;
+        *(newbytes + j + 3) = a;
+        
+        
+        j += 4;
+    }
+    /*
+    NSImage *newImage = [[NSImage alloc] initWithSize:NSMakeSize(cell_width,cell_height)];
+    [newImage lockFocus];
+    [new_bitmap draw];
+    [newImage unlockFocus];
+    
+    NSData *data = [newImage TIFFRepresentation];
+    
+    NSString *output = [NSString stringWithFormat:@"%@/Desktop/Images/%@.tiff", NSHomeDirectory(), @"Out"];
+    [data writeToFile:output atomically: YES];
+    */
+    
+    
+    [tmpBitm setImagePixelsForImageIndex:0 withBytes:from];
+    [_textures replaceObjectAtIndex:texIndex withObject:tmpBitm];
+    // create the texture
+    
+    //Delete texture
+    if( &_glTextureTable[texIndex][texIndex] != 0 )
+    {
+        glDeleteTextures( 1, &_glTextureTable[texIndex][texIndex] );
+    }
+    
+    
+    
+    
+
+        glGenTextures(1,&_glTextureTable[texIndex][texIndex]);
+        glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][0]);
+    
+    
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, bytesPerRow / (bitsPerPixel >> 3));
+
+    
+        gluBuild2DMipmaps(GL_TEXTURE_2D,
+                     GL_RGBA,
+                     bigRect.size.width,
+                     bigRect.size.height,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     newbytes);
+    
+    //Unbind texture
+    glBindTexture( GL_TEXTURE_2D, NULL );
+
+    
+    //glEnable(GL_ALPHA);
+    
+}
+
+/* Ok, here comes the fun part. */
+- (void)blendTextureOfIdent:(long)ident subImage:(int)subImage useAlphas:(BOOL)useAlphas
+{
+	if (!_textures)
+		return;
+    
+	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
+    
+	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
+	
+	if (![tmpBitm imageAlreadyLoaded:subImage])
+		return;
+    
+    //Remove alphas!
+    unsigned char *pixels = [tmpBitm imagePixelsForImageIndex:subImage];
+    if (pixels)
+    {
+    NSSize size = NSMakeSize([tmpBitm textureSizeForImageIndex:subImage].width, [tmpBitm textureSizeForImageIndex:subImage].height);
+    long as;
+    for (as = 0; as < size.width * size.height * 4; as += 4)
+    {
+        
+        *(pixels + as + 3) = ((255-*(pixels + as + 0))+(255-*(pixels + as + 1))+(255-*(pixels + as + 2)))/3;
+    }
+    
+    //Delete texture
+    if( &_glTextureTable[texIndex][subImage] != 0 )
+    {
+        glDeleteTextures( 1, &_glTextureTable[texIndex][subImage] );
+    }
+    // Now lets upload it to OpenGL
+    glGenTextures(1,&_glTextureTable[texIndex][subImage]);
+    glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
+    
+    if ([tmpBitm imagePixelsForImageIndex:subImage] !=  NULL)
+    {
+        gluBuild2DMipmaps(GL_TEXTURE_2D,
+                          GL_RGBA,
+                          [tmpBitm textureSizeForImageIndex:subImage].width,
+                          [tmpBitm textureSizeForImageIndex:subImage].height,
+                          GL_RGBA,
+                          GL_UNSIGNED_BYTE,
+                          pixels);
+    }
+    else
+    {
+    }
+
+    }
+    
+    
+	glEnable(GL_TEXTURE_2D);
+	
+	// This will be outdated as soon as I implement per-texture type alpha rendering
+	if (YES)
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	}
+	
+    
+	glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
+	glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
+    
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_BLEND, GL_MODULATE);
+	
+	[tmpBitm release];
+}
+
+
 /* Ok, here comes the fun part. */
 - (void)activateTextureOfIdent:(long)ident subImage:(int)subImage useAlphas:(BOOL)useAlphas
 {
@@ -210,6 +626,8 @@
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_BLEND, GL_MODULATE);
 	
 	[tmpBitm release];
 }
@@ -232,10 +650,12 @@
 	BitmapTag	*mapBitmap = [[_textures objectAtIndex:texIndex] retain],
 				*lightmapBitmap = [[_textures objectAtIndex:lightmapIndex] retain];
 		
-	
+
+#ifndef LITE
     
     if (lightmapIndex)
     {
+        
         glActiveTextureARB(GL_TEXTURE1_ARB);
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, _glTextureTable[lightmapIndex][0]);
@@ -269,7 +689,15 @@
         glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
-    
+#else
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, _glTextureTable[texIndex][0]);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+#endif
     
 	[mapBitmap release];
 	[lightmapBitmap release];

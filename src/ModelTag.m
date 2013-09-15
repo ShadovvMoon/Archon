@@ -203,6 +203,7 @@
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_BLEND);
         }
+        
         glBegin(GL_LINES);
         {
             // Now to try some other stuffs! Bwahaha!
@@ -221,6 +222,8 @@
             glVertex3f(0.0f,0.0f,lineLength);
         }
         glEnd();
+        
+        
         if (useNewRenderer())
         {
             glEnableClientState(GL_VERTEX_ARRAY);
@@ -250,6 +253,8 @@
         gluQuadricTexture( sphere, GL_TRUE);
         
         gluSphere(sphere,0.05,5,5);
+        gluDeleteQuadric ( sphere );
+        
         glDisable(GL_BLEND);
         
         
@@ -290,7 +295,7 @@
         
         if (renderV)
         {
-                if (![[renderV isAboveGround:point] boolValue])
+                if (![renderV isAboveGround:point])
                     glColor4f(1.0f,0.0f,0.0f,0.2f);
                 else
                     glColor4f(1.0f,1.0f,0.0f,4.0f);

@@ -10,8 +10,8 @@
 #import "BSP.h"
 #import "Bitmask.h"
 
-#import <SecurityFoundation/SFAuthorization.h>
-#import <Security/AuthorizationTags.h>
+//#import <SecurityFoundation/SFAuthorization.h>
+//#import <Security/AuthorizationTags.h>
 #import "unistd.h"
 
 
@@ -74,40 +74,6 @@ int compare(const void *a, const void *b);
 
 -(void)resetMachineReferences
 {
-}
-
-static g_PID(pid_t process)
-{
-	vm_map_t task;
-	
-	if ( task_for_pid( current_task(), process, &task ) == KERN_SUCCESS ) {
-		return task;
-	}
-	return 0;
-}
-BOOL insertMemory( pid_t process, vm_address_t address, const void *bytes, vm_size_t size )
-{
-	vm_map_t task = g_PID( process );
-	kern_return_t result;
-	
-	// attempt to write the bytes and return success/failure
-	result = vm_write( task, address, (vm_address_t)bytes, size );
-	return (result == KERN_SUCCESS);
-}
-
-BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *size )
-{
-	vm_map_t task = g_PID( process );
-	kern_return_t result;
-	vm_size_t staticsize = *size;
-	
-	// perform the read
-	result = vm_read_overwrite( task, address, staticsize, (vm_address_t)bytes, size );
-	if ( result != KERN_SUCCESS ) {
-		return NO;
-	}
-	
-	return YES;
 }
 
 
@@ -321,7 +287,7 @@ BOOL readMemory( pid_t process, vm_address_t address, void *bytes, vm_size_t *si
     /* BEGIN BIPD SPAWNS */
 	positionInScenario = header.BipedRef.offset;
 	for (x = 0; x < header.BipedRef.chunkcount; x++)
-		bipd_references[x] = [self readBipdReference];
+		bipd_references[x] = (bipd_reference)[self readBipdReference];
 	bipd_ref_count = header.BipedRef.chunkcount;
 
 	/* END VEHICLE SPAWNS */
@@ -1464,6 +1430,46 @@ Begin Duplication Methods
 }
 
 /*createPlayerSpawn*/
+- (unsigned int)createBlueSpawn:(float *)coord
+{
+    NSLog(@"Create blue spawn");
+	player_spawn tmpSpawn, *tmpSpawnPointer;
+	
+	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/player_spawn_blue.seo"];
+	FILE *tmpFile = fopen([scen cString],"rb+");
+	fread(&tmpSpawn, sizeof(player_spawn), 1, tmpFile);
+	fclose(tmpFile);
+	
+	// Lets copy the data
+	if (!coord[0] || !coord[1] || !coord[2])
+		return 0;
+	
+	tmpSpawn.coord[0] = coord[0];
+	tmpSpawn.coord[1] = (coord[1]);
+	tmpSpawn.coord[2] = coord[2];
+	//tmpSpawn.rotation[0]=0;
+	//tmpSpawn.rotation[1]=0;
+	//tmpSpawn.rotation[2]=0;
+	
+	tmpSpawn.isSelected = NO;
+	//tmpSpawn.numid=0;
+	
+	//tmpSpawn.modelIdent = [self baseModelIdent:item_[0].scen_ref.TagId];
+	
+	// Now lets redo the counters.
+	player_spawn_count += 1;
+	header.PlayerSpawn.newChunkCount = player_spawn_count;
+	
+	tmpSpawnPointer = malloc(sizeof(player_spawn) * player_spawn_count);
+	
+	// Copy the old scenery
+	memcpy(tmpSpawnPointer,spawns,(sizeof(player_spawn) * (player_spawn_count - 1)));
+	memcpy(&tmpSpawnPointer[player_spawn_count-1], &tmpSpawn, sizeof(player_spawn));
+	free(spawns);
+	spawns = tmpSpawnPointer;
+	
+	return (player_spawn_count-1);
+}
 
 - (unsigned int)createRedSpawn:(float *)coord
 {
@@ -1471,7 +1477,7 @@ Begin Duplication Methods
 	player_spawn tmpSpawn, *tmpSpawnPointer;
 	
 	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/player_spawn_red.seo"];
-	FILE *tmpFile = fopen([scen cString],"r+");
+	FILE *tmpFile = fopen([scen cString],"rb+");
 	fread(&tmpSpawn, sizeof(player_spawn), 1, tmpFile);
 	fclose(tmpFile);
 	
@@ -1513,7 +1519,7 @@ Begin Duplication Methods
 	mp_equipment tmpSpawn, *tmpSpawnPointer;
 	
 	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/item.seo"];
-	FILE *tmpFile = fopen([scen cString],"r+");
+	FILE *tmpFile = fopen([scen cString],"rb+");
 	fread(&tmpSpawn, sizeof(mp_equipment), 1, tmpFile);
 	fclose(tmpFile);
 	
@@ -1554,7 +1560,7 @@ Begin Duplication Methods
 	vehicle_spawn tmpSpawn, *tmpSpawnPointer;
 	
 	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/vehicle.seo"];
-	FILE *tmpFile = fopen([scen cString],"r+");
+	FILE *tmpFile = fopen([scen cString],"rb+");
 	fread(&tmpSpawn, sizeof(vehicle_spawn), 1, tmpFile);
 	fclose(tmpFile);
 	
@@ -1597,7 +1603,7 @@ Begin Duplication Methods
 	scenery_spawn tmpSpawn, *tmpSpawnPointer;
 	
 	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/scenery.seo"];
-	FILE *tmpFile = fopen([scen cString],"r+");
+	FILE *tmpFile = fopen([scen cString],"rb+");
 	fread(&tmpSpawn, sizeof(scenery_spawn), 1, tmpFile);
 	fclose(tmpFile);
 	
@@ -1638,7 +1644,7 @@ Begin Duplication Methods
 	machine_spawn tmpSpawn, *tmpSpawnPointer;
 	
 	NSString *scen = [[[NSBundle bundleForClass:[self class]]resourcePath] stringByAppendingString:@"/machine.seo"];
-	FILE *tmpFile = fopen([scen cString],"r+");
+	FILE *tmpFile = fopen([scen cString],"rb+");
 	fread(&tmpSpawn, sizeof(machine_spawn), 1, tmpFile);
 	fclose(tmpFile);
 	
@@ -3103,7 +3109,7 @@ if (debug) NSLog(@"Writing bsp...");
 	
 	/* TEST WRITE */
 	#ifdef __DEBUG__
-	FILE *tmpFile = fopen("test.scnr","w+");
+	FILE *tmpFile = fopen("test.scnr","wb+");
 	
 	fwrite(scnr,[self tagLength],1,tmpFile);
 	
@@ -3122,7 +3128,7 @@ if (debug) NSLog(@"Writing bsp...");
 /*
 
 	// Lets write these changes so we can check this
-	FILE *tmpFile = fopen("test.scnr","w+");
+	FILE *tmpFile = fopen("test.scnr","wb+");
 	
 	fwrite(scnr,[self tagLength],1,tmpFile);
 	

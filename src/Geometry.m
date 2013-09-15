@@ -17,7 +17,6 @@
 
 #import <OpenGL/OpenGL.h>
 
-
 @implementation Geometry
 - (id)initWithMap:(HaloMap *)map parent:(ModelTag *)mTag
 {
@@ -193,6 +192,18 @@
                 
                 //NSLog(@"ICHS loaded");
             }
+            /*else if ([type isEqualToString:@"algs"])
+            {
+                //NSLog(@"LOADING GLASS");
+                //NSLog([parent tagName]);
+                
+                parts[x].shaderBitmapIndex = [[[_mapfile bitmsTagForShaderId:[parent shaderIdentForIndex:parts[x].shaderIndex]] objectAtIndex:1] idOfTag];
+                parts[x].baseMapIndex = parts[x].shaderBitmapIndex;
+                parts[x].detailMapIndex = -1;
+                
+                parts[x].lengthOfBitmapArray = -1;
+                [[parent _texManager] loadTextureOfIdent:parts[x].shaderBitmapIndex subImage:0];
+            }*/
             else if ([type isEqualToString:@"xecs"])
             {
                // NSLog(@"Loading xecs");
@@ -474,7 +485,7 @@
                     
                     if ([parent _texManager]._textures)
                     {
-                        
+                #ifndef LITE
                         for (g=0; g < maps; g++)
                         {
         
@@ -572,6 +583,22 @@
                             glBindTexture(GL_TEXTURE_2D, 0);
                             glDisable(GL_TEXTURE_2D);
                         }
+#else
+                        
+                        //PC Friendly VBO rendering
+                        
+                        /* GL Texture stuff goes hur */
+                        if (currentPart.shaderIndex != -1)
+                        {
+                            [[parent _texManager] activateTextureOfIdent:currentPart.shaderBitmapIndex subImage:0 useAlphas:useAlphas];
+                        }
+                        
+                        
+                        glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);//&currentPart.shader->read_maps[g].texture_uv);
+                        glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
+                        
+                        
+#endif
                     }
      
                     glDisable(GL_ALPHA_TEST);
@@ -604,7 +631,7 @@
                     
                     //glColor4f(1.0, 1.0, 1.0, 1.5);
                     
-                    
+                    #ifndef LITE
                     
                     glActiveTextureARB(GL_TEXTURE0_ARB);
    
@@ -656,11 +683,25 @@
                     glBindTexture(GL_TEXTURE_2D, 0);
                     glDisable(GL_TEXTURE_2D);
                     glDisable(GL_BLEND);
+#else
+                    //PC Friendly VBO rendering
                     
+                    /* GL Texture stuff goes hur */
+                    if (currentPart.shaderIndex != -1)
+                    {
+                        [[parent _texManager] activateTextureOfIdent:currentPart.shaderBitmapIndex subImage:0 useAlphas:useAlphas];
+                    }
+                    
+                    
+                    glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);//&currentPart.shader->read_maps[g].texture_uv);
+                    glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
+                    
+#endif
                     
                 }
                 else if (currentPart.shaderIndex != -1)
                 {
+                    #ifndef LITE
       
                     if (useNewRenderer() == 2)
                         continue;
@@ -677,6 +718,21 @@
                     
                     glClientActiveTextureARB(GL_TEXTURE0_ARB);
                     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+                    //PC Friendly VBO rendering
+                    
+                    /* GL Texture stuff goes hur */
+                    if (currentPart.shaderIndex != -1)
+                    {
+                        [[parent _texManager] activateTextureOfIdent:currentPart.shaderBitmapIndex subImage:0 useAlphas:useAlphas];
+                    }
+                    
+                    
+                    glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);//&currentPart.shader->read_maps[g].texture_uv);
+                    glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
+                    
+                    
+#endif
                     
                 }
                 
@@ -688,6 +744,7 @@
         
 
         return;
+
     }
     
     //END CODE

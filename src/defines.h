@@ -6,12 +6,15 @@
  *  Copyright 2008 sword Inc. All rights reserved.
  *
  */
- 
+#ifndef MACVERSION
+ #import "glew.h"
+#endif
+
 #import <OpenGL/OpenGL.h>
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
 
-#define MAX_SCENARIO_OBJECTS 1000
+#define MAX_SCENARIO_OBJECTS 100000
 //#define fasterRendering 1
 
 #define VBO 1
@@ -96,7 +99,11 @@ typedef enum
 {
 	rotate_camera,
 	translate,
-	rotate
+	rotate,
+    dirt,
+    grass,
+    lightmap,
+    eyedrop
 } Mode;
 
 typedef enum 
@@ -542,7 +549,35 @@ typedef struct player_spawn
 	bool isMoving;
 } player_spawn;
 #define PLAYER_SPAWN_CHUNK 0x34
+ struct Bsp2dRef{
+    int plane; // The plane used to decide what basis plane is best to project on (X,Y), (Y,Z) or (X,Z)
+    int node; // starting node, if < 0 then node refers directly to a surface
+};
+ struct Bsp2dNodes{
+    float a;    // ab and d uniquely define a 2d plane
+    float b;
+    float d;
+    int leftChild; // if < 0 this refers to a surface (Ex, surface = leftChild & 0x7FFFFFFF;
+    int rightChild;
+};
 
+ struct Surfaces{
+    int plane;
+    int firstEdge;
+    int SomeOtherstuffs;
+};
+ struct Edges{  // Half edge data structure see:
+    int startVertex;
+    int endVertex;
+    int forwardEdge;
+    int reverseEdge;
+    int leftFace;
+    int rightFace;
+};
+ struct Verticies{
+    float x,y,z;
+    int firstEdge;
+};
 typedef struct multiplayer_flags
 {
 	float coord[3];
@@ -922,16 +957,57 @@ typedef struct
   unsigned long unknown[4];
   reflexive Material;
 }BSP_LIGHTMAP;
+
+struct Bsp3dNode{
+    int plane;  // if < 0, then the plane is flipped (I'm not 100% sure about that though)
+    int backNode; // if < 0, then the left node is a leaf, the leaf index can be obtained by masking off the MSB from the node (Ex: leaf = node & 0x7FFFFFFF;)
+    int frontNode; // if < 0, then the right node is a leaf, see above
+};
+
+struct Plane{ //I think that this is traditionally (i,j,k,d), but I  like my naming scheme better.
+    float a;
+    float b;
+    float c;
+    float d;
+};
+
+struct Leaf3d
+{
+    int flags;
+    int bsp2dRef; // Don't worry about this right now
+    int bsp2dCount; // Don't worry about this right now
+};
+
+// Note that these are an extension to the Leaf3d block of the collision structure
+struct Leaves
+{
+    int cluster;
+    int surfaceRefCount;
+    int surfaceRef;
+};
+
+
 typedef struct
 {
 	short LightmapIndex;
 	short unk1;
 	unsigned long unknown[4];
+    
+    
+    reflexive Node3D;
+    reflexive Planes;
+    reflexive Leaves;
+    reflexive BSP2DRef;
+    reflexive BSP2DNodes;
+    reflexive Surfaces;
+    reflexive Edges;
 	reflexive Material;
+    
+    
 }BSP_COLLISION;
 typedef struct
 {
-	short x, y, z;
+	float x, y, z;
 	float edge;
 	
 	int isSelected;

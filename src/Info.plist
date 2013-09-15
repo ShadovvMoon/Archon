@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
-	<string>swordedit.icns</string>
+	<string>Archon</string>
 	<key>CFBundleIdentifier</key>
 	<string>net.samuco.sunlight</string>
 	<key>CFBundleInfoDictionaryVersion</key>

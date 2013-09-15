@@ -56,6 +56,20 @@
 
 - (void)awakeFromNib
 {
+    NSLog(@"Checking mac");
+    /*
+#ifndef MACVERSION
+    userDefaults = [NSUserDefaults standardUserDefaults];
+	
+	[self loadPrefs];
+	
+	[rendView loadPrefs];
+	[mainWindow makeKeyAndOrderFront:self];
+    
+    return;
+#endif*/
+    
+    NSLog(@"Loading nib");
 	//Set the process ID
 	haloProcessID = 0;
 	
@@ -71,8 +85,8 @@
 	
 	/* Beta experation code */
 	NSString *nowString = [NSString stringWithUTF8String:__DATE__];
-	NSCalendarDate *nowDate = [NSCalendarDate dateWithNaturalLanguageString:nowString];
-	NSCalendarDate *expireDate = [nowDate addTimeInterval:(60 * 60 * 24 * 10)];
+	//NSCalendarDate *nowDate = [NSCalendarDate dateWithNaturalLanguageString:nowString];
+	//NSCalendarDate *expireDate = [nowDate addTimeInterval:(60 * 60 * 24 * 10)];
 	
 	/*if ([expireDate earlierDate:[NSDate date]] == expireDate)
 	{
@@ -94,8 +108,10 @@
 		[self selectBitmapLocation];
 	}
         
+#ifdef RENDERINGALLOWED
 	[rendView loadPrefs];
-	[mainWindow makeKeyAndOrderFront:self];
+#endif
+	
 	//[mainWindow center];
 	
 	NSString *autoa = [NSString stringWithContentsOfFile:@"/tmp/starlight.auto"];
@@ -110,7 +126,7 @@
 			//[selecte center];
 			//[selecte makeKeyAndOrderFront:nil];
 			
-			[[NSApplication sharedApplication] beginSheet:selecte modalForWindow:[rendView window] modalDelegate:self didEndSelector:nil contextInfo:self];
+			//[[NSApplication sharedApplication] beginSheet:selecte modalForWindow:[rendView window] modalDelegate:self didEndSelector:nil contextInfo:self];
 			
 			
 			[tpro setUsesThreadedAnimation:YES];
@@ -122,6 +138,28 @@
 		}
 	}
 	}
+    
+
+    //Update the window sizing
+    float windowSizes = 312;
+    NSRect screenRect = [[NSScreen mainScreen] frame];
+
+//[mainWindow setFrame:NSMakeRect(screenRect.origin.x, screenRect.origin.y, screenRect.size.width-windowSizes, screenRect.size.height) display:YES];
+    
+    if (![[NSUserDefaults standardUserDefaults] objectForKey:@"FirstTime"])
+    {
+        [editorWindow center];
+        [selectionWindow center];
+        [renderingWindow center];
+        [selectionSWindow center];
+            
+        [mainWindow center];
+        
+        [[NSUserDefaults standardUserDefaults] setObject:@"No" forKey:@"FirstTime"];
+    }
+    
+    [mainWindow makeKeyAndOrderFront:self];
+    
 }
 
 -(void)OpenMap:(NSString *)t
@@ -139,13 +177,17 @@
 			
 			
 			NSDate* startTime = [NSDate date];
+            
+#ifdef RENDERINGALLOWED
 			[rendView setPID:[self PID]];
 			[rendView setMapObject:mapfile];
+#endif
+            
 			[bitmapView setMapfile:mapfile];
 			[spawnEditor setMapFile:mapfile];
 			
 			[selecte orderOut:nil];
-			[NSApp endSheet:selecte];
+			//[NSApp endSheet:selecte];
 			
 			[tpro stopAnimation:self];
 			
@@ -174,7 +216,7 @@
 	
 	if ([open runModalForTypes:[NSArray arrayWithObjects:@"map", nil]] == NSOKButton)
 	{
-		[[NSApplication sharedApplication] beginSheet:selecte modalForWindow:[rendView window] modalDelegate:self didEndSelector:nil contextInfo:self];
+		//[[NSApplication sharedApplication] beginSheet:selecte modalForWindow:[rendView window] modalDelegate:self didEndSelector:nil contextInfo:self];
 		
 		[tpro setUsesThreadedAnimation:YES];
 		[tpro startAnimation:nil];
@@ -195,7 +237,7 @@
 	}
 	else {
 		[selecte orderOut:nil];
-		[NSApp endSheet:selecte];
+		//[NSApp endSheet:selecte];
 	}
 
 	
@@ -224,23 +266,7 @@
 		
 		//Restart map
 		return;
-		//Get camera positions
-		
-		float* pos = [rendView getCameraPos];
-		float* view = [rendView getCameraView];
-		
-		[mapfile closeMap];
 
-    
-		[[NSString stringWithFormat:@"%@, %f, %f, %f, %f, %f, %f", [opened stringValue], pos[0],pos[1],pos[2], view[0],view[1],view[2]]  writeToFile:@"/tmp/starlight.auto" atomically:YES];
-		
-		//RElaunch
-		
-		NSString *relaunch = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"relaunch"];
-		int procid = [[NSProcessInfo processInfo] processIdentifier];
-		[NSTask launchedTaskWithLaunchPath:relaunch arguments:[NSArray arrayWithObjects:[[NSBundle mainBundle] bundlePath], [NSString stringWithFormat:@"%d",procid], nil]];
-		[NSApp terminate:NULL];
-		
 		//[self loadMapFile:opened];
 	//}
 }
@@ -275,6 +301,8 @@
 }
 - (void)closeMapFile
 {
+    
+#ifdef RENDERINGALLOWED
 	[rendView stopDrawing];
 	if (mapfile)
 	{
@@ -284,6 +312,7 @@
 		[mapfile destroy];
 		[mapfile release];
 	}
+#endif
 }
 - (void)loadPrefs
 {
@@ -313,8 +342,11 @@
     [bitmapLocationText setStringValue:bitmapFilePath];
     [userDefaults setBool:TRUE forKey:@"_firstTimeUse"];
 	[userDefaults synchronize];
-	[rendView loadPrefs];
     
+    
+#ifdef RENDERINGALLOWED
+	[rendView loadPrefs];
+#endif
     return;
 	NSRunAlertPanel(@"Starlight",@"Welcome to starlight. Before you can begin, you must first setup the program.",@"Continue",nil,nil);
 	NSRunAlertPanel(@"Halo Bitmap",@"You'll be asked to specify the location of the bitmaps file you wish to use in just a moment.",@"Locate...",nil,nil);
@@ -344,7 +376,11 @@
 	NSRunAlertPanel(@"Setup Complete!",@"You may change all of these settings in the Rendering panel at a later date",@"Finish",nil,nil);
 	[userDefaults setBool:TRUE forKey:@"_firstTimeUse"];
 	[userDefaults synchronize];
+    
+    
+#ifdef RENDERINGALLOWED
 	[rendView loadPrefs];
+#endif
 }
 - (BOOL)selectBitmapLocation
 {
@@ -379,9 +415,12 @@
 					NSLog(@"Loaded!");
 					NSLog(@"Setting renderview map objects...");
 					#endif
+                    
+#ifdef RENDERINGALLOWED
 					[rendView setMapObject:mapfile];
 					[bitmapView setMapfile:mapfile];
 					[spawnEditor setMapFile:mapfile];
+#endif
 					break;
 				case 1:
 					break;

@@ -19,6 +19,9 @@ static Preferences *sharedInstance = nil;
 
 - (id)init
 {
+    NSLog(@"Preferences window");
+    
+    
 	if (sharedInstance)
 		[self dealloc];
 	else

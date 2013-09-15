@@ -127,6 +127,7 @@ enum
 - (scenery_reference)readSceneryReference;
 - (scenery_spawn)readScenerySpawn;
 - (vehicle_reference)readVehicleReference;
+- (bipd_reference)readBipdReference;
 - (vehicle_spawn)readVehicleSpawn;
 - (SkyBox)readSkyBox;
 - (machine_ref)readMachineReference;

@@ -5,6 +5,10 @@
 //  Created by Michael Edgar on Tue Jul 20 2004.
 //  Copyright (c) 2004 __MyCompanyName__. All rights reserved.
 //
+#ifndef MACVERSION
+#import "glew.h"
+#endif
+
 #import <OpenGL/OpenGL.h>
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
@@ -26,6 +30,8 @@
 - (void)DoUnProject:(float)ifX ifY:(float) ifY ofObjX:(float*)ofObjX ofObjY:(float*)ofObjY ofObjZ:(float*)ofObjZ ifZ:(float)ifZ ibUseZ:(bool)ibUseZ;
 - (float*)position;
 - (float *)vView;
+- (float *)vUp;
+- (float *)vStrafe;
 - (void) Update;
 - (void) MoveCamera:(float)delta;
 - (void) LevitateCamera:(float)delta;

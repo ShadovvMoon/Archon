@@ -5,6 +5,9 @@
 //  Created by sword on 6/2/08.
 //  Copyright 2008 sword Inc. All rights reserved.
 //
+#ifndef MACVERSION
+#import "glew.h"
+#endif
 
 #import <Cocoa/Cocoa.h>
 

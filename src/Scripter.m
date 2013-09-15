@@ -12,6 +12,7 @@
 @implementation Scripter
 - (id)init
 {
+    
 	if ((self = [super init]) != nil)
 	{
 	}
@@ -19,6 +20,8 @@
 }
 - (id)initWithMapFile:(HaloMap *)map
 {
+    NSLog(@"Init scripter");
+    
 	if ((self = [super init]) != nil)
 	{
 		// Map reading shit goes here

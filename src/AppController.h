@@ -10,7 +10,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import <PreferencePanes/NSPreferencePane.h>
+//#import <PreferencePanes/NSPreferencePane.h>
 
 #import "HaloMap.h"
 
@@ -46,6 +46,11 @@
 
 	HaloMap *mapfile;
 	NSString *bitmapFilePath;
+    
+    IBOutlet NSWindow *selectionWindow;
+    IBOutlet NSWindow *editorWindow;
+    IBOutlet NSWindow *renderingWindow;
+    IBOutlet NSWindow *selectionSWindow;
 	//NSString *opened;
 }
 - (void)awakeFromNib;

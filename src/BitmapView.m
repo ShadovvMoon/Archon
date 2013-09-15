@@ -26,6 +26,8 @@
 		DEPTH_SIZE,
 		0 
 	};
+    
+    NSLog(@"Creating bitmapview");
     [self setPostsFrameChangedNotifications: YES];
     nsglFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
     if(!nsglFormat) { NSLog(@"Invalid format... terminating."); return nil; }
@@ -47,6 +49,10 @@
 }
 - (void)awakeFromNib
 {
+    NSLog(@"Checking mac bitmapview");
+#ifndef MACVERSION
+    return;
+#endif
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tableViewSelectionDidChange:) name:NSTableViewSelectionDidChangeNotification object:bitmapList];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tableViewSelectionDidChange:) name:NSTableViewSelectionDidChangeNotification object:subImageList];
 }

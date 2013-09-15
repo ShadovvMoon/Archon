@@ -18,6 +18,11 @@
 
 -(void)awakeFromNib
 {
+    NSLog(@"Checking mac utility");
+#ifndef MACVERSION
+    return;
+#endif
+    
 	[[self contentView] addTrackingRect:[[self contentView] bounds] owner:self userData:nil assumeInside:YES];
 	[self setAlphaValue:0.2];
 }

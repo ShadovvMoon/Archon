@@ -87,7 +87,10 @@
 }
 - (BOOL)checkIsPPC
 {
+#ifdef MACVERSION
 	return (CFByteOrderGetCurrent() == CFByteOrderBigEndian);
+#endif
+   return NO;
 }
 /*
 	@function loadMap, the actual map-loading function for the HaloMap class.
@@ -112,7 +115,7 @@
 	if (mapName == nil)
 		return 2;
 	
-	mapFile = fopen([mapName cString],"r+");
+	mapFile = fopen([mapName cString],"rb+");
 	
 	if (!mapFile)
 	{
@@ -120,8 +123,10 @@
 		NSLog(@"Cannot read map.");
 		return 3;
 	}
+    
+    NSLog(bitmapFilePath);
 	
-	bitmapsFile = fopen([bitmapFilePath cString], "r+");
+	bitmapsFile = fopen([bitmapFilePath cString], "rb+");
 	
 	// Lets load the map header, ok?
 	[self readLongAtAddress:&mapHeader.map_id address:0x0];
@@ -256,7 +261,7 @@
 		}
 		else if (memcmp([tempTag tagClassHigh], (isPPC ? "matg" : "gtam"), 4) == 0)
 		{
-			NSLog(@"GLOBALS ARRAY");
+			//NSLog(@"GLOBALS ARRAY");
 			[self skipBytes:IndexTagSize];
 			globals_offset = [self currentOffset];
 			// I'll load the scenario later
@@ -279,17 +284,17 @@
             if ([[tempTag tagName] rangeOfString:@"sky"].location != NSNotFound)
             {
                 NSLog([tempTag tagName]);
-                NSLog(@"FOUND SKY");
+                //NSLog(@"FOUND SKY");
                 //bipd = tempModel;
                 //[tempModel loadAllBitmaps];
                 //[bipd retain];
             }
             
-            
+            //NSLog(@"Releasing geometry objects");
            
             
-			[tempModel releaseGeometryObjects];
-			[tempModel release];
+			//[tempModel releaseGeometryObjects];
+			//[tempModel release];
 			
 			// Increment our counter
 			mod2_count++;
@@ -299,14 +304,21 @@
 		else if (memcmp([tempTag tagClassHigh], (isPPC ? "bitm" : "mtib"), 4) == 0)
 		{
 			[self skipBytes:IndexTagSize];
+            
 			BitmapTag *tempBitmap = [[BitmapTag alloc] initWithMapFiles:self
 														bitmap:bitmapsFile
 														ppc:isPPC];
-			[tagArray addObject:tempBitmap];
-			[tempBitmap release];
+            
+            
+    
+                [tagArray addObject:tempBitmap];
+                [tempBitmap release];
+                    
+                // Increment our counter
+                bitm_count++;
+          
 			
-			// Increment our counter
-			bitm_count++;
+			
 			
 			[self seekToAddress:nextOffset];
 		}
@@ -336,6 +348,8 @@
 			[tagArray addObject:tempTag];
 		}
 		
+        
+        
 		// Add the identity of the tag to the lookup dictionary
 		[tagLookupDict setObject:[NSNumber numberWithInt:i] forKey:[NSNumber numberWithLong:[tempTag idOfTag]]];
 		
@@ -403,9 +417,12 @@
 			[bitmTagLookupDict setObject:[NSNumber numberWithLong:[tempTag idOfTag]] forKey:[NSNumber numberWithInt:bitm_counter]];
 			[bitmTagList addObject:[tempTag tagName]];
 			
-			[_texManager addTexture:[tagArray objectAtIndex:i]];
-			
-			bitm_counter++;
+            if (i < [tagArray count])
+            {
+                [_texManager addTexture:[tagArray objectAtIndex:i]];
+                
+                bitm_counter++;
+            }
 		}
 		
 		if (r)
@@ -415,6 +432,7 @@
 	
 	NSLog(@"Loading map...");
 	[self seekToAddress:scenario_offset];
+    NSLog(@"Allocating");
 	mapScenario = [[Scenario alloc] initWithMapFile:self];
 	//NSLog([tagArray description]);
 	[mapScenario setTagLength:[[tagArray objectAtIndex:0] tagLength]];
@@ -578,7 +596,7 @@
 					fwrite(&bytes[x],1,1,mapFile);
 				}
 			}
-			FILE *tmpFile = fopen("test.scnr","w+");
+			FILE *tmpFile = fopen("test.scnr","wb+");
 	
 			fwrite(buffer,size,1,tmpFile);
 		
@@ -1045,12 +1063,11 @@
 	long bitm = 'bitm', tempInt;
 	int x;
 	x = 0;
-	do 
+	do
 	{
 		[self readLong:&tempInt];
 		x++;
 	} while (tempInt != bitm && x < 1000);
-    
 	if (x != 1000)
 	{
 		[self skipBytes:8];
@@ -1314,10 +1331,14 @@
 	[mapScenario saveScenario];
 	NSLog(@"Asdf.");
 	
+    //Export all of the textures.
+    
+    
 	//[mapScenario loadScenario];
     
 	//bspHandler
 	
+    [[bspHandler mesh] exportTextures];
 	
 	//WRITE THE BSP MESH
 	//[[bspHandler mesh] writePcSubmeshes];

@@ -12,6 +12,8 @@
 @implementation ModelView
 - (id)initWithFrame:(NSRect)frame
 {
+    NSLog(@"Creating model view");
+    
 	NSOpenGLPixelFormat *nsglFormat;
 	NSOpenGLPixelFormatAttribute attr[] = 
 	{
@@ -56,6 +58,7 @@
 }
 - (void)drawRect:(NSRect)rect
 {
+    NSLog(@"drawing model");
 	[[self openGLContext] makeCurrentContext];
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();

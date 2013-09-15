@@ -16,6 +16,7 @@
 
 #define BSP_XREF_COUNT 42
 
+
 @class TextureManager;
 
 @interface BspMesh : NSObject {
@@ -31,7 +32,21 @@
 	
 	vert *coll_verts;
 	int coll_count;
+    
+    struct Bsp3dNode *bsp3d_nodes;
+    int node3d_count;
 	
+    struct Plane *planes;
+    int plane_count;
+    int leaf_count;
+    
+    struct Leaf3d *leaves;
+    struct Bsp2dRef *bsp2dref;
+    struct Bsp2dNodes *bsp2dnode;
+    struct Surfaces *surfaces;
+    struct Edges *edges;
+    struct Verticies *verticies;
+    
 	BSP_WEATHER *m_pWeather;
 	BSP_XREF m_BspXrefs[BSP_XREF_COUNT];
 	
@@ -49,6 +64,8 @@
 	int m_activeBsp;
 	int m_TriTotal;
 }
+-(float*)findIntersection:(float*)p withOther:(float*)q;
+
 - (id)initWithMapAndBsp:(HaloMap *)map bsp_class:(BSP *)bsp_class texManager:(TextureManager *)texManager bsp_magic:(unsigned long)bsp_magic;
 - (void)dealloc;
 - (void)freeBSPAllocation;
