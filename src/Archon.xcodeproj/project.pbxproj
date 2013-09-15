@@ -10,7 +10,6 @@
 		1406E43B10F921C3004A983D /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E43A10F921C3004A983D /* Utility.m */; };
 		1406E51610F93B28004A983D /* Selection.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E51510F93B28004A983D /* Selection.m */; };
 		1406E5A510F93FBB004A983D /* SelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E5A410F93FBB004A983D /* SelectView.m */; };
-		142F1A0910F8765100E69B8D /* BGHUDAppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */; };
 		142F1A2F10F8765A00E69B8D /* BGHUDAppKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */; };
 		143B86B712A24D3B0092D35E /* scenery.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86B612A24D3B0092D35E /* scenery.seo */; };
 		143B86EA12A25A0A0092D35E /* machine.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86E912A25A0A0092D35E /* machine.seo */; };
@@ -44,7 +43,6 @@
 		5CEA8D2D0CCC23A100B5636E /* AppController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CEA8D2C0CCC23A100B5636E /* AppController.m */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
-		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		AD30D40617E19EC50071EF5B /* glew.c in Sources */ = {isa = PBXBuildFile; fileRef = AD30D40517E19EC50071EF5B /* glew.c */; };
 		AD55C55017DDE2E00067CD85 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		AD55C55117DDE2E00067CD85 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C00A9120DD5210200C2253D /* Credits.rtf */; };
@@ -87,13 +85,10 @@
 		AD55C57717DDE2E00067CD85 /* Selection.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E51510F93B28004A983D /* Selection.m */; };
 		AD55C57817DDE2E00067CD85 /* SelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1406E5A410F93FBB004A983D /* SelectView.m */; };
 		AD55C58017DDE2E00067CD85 /* BGHUDAppKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */; };
-		AD55C58117DDE2E00067CD85 /* squish.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = AD795130176326910029CCFE /* squish.framework */; };
 		AD55C58E17DDE9D30067CD85 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
 		AD55C59017DDE9D60067CD85 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97324FDCFA39411CA2CEA /* AppKit.framework */; };
 		AD55C59117DDE9D80067CD85 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD79512E1763266E0029CCFE /* Security.framework */; };
 		AD79512F1763266E0029CCFE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD79512E1763266E0029CCFE /* Security.framework */; };
-		AD795131176326910029CCFE /* squish.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD795130176326910029CCFE /* squish.framework */; };
-		AD795132176326A10029CCFE /* squish.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = AD795130176326910029CCFE /* squish.framework */; };
 		AD9CA5BA176D8E03004B109A /* NonKeyPanels.m in Sources */ = {isa = PBXBuildFile; fileRef = AD9CA5B9176D8E03004B109A /* NonKeyPanels.m */; };
 		ADD558011765866D0023C115 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD558001765866D0023C115 /* Main.xib */; };
 		ADD958DC17E2F25200A7E674 /* csbsp.c in Sources */ = {isa = PBXBuildFile; fileRef = ADD958DB17E2F25200A7E674 /* csbsp.c */; };
@@ -101,6 +96,7 @@
 		ADE09D78176C0CDD007B74E3 /* item.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D74176C0CDD007B74E3 /* item.seo */; };
 		ADE09D79176C0CDD007B74E3 /* vehicle.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D75176C0CDD007B74E3 /* vehicle.seo */; };
 		ADE09D7A176C0CDD007B74E3 /* player_spawn_red.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D76176C0CDD007B74E3 /* player_spawn_red.seo */; };
+		ADF638B917E554B5006C33BD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -131,7 +127,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				142F1A2F10F8765A00E69B8D /* BGHUDAppKit.framework in Copy Frameworks */,
-				AD795132176326A10029CCFE /* squish.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -143,7 +138,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				AD55C58017DDE2E00067CD85 /* BGHUDAppKit.framework in Copy Frameworks */,
-				AD55C58117DDE2E00067CD85 /* squish.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -178,7 +172,6 @@
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		32CA4F630368D1EE00C91783 /* Archon_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Archon_Prefix.pch; sourceTree = "<group>"; };
 		5C00A8C30DD51D8100C2253D /* AboutBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AboutBox.h; sourceTree = "<group>"; };
 		5C00A8C40DD51D8100C2253D /* AboutBox.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AboutBox.m; sourceTree = "<group>"; };
 		5C00A9120DD5210200C2253D /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
@@ -234,14 +227,11 @@
 		5CEC7B9A0DE24E8300C33BFB /* GeneralMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeneralMath.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Archon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Archon.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		AD05A38D17E1AB0300DAAB47 /* PC.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PC.pch; sourceTree = "<group>"; };
 		AD30D40517E19EC50071EF5B /* glew.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = glew.c; sourceTree = "<group>"; };
 		AD30D40717E1A1A70071EF5B /* glew.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glew.h; sourceTree = "<group>"; };
-		AD55C58617DDE2E00067CD85 /* Swordedit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Swordedit.app; path = SwordeditPC.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD55C58617DDE2E00067CD85 /* Swordedit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Swordedit.app; path = ArchonPC.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD55C58817DDE2E00067CD85 /* swordedi-win32-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "swordedi-win32-Info.plist"; path = "/Users/colbrans/Documents/Programming/Projects/Swordedit/SE/swordedi-win32-Info.plist"; sourceTree = "<absolute>"; };
-		AD55C58B17DDE4B00067CD85 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = GLUT.framework; sourceTree = "<group>"; };
 		AD79512E1763266E0029CCFE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = ../../../../../../../System/Library/Frameworks/Security.framework; sourceTree = "<group>"; };
-		AD795130176326910029CCFE /* squish.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = squish.framework; path = "../swordedit 2 2/squish.framework"; sourceTree = "<group>"; };
 		AD9CA5B8176D8E03004B109A /* NonKeyPanels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NonKeyPanels.h; sourceTree = "<group>"; };
 		AD9CA5B9176D8E03004B109A /* NonKeyPanels.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NonKeyPanels.m; sourceTree = "<group>"; };
 		ADD558001765866D0023C115 /* Main.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Main.xib; sourceTree = "<group>"; };
@@ -251,6 +241,8 @@
 		ADE09D75176C0CDD007B74E3 /* vehicle.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = vehicle.seo; sourceTree = "<group>"; };
 		ADE09D76176C0CDD007B74E3 /* player_spawn_red.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = player_spawn_red.seo; sourceTree = "<group>"; };
 		ADECEBB317DF242700956C2B /* glext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glext.h; sourceTree = "<group>"; };
+		ADF638B717E55484006C33BD /* Archon_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Archon_Prefix.pch; sourceTree = "<group>"; };
+		ADF638B817E5548D006C33BD /* PC.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PC.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -258,11 +250,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
+				ADF638B917E554B5006C33BD /* Cocoa.framework in Frameworks */,
 				5C675B960CD4219D00F664DE /* OpenGL.framework in Frameworks */,
-				142F1A0910F8765100E69B8D /* BGHUDAppKit.framework in Frameworks */,
 				AD79512F1763266E0029CCFE /* Security.framework in Frameworks */,
-				AD795131176326910029CCFE /* squish.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -347,8 +337,8 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
-				32CA4F630368D1EE00C91783 /* Archon_Prefix.pch */,
-				AD05A38D17E1AB0300DAAB47 /* PC.pch */,
+				ADF638B717E55484006C33BD /* Archon_Prefix.pch */,
+				ADF638B817E5548D006C33BD /* PC.pch */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
 			);
 			name = "Other Sources";
@@ -377,8 +367,6 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				AD55C58B17DDE4B00067CD85 /* GLUT.framework */,
-				AD795130176326910029CCFE /* squish.framework */,
 				AD79512E1763266E0029CCFE /* Security.framework */,
 				142F1A0810F8765100E69B8D /* BGHUDAppKit.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
