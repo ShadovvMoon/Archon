@@ -831,7 +831,7 @@
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
-					/Users/colbrans/Documents/Programming/Projects/Swordedit/SE,
+					../src/,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/swordedi-win32-Info.plist";
 				INSTALL_PATH = /Applications;
@@ -880,7 +880,7 @@
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
-					/Users/colbrans/Documents/Programming/Projects/Swordedit/SE,
+					../src/,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/swordedi-win32-Info.plist";
 				INSTALL_PATH = /Applications;
