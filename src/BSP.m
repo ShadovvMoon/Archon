@@ -265,6 +265,7 @@
 		[[m_pBsp objectAtIndex:bsp] LoadPcSubmeshTextures];
 		m_ActiveBsp = bsp;
 	//}
+    NSLog(@"Bsp loaded");
 }
 - (BspMesh *)getActiveBsp;
 {

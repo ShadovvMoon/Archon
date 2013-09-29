@@ -40,7 +40,7 @@
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LESS);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 }
 - (void)reshape

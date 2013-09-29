@@ -229,7 +229,7 @@
 		8D1107320486CEB800E47090 /* Archon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Archon.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD30D40517E19EC50071EF5B /* glew.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = glew.c; sourceTree = "<group>"; };
 		AD30D40717E1A1A70071EF5B /* glew.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glew.h; sourceTree = "<group>"; };
-		AD55C58617DDE2E00067CD85 /* Swordedit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Swordedit.app; path = ArchonPC.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD55C58617DDE2E00067CD85 /* ArchonPC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ArchonPC.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD55C58817DDE2E00067CD85 /* swordedi-win32-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "swordedi-win32-Info.plist"; path = "/Users/colbrans/Documents/Programming/Projects/Swordedit/SE/swordedi-win32-Info.plist"; sourceTree = "<absolute>"; };
 		AD79512E1763266E0029CCFE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = ../../../../../../../System/Library/Frameworks/Security.framework; sourceTree = "<group>"; };
 		AD9CA5B8176D8E03004B109A /* NonKeyPanels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NonKeyPanels.h; sourceTree = "<group>"; };
@@ -283,6 +283,7 @@
 				142F19C110F8722100E69B8D /* Button.h */,
 				ADECEBB317DF242700956C2B /* glext.h */,
 				ADD958DB17E2F25200A7E674 /* csbsp.c */,
+				AD7661F517F842B4003129A2 /* Squish */,
 				ADECEBB417DF29A600956C2B /* Glew */,
 				5CDA37180E081F6C00F3F2B9 /* Math */,
 				5CEC79AE0DE23A6E00C33BFB /* Moved Aside Functions */,
@@ -543,9 +544,16 @@
 		AD55C58717DDE2E00067CD85 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AD55C58617DDE2E00067CD85 /* Swordedit.app */,
+				AD55C58617DDE2E00067CD85 /* ArchonPC.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AD7661F517F842B4003129A2 /* Squish */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Squish;
 			sourceTree = "<group>";
 		};
 		ADECEBB417DF29A600956C2B /* Glew */ = {
@@ -623,7 +631,7 @@
 			name = "Archon-Win32";
 			productInstallPath = "$(HOME)/Applications";
 			productName = swordedit;
-			productReference = AD55C58617DDE2E00067CD85 /* Swordedit.app */;
+			productReference = AD55C58617DDE2E00067CD85 /* ArchonPC.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -831,7 +839,7 @@
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
-					../src/,
+					../src,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/swordedi-win32-Info.plist";
 				INSTALL_PATH = /Applications;
@@ -854,7 +862,7 @@
 				);
 				PRODUCT_NAME = ArchonPC;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
-				SDKROOT = "";
+				SDKROOT = macosx10.8;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -880,7 +888,7 @@
 				GCC_WARN_UNUSED_FUNCTION = NO;
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
-					../src/,
+					../src,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/swordedi-win32-Info.plist";
 				INSTALL_PATH = /Applications;
@@ -903,7 +911,7 @@
 				);
 				PRODUCT_NAME = ArchonPC;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
-				SDKROOT = "";
+				SDKROOT = macosx10.8;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

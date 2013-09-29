@@ -240,6 +240,7 @@
 		
 	NSMutableArray *mach_offsets = [[NSMutableArray alloc] init];
 	
+    NSLog(@"Index tag amount %d", indexHead.tagcount);
 	for (i = 0; i < indexHead.tagcount; i++)
 	{
 		int r = 1;
@@ -268,6 +269,15 @@
 			[tagArray addObject:tempTag];
 			[self seekToAddress:nextOffset];
 		}
+        /*
+        else if (memcmp([tempTag tagClassHigh], (isPPC ? "bipd" : "dpib"), 4) == 0)
+		{
+            [self skipBytes:IndexTagSize];
+			scenario_offset = [self currentOffset];
+			// I'll load the scenario later
+			[tagArray addObject:tempTag];
+			[self seekToAddress:nextOffset];
+        }*/
 		else if (memcmp([tempTag tagClassHigh], (isPPC ? "mod2" : "2dom"), 4) == 0)
 		{
 			[self skipBytes:IndexTagSize];
@@ -279,16 +289,23 @@
             
             
 			ModelTag *tempModel = [[ModelTag alloc] initWithMapFile:self texManager:_texManager];
-			[tagArray addObject:tempModel];
+			
+            [tagArray addObject:tempModel];
             
-            if ([[tempTag tagName] rangeOfString:@"sky"].location != NSNotFound)
+            /*NSLog([tempTag tagName]);
+            if ([[tempTag tagName] rangeOfString:@"cyborg\\cyborg"].location != NSNotFound)
             {
-                NSLog([tempTag tagName]);
+                
                 //NSLog(@"FOUND SKY");
-                //bipd = tempModel;
+
+                bipd = tempModel;
                 //[tempModel loadAllBitmaps];
-                //[bipd retain];
+                [bipd retain];
             }
+            else
+            {
+               
+            }*/
             
             //NSLog(@"Releasing geometry objects");
            
@@ -377,6 +394,7 @@
 	bitmTagLookupDict = [[NSMutableDictionary alloc] initWithCapacity:bitm_count];
 	machList = [[NSMutableArray alloc] initWithCapacity:itmc_count];
 	machLookupDict = [[NSMutableDictionary alloc] initWithCapacity:itmc_count];
+	NSMutableArray* bipdList = [[NSMutableArray alloc] initWithCapacity:itmc_count];
 	/*
 		Second pass here to create some arrays
 	*/
@@ -399,6 +417,11 @@
 			mach_counter++;
 			r=0;
 		}
+        else if (memcmp([tempTag tagClassHigh], (isPPC ? "bipd" : "dpib"), 4) == 0)
+        {
+            [tempTag retain];
+            [bipdList addObject:tempTag];
+        }
 		else if (memcmp([tempTag tagClassHigh], (isPPC ? "scen" : "necs"), 4) == 0)
 		{
 			[scenLookupDict setObject:[NSNumber numberWithLong:[tempTag idOfTag]] forKey:[NSNumber numberWithInt:scen_counter]];
@@ -428,13 +451,44 @@
 		if (r)
 			[tempTag release];
 	}
+    
+
+    //Third pass
+    long current = [self currentOffset];
+    int g;
+    for (g = 0; g < [bipdList count]; g++)
+	{
+		tempTag = [bipdList objectAtIndex:g];
+		
+        if (memcmp([tempTag tagClassHigh], (isPPC ? "bipd" : "dpib"), 4) == 0)
+        {
+            
+            long modelOffset =  [tempTag offsetInMap] + 0x28;
+            [self seekToAddress:modelOffset];
+            
+            TAG_REFERENCE ref = [self readReference];
+            
+            ModelTag*tag = (ModelTag *)[self tagForId:ref.TagId];
+            [tag loadAllBitmaps];
+            
+            bipd = tag; //0x28
+            [bipd retain];
+            
+            
+        }
+    }
+    [self seekToAddress:current];
+    
 	// Next we load the scenario
 	
-	NSLog(@"Loading map...");
+	USEDEBUG NSLog(@"Loading map...");
 	[self seekToAddress:scenario_offset];
-    NSLog(@"Allocating");
+    USEDEBUG NSLog(@"Allocating");
 	mapScenario = [[Scenario alloc] initWithMapFile:self];
 	//NSLog([tagArray description]);
+    
+    USEDEBUG NSLog(@"Tag count: %d", [tagArray count]);
+    USEDEBUG NSLog(@"%d", [[tagArray objectAtIndex:0] tagLength]);
 	[mapScenario setTagLength:[[tagArray objectAtIndex:0] tagLength]];
 	NSLog(@"Tag length set.");
 #ifdef __DEBUG__
@@ -501,7 +555,7 @@
     
     if ([self respondsToSelector:@selector(loadAllBitmaps)])
     {
-        NSLog(@"LOADING BITMAPS");
+        //NSLog(@"LOADING BITMAPS");
         [self loadAllBitmaps];
     }
 	
@@ -980,6 +1034,27 @@
     [self seekToAddress:currentOffset];
 }
 
+
+- (void)loadSWAT:(swat*)shader forID:(long)shaderId //FUNCTION WHICH FINDS MULTIPLE BITMAPS
+{
+    long currentOffset = [self currentOffset];
+	
+	// ok, so lets lookup the shader tag
+	MapTag *tempShaderTag = [[self tagForId:shaderId] retain]; // Now we have the shader! Yay!
+	[self seekToAddress:[tempShaderTag offsetInMap]];
+    
+    [self skipBytes:0x70];
+    
+    //Read the material diffuse colour
+    [self readFloat:&shader->r];
+    [self readFloat:&shader->g];
+    [self readFloat:&shader->b];
+    
+    USEDEBUG NSLog(@"Diffuse colour: %f %f %f", shader->r, shader->g, shader->b);
+    
+    [self seekToAddress:currentOffset];
+}
+
 - (void)loadShader:(senv*)shader forID:(long)shaderId //FUNCTION WHICH FINDS MULTIPLE BITMAPS
 {
     
@@ -1003,6 +1078,15 @@
     
     [self readFloat:&shader->secondaryMapScale];
     shader->secondaryMapBitm = [self readReference];
+    
+    [self skipBytes:0x40-16];
+    
+    //Read the material diffuse colour
+    [self readFloat:&shader->r];
+    [self readFloat:&shader->g];
+    [self readFloat:&shader->b];
+    
+    //USEDEBUG NSLog(@"Diffuse colour: %f %f %f", shader->r, shader->g, shader->b);
     
     [self seekToAddress:currentOffset];
    // NSLog(@"DONE");
@@ -1141,20 +1225,26 @@
 	//0xE3D402BC
 	for (x = 0; x < [mapScenario vehi_ref_count]; x++)
 	{
+        USEDEBUG NSLog(@"Loading vehicles");
 		if ([self isTag:vehi_ref[x].vehi_ref.TagId])
         {
 			[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:vehi_ref[x].vehi_ref.TagId]] loadAllBitmaps];
         }
 	}
+    /*
     for (x = 0; x < [mapScenario bipd_ref_count]; x++)
 	{
+        NSLog(@"Loading bipds");
 		if ([self isTag:bipd_ref[x].bipd_ref.TagId])
         {
 			[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:bipd_ref[x].bipd_ref.TagId]] loadAllBitmaps];
         }
 	}
+     */
+    
 	for (x = 0; x < [mapScenario scen_ref_count]; x++)
 	{
+        USEDEBUG NSLog(@"Loading scen");
 		if ([self isTag:scen_ref[x].scen_ref.TagId])
 		{
 			//NSLog(@"Tag id and index: [%d], index:[0x%x], next tag index:[0x%x]", x, scen_ref[x].scen_ref.TagId, scen_ref[x+1].scen_ref.TagId);
@@ -1166,6 +1256,7 @@
 	}
     for (x = 0; x < [mapScenario skybox_count]; x++)
 	{
+        USEDEBUG NSLog(@"Loading skybox");
         if ([self isTag:[mapScenario sky][x].modelIdent])
         {
             [(ModelTag *)[self tagForId:[mapScenario sky][x].modelIdent] loadAllBitmaps];
@@ -1173,6 +1264,7 @@
     }
 	for (x = 0; x < [mapScenario item_spawn_count]; x++)
 	{
+        USEDEBUG NSLog(@"Loading item");
 		[self seekToAddress:([[self tagForId:mp_equip[x].itmc.TagId] offsetInMap] + 0x8C)];
 		[self readLong:&tempIdent];
 		if ([self isTag:tempIdent])
@@ -1183,6 +1275,7 @@
 	}
 	for (x = 0; x < [mapScenario mach_ref_count]; x++)
 	{
+       USEDEBUG  NSLog(@"Loading mach");
 		if ([self tagForId:[mapScenario mach_references][x].modelIdent] != mapScenario)
         {
 			[(ModelTag *)[self tagForId:[mapScenario mach_references][x].modelIdent] loadAllBitmaps];

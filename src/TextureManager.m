@@ -44,6 +44,8 @@
 	_textureLookupByID = [[NSMutableDictionary alloc] initWithCapacity:capacity];
 
 	_glTextureTable = (GLuint **)malloc(sizeof(unsigned int) * capacity);
+    _glTextureTable_Alphas = (GLuint **)malloc(sizeof(unsigned int) * capacity);
+    _glTextureTable_Compiled = (GLuint **)malloc(sizeof(unsigned int) * capacity);
 }
 - (void)dealloc
 {
@@ -51,9 +53,15 @@
 	int i;
 	
 	for (i = 0; i < [_textures count]; i++)
-		free(_glTextureTable[i]);
+    {
+		free(_glTextureTable_Alphas[i]);
+        free(_glTextureTable_Compiled[i]);
+        free(_glTextureTable[i]);
+    }
 	free(_glTextureTable);
-
+    free(_glTextureTable_Alphas);
+    free(_glTextureTable_Compiled);
+    
 	[_textures removeAllObjects];
 	[_textureLookupByID removeAllObjects];
 	
@@ -70,6 +78,8 @@
 	
 	// Now we upload the texture to opengl
 	_glTextureTable[ _textureCounter ] = (GLuint *)malloc(sizeof(GLuint) * [bitm imageCount]);
+	_glTextureTable_Alphas[ _textureCounter ] = (GLuint *)malloc(sizeof(GLuint) * [bitm imageCount]);
+	_glTextureTable_Compiled[ _textureCounter ] = (GLuint *)malloc(sizeof(GLuint) * 1);
 	
 	_textureCounter++;
 }
@@ -92,12 +102,15 @@
 	//{
 		//[tmpBitm loadImage:index];
 
-        if (TRUE)//useNewRenderer() == 2)
+        if (TRUE)//useNewRenderer() >= 2)
 		{
             NSSize size = NSMakeSize([tmpBitm textureSizeForImageIndex:index].width, [tmpBitm textureSizeForImageIndex:index].height);
             NSImage *renderImage = [[NSImage alloc] initWithSize:size];
             
             unsigned int *pixels = [tmpBitm imagePixelsForImageIndex:index];
+            
+            if (!pixels || size.width == 0 || size.height == 0)
+                return;
             
             NSBitmapImageRep *imgRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&pixels
                                                     pixelsWide:size.width
@@ -183,13 +196,13 @@
             
             NSData *data = [newImage TIFFRepresentation];
             
-            NSString *output = [NSString stringWithFormat:@"/tmp/swordedit/%@_original.tiff", [tmpBitm tagName]];
+            NSString *output = [NSString stringWithFormat:@"/tmp/swordedit/%@_original_%d.tiff", [tmpBitm tagName],index];
             [data writeToFile:output atomically: YES];
     
             
             
            
-            NSString *file = [NSString stringWithFormat:@"/tmp/swordedit/%@_alpha.tiff", [tmpBitm tagName]];
+            NSString *file = [NSString stringWithFormat:@"/tmp/swordedit/%@_alpha_%d.tiff", [tmpBitm tagName],index];
             if (![[NSFileManager defaultManager] fileExistsAtPath:file isDirectory:NO])
             {
                 //Write the texture images to the desktop
@@ -197,7 +210,7 @@
 
             }
             
-            
+            [tmpBitm writeImageToMap:index withBytes:[tmpBitm imagePixelsForImageIndex:index]];
 
         }
     //}
@@ -206,6 +219,48 @@
 }
 
 - (void)loadTextureOfIdent:(long)ident subImage:(int)index
+{
+    [self loadTextureOfIdent:ident subImage:index removeAlpha:NO];
+}
+
+-(BitmapTag*)bitmapForIdent:(long)ident
+{
+    if (!_textures)
+		return nil;
+    
+	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
+    
+	//NSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
+    
+	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
+    return tmpBitm;
+}
+
+-(int)createTextureWithData:(unsigned char *)data withSize:(NSSize)sze
+{
+    NSLog(@"Creating a new texture at %d", lastShaderIndex);
+    lastShaderIndex+=1;
+    
+    //Whats the last index we used
+    glGenTextures(1,&_glTextureTable_Compiled[lastShaderIndex][0]);
+    glBindTexture(GL_TEXTURE_2D,_glTextureTable_Compiled[lastShaderIndex][0]);
+    
+    //if (data !=  NULL)
+    //{
+        gluBuild2DMipmaps(GL_TEXTURE_2D,
+                      GL_RGBA,
+                      sze.width,
+                      sze.height,
+                      GL_RGBA,
+                      GL_UNSIGNED_BYTE,
+                      data);
+    //}
+    
+    
+    return lastShaderIndex;
+}
+
+- (void)loadTextureOfIdent:(long)ident subImage:(int)index removeAlpha:(BOOL)ra
 {
 	
 	if (!_textures)
@@ -219,45 +274,81 @@
 
 	if (![tmpBitm imageAlreadyLoaded:index])
 	{
-		[tmpBitm loadImage:index];
-		int col = [[[NSApplication sharedApplication] delegate] usesColor];
+        [tmpBitm loadImage:index];
+        int col = [[[NSApplication sharedApplication] delegate] usesColor];
 
-		// Now lets upload it to OpenGL
-		glGenTextures(1,&_glTextureTable[texIndex][index]);
+        // Now lets upload it to OpenGL
+        glGenTextures(1,&_glTextureTable[texIndex][index]);
         glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][index]);
-        
-        if (TRUE)//useNewRenderer() == 2)
-		{
-            
-            if ([tmpBitm imagePixelsForImageIndex:index] !=  NULL)
-            {
-                gluBuild2DMipmaps(GL_TEXTURE_2D,
-                                      GL_RGBA,
-                                       [tmpBitm textureSizeForImageIndex:index].width,
-                                       [tmpBitm textureSizeForImageIndex:index].height,
-                                       GL_RGBA,
-                                       GL_UNSIGNED_BYTE,
-                                       [tmpBitm imagePixelsForImageIndex:index]);
-            }
-            else
-            {
-                NSLog(@"Missing bytes?");
-            }
-            
-        }
-        else
+   
+        unsigned char *imageData = [tmpBitm imagePixelsForImageIndex:index];
+        if (ra)
         {
-		
-            glTexImage2D(GL_TEXTURE_2D,
-                        0,
-                        GL_RGBA,
-                        [tmpBitm textureSizeForImageIndex:index].width,
-                        [tmpBitm textureSizeForImageIndex:index].height,
-                        0,
-                        GL_RGBA,
-                        GL_UNSIGNED_BYTE,
-                        [tmpBitm imagePixelsForImageIndex:index]);
+            NSSize size = [tmpBitm textureSizeForImageIndex:index];
+            unsigned char *newData = malloc(size.width * size.height * 4);
+            
+            //Make white.
+            int i;
+            for (i = 0; i < size.width * size.height * 4; i += 4) {
+                unsigned char a;
+                a = *(imageData + i+3);
+                *(newData + i+0) = *(imageData + i+0);
+                *(newData + i+1) = *(imageData + i+1);
+                *(newData + i+2) = *(imageData + i+2);
+                
+                //If black, alpha
+                *(newData + i+3)= ((*(imageData + i+0))+(*(imageData + i+1))+(*(imageData + i+2)))/3;
+            }
+            imageData = newData;
         }
+        
+        if (imageData !=  NULL)
+        {
+            gluBuild2DMipmaps(GL_TEXTURE_2D,
+                                  GL_RGBA,
+                                   [tmpBitm textureSizeForImageIndex:index].width,
+                                   [tmpBitm textureSizeForImageIndex:index].height,
+                                   GL_RGBA,
+                                   GL_UNSIGNED_BYTE,
+                                   imageData);
+            
+        }
+       
+     
+
+        //Create the equivalent alpha image
+        glGenTextures(1,&_glTextureTable_Alphas[texIndex][index]);
+        glBindTexture(GL_TEXTURE_2D,_glTextureTable_Alphas[texIndex][index]);
+        
+        NSSize size = [tmpBitm textureSizeForImageIndex:index];
+        unsigned char *newData = malloc(size.width * size.height * 4);
+        *newData = *imageData;
+        
+        //Make white.
+        int i;
+        for (i = 0; i < size.width * size.height * 4; i += 4) {
+            unsigned char a;
+            a = *(imageData + i+3);
+            *(newData + i+0)=255;
+            *(newData + i+1)=255;
+            *(newData + i+2)=255;
+            *(newData + i+3)=a;
+        }
+        
+        
+        if (newData !=  NULL)
+        {
+            gluBuild2DMipmaps(GL_TEXTURE_2D,
+                              GL_RGBA,
+                              [tmpBitm textureSizeForImageIndex:index].width,
+                              [tmpBitm textureSizeForImageIndex:index].height,
+                              GL_RGBA,
+                              GL_UNSIGNED_BYTE,
+                              newData);
+            
+        }
+        
+        free(newData);
         
         
 	}
@@ -296,7 +387,11 @@
 		for (x = 0; x < [tmpBitm imageCount]; x++)
 		{
 			if ([tmpBitm imageAlreadyLoaded:x])
+            {
 				glDeleteTextures(1,&_glTextureTable[i][x]);
+                glDeleteTextures(1,&_glTextureTable_Alphas[i][x]);
+                glDeleteTextures(1, &_glTextureTable_Compiled[i][x]);
+            }
 		}
 		[tmpBitm release];
 	}
@@ -310,7 +405,11 @@
 	for (i = 0; i < [tmpBitm imageCount]; i++)
 	{
 		if ([tmpBitm imageAlreadyLoaded:i])
+        {
 			glDeleteTextures(1,&_glTextureTable[texIndex][i]);
+            glDeleteTextures(1,&_glTextureTable_Alphas[texIndex][i]);
+            glDeleteTextures(1, &_glTextureTable_Compiled[texIndex][i]);
+        }
 	}
 	[tmpBitm release];
 }
@@ -365,6 +464,8 @@
     if( &_glTextureTable[texIndex][index] != 0 )
     {
         glDeleteTextures( 1, &_glTextureTable[texIndex][index] );
+        glDeleteTextures( 1, &_glTextureTable_Alphas[texIndex][index] );
+        //glDeleteTextures( 1, &_glTextureTable_Compiled[texIndex][index] );
     }
     
     // Now lets upload it to OpenGL
@@ -381,10 +482,22 @@
                           GL_UNSIGNED_BYTE,
                           [tmpBitm imagePixelsForImageIndex:index]);
     }
-    else
+   
+    // Now lets upload it to OpenGL
+    glGenTextures(1,&_glTextureTable_Alphas[texIndex][index]);
+    glBindTexture(GL_TEXTURE_2D,_glTextureTable_Alphas[texIndex][index]);
+    
+    if ([tmpBitm imagePixelsForImageIndex:index] !=  NULL)
     {
-        NSLog(@"Missing texture?");
+        gluBuild2DMipmaps(GL_TEXTURE_2D,
+                          GL_RGBA,
+                          [tmpBitm textureSizeForImageIndex:index].width,
+                          [tmpBitm textureSizeForImageIndex:index].height,
+                          GL_RGBA,
+                          GL_UNSIGNED_BYTE,
+                          [tmpBitm imagePixelsForImageIndex:index]);
     }
+    
 	
 	[tmpBitm release];
 }
@@ -480,6 +593,7 @@
     if( &_glTextureTable[texIndex][texIndex] != 0 )
     {
         glDeleteTextures( 1, &_glTextureTable[texIndex][texIndex] );
+        //glDeleteTextures( 1, &_glTextureTable_Alphas[texIndex][texIndex] );
     }
     
     
@@ -544,6 +658,7 @@
     if( &_glTextureTable[texIndex][subImage] != 0 )
     {
         glDeleteTextures( 1, &_glTextureTable[texIndex][subImage] );
+        glDeleteTextures( 1, &_glTextureTable_Alphas[texIndex][subImage] );
     }
     // Now lets upload it to OpenGL
     glGenTextures(1,&_glTextureTable[texIndex][subImage]);
@@ -559,9 +674,23 @@
                           GL_UNSIGNED_BYTE,
                           pixels);
     }
-    else
+   
+    
+    // Now lets upload it to OpenGL
+    glGenTextures(1,&_glTextureTable_Alphas[texIndex][subImage]);
+    glBindTexture(GL_TEXTURE_2D,_glTextureTable_Alphas[texIndex][subImage]);
+    
+    if ([tmpBitm imagePixelsForImageIndex:subImage] !=  NULL)
     {
+        gluBuild2DMipmaps(GL_TEXTURE_2D,
+                          GL_RGBA,
+                          [tmpBitm textureSizeForImageIndex:subImage].width,
+                          [tmpBitm textureSizeForImageIndex:subImage].height,
+                          GL_RGBA,
+                          GL_UNSIGNED_BYTE,
+                          pixels);
     }
+    
 
     }
     
@@ -640,6 +769,11 @@
 
 - (void)activateTextureAndLightmap:(long)ident lightmap:(long)lightmap secondary:(long)secondary subImage:(int)subImage
 {
+    [self activateTextureAndLightmap:ident lightmap:lightmap secondary:secondary subImage:subImage isAlphaType:NO];
+}
+
+- (void)activateTextureAndLightmap:(long)ident lightmap:(long)lightmap secondary:(long)secondary subImage:(int)subImage isAlphaType:(BOOL)iat
+{
 	if (!_textures)
 		return;
 		
@@ -651,14 +785,19 @@
 				*lightmapBitmap = [[_textures objectAtIndex:lightmapIndex] retain];
 		
 
-#ifndef LITE
-    
+if (useNewRenderer() != 1)
+{
     if (lightmapIndex)
     {
         
         glActiveTextureARB(GL_TEXTURE1_ARB);
         glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, _glTextureTable[lightmapIndex][0]);
+        
+        if (iat)
+            glBindTexture(GL_TEXTURE_2D, _glTextureTable_Alphas[lightmapIndex][0]);
+        else
+            glBindTexture(GL_TEXTURE_2D, _glTextureTable[lightmapIndex][0]);
+        
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
         glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
@@ -670,7 +809,10 @@
     
     glActiveTextureARB(GL_TEXTURE0_ARB);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, _glTextureTable[texIndex][0]);
+    if (iat)
+        glBindTexture(GL_TEXTURE_2D, _glTextureTable_Alphas[texIndex][0]);
+    else
+        glBindTexture(GL_TEXTURE_2D, _glTextureTable[texIndex][0]);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
@@ -689,7 +831,9 @@
         glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
-#else
+}
+    else
+    {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, _glTextureTable[texIndex][0]);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
@@ -697,7 +841,7 @@
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-#endif
+    }
     
 	[mapBitmap release];
 	[lightmapBitmap release];
@@ -707,5 +851,7 @@
 @synthesize _glTextureNameLookup;
 @synthesize _glTextureNames;
 @synthesize _glTextureTable;
+@synthesize _glTextureTable_Alphas;
+@synthesize _glTextureTable_Compiled;
 @synthesize _textureCounter;
 @end

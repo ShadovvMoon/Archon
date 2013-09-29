@@ -16,10 +16,12 @@
 
 #define MAX_SCENARIO_OBJECTS 100000
 //#define fasterRendering 1
-
+#define SUN 1
 #define VBO 1
 //#define VBO2 1
-
+//#define __DEBUG__ 1
+#define NEWSKY 1
+#define USEDEBUG if (FALSE) 
 int newR;
 bool drawO ;
 bool lightScene;
@@ -218,7 +220,7 @@ typedef struct
     TAG_REFERENCE primaryMapBitm;
     float secondaryMapScale;
     TAG_REFERENCE secondaryMapBitm;
-    
+    float r,g,b;
     //Rest is bleh
 } senv;
 
@@ -233,6 +235,11 @@ typedef struct
     TAG_REFERENCE detailMap;
     
 } soso;
+
+typedef struct
+{
+    float r,g,b;
+} swat;
 
 typedef struct
 {
@@ -764,6 +771,7 @@ typedef struct
     int hasShader;
     schi *shader;
     scex *scexshader;
+    int textureIndex;
 } part;
 
 /* END MODELS */
@@ -923,10 +931,13 @@ typedef struct
   unsigned long					secondaryMap;
   unsigned long					microMap;
     
+    BOOL isWaterShader;
+    
     float primaryMapScale;
     float secondaryMapScale;
     float microMapScale;
     
+    float r,g,b;
     
     
 }SUBMESH_INFO;

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>A32E8B1D-BE5A-4344-BD6E-76CD6EA98470</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Archon</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>3B2BC0CC-8745-42EB-A231-45BD9B7C1597</key>
+		<string>https://github.com/ShadovvMoon/Archon.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>src/Archon.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>1AB35EAC-3BC6-483E-ADEC-91A93E0D90C2</key>
+		<string>../../../../../Documents/Programming/Projects/Swordedit/SE</string>
+		<key>3B2BC0CC-8745-42EB-A231-45BD9B7C1597</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/ShadovvMoon/Archon.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>3B2BC0CC-8745-42EB-A231-45BD9B7C1597</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>3B2BC0CC-8745-42EB-A231-45BD9B7C1597</string>
+			<key>IDESourceControlWCCName</key>
+			<string>Archon</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>1AB35EAC-3BC6-483E-ADEC-91A93E0D90C2</string>
+			<key>IDESourceControlWCCName</key>
+			<string>SE</string>
+		</dict>
+	</array>
+</dict>
+</plist>

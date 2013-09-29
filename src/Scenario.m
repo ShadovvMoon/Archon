@@ -1048,29 +1048,29 @@ Begin Duplication Methods
 	return retVal;
 }
 
-- (unsigned int)duplicateScenarioObject:(int)type index:(int)index
+- (unsigned long)duplicateScenarioObject:(int)type index:(int)index
 {
 	int retVal = 0;
 	switch (type)
 	{
 		case s_playerspawn:
-			retVal = ((s_playerspawn * MAX_SCENARIO_OBJECTS) + [self duplicatePlayerSpawn:index coord:0] );
+			retVal = ((s_playerspawn * MAX_SCENARIO_OBJECTS) + [self duplicatePlayerSpawn:index coord:1] );
+			break;
+        case s_netgame:
+			retVal = ((s_netgame * MAX_SCENARIO_OBJECTS) + [self duplicateNetgame:index coord:1] );
 			break;
         case s_scenery:
-			retVal = ((s_scenery * MAX_SCENARIO_OBJECTS) + [self duplicateScenery:index coord:0] );
+			retVal = ((s_scenery * MAX_SCENARIO_OBJECTS) + [self duplicateScenery:index coord:1] );
 			break;
 		case s_item:
         {
-            
-    
-            
 			retVal = ((s_item * MAX_SCENARIO_OBJECTS) + [self duplicateMpEquipment:index]);
 			break;
         }
 		case s_machine:
         {
        
-			retVal = ((s_machine * MAX_SCENARIO_OBJECTS) + [self duplicateMachine:index coord:0]);
+			retVal = ((s_machine * MAX_SCENARIO_OBJECTS) + [self duplicateMachine:index coord:1]);
 			break;
         }
 		case s_vehicle:
@@ -1084,6 +1084,71 @@ Begin Duplication Methods
         }
 	}
 	return retVal;
+}
+- (long)duplicateNetgame:(int)index coord:(int)coo
+{
+    
+	multiplayer_flags tmpSpawn, *tmpSpawnPointer;
+	int i;
+	
+	if (index < 0 || index > multiplayer_flags_count)
+		return 0;
+    
+    if (mp_flags[index].type == race_track)
+    {
+        int a;
+        int amount = 0;
+        for (a = 0; a < [self multiplayer_flags_count]; a++)
+        {
+            if (mp_flags[a].type == race_track)
+            {
+                amount++;
+            }
+        }
+        
+        if (amount >= 32)
+        {
+            NSRunAlertPanel(@"Halo only supports 32 pieces of race track.", @"Consider deleting existing track.", @"OK", nil, nil);
+            return -1;
+        }
+    }
+    
+	// Lets copy the data
+	memcpy(&tmpSpawn,&mp_flags[index],sizeof(multiplayer_flags));
+	
+    if (coo)
+    {
+        mp_flags[index].isSelected = NO;
+        
+        if (mp_flags[index].type == race_track)
+        {
+            mp_flags[index].team_index++;
+        }
+    }
+    else
+    {
+		mp_flags[index].isSelected = NO;
+		for (i = 0; i < 2; i++)
+			tmpSpawn.coord[i] -= 0.3;
+    }
+    
+    
+    
+	tmpSpawn.isSelected = YES;
+	
+	// Now lets redo the counters.
+	multiplayer_flags_count += 1;
+	header.MultiplayerFlags.newChunkCount = multiplayer_flags_count;
+	
+	tmpSpawnPointer = malloc(sizeof(multiplayer_flags) * multiplayer_flags_count);
+	
+	// Copy the old scenery
+	memcpy(tmpSpawnPointer,mp_flags,(sizeof(multiplayer_flags) * (multiplayer_flags_count - 1)));
+	memcpy(&tmpSpawnPointer[multiplayer_flags_count-1], &tmpSpawn, sizeof(multiplayer_flags));
+	free(mp_flags);
+	mp_flags = tmpSpawnPointer;
+	
+	return ((s_netgame * MAX_SCENARIO_OBJECTS) + index);
 }
 - (int)duplicatePlayerSpawn:(int)index coord:(int)coo
 {

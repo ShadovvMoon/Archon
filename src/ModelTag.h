@@ -27,7 +27,7 @@
 	float v_scale;
 	
 	MODEL_REGION *regions;
-	
+	BOOL loaded;
 	reflexive regionRef;
 	
 	int numRegions;

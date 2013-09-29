@@ -96,7 +96,7 @@ bool   gp;                      // G Pressed? ( New )
 GLuint filter;                      // Which Filter To Use
 GLuint fogMode[]= { GL_EXP, GL_EXP2, GL_LINEAR };   // Storage For Three Types Of Fog
 GLuint fogfilter= 0;                    // Which Fog To Use
-GLfloat fogColor[4]= {1.0f, 1.0f, 1.0f, 1.0f};      // Fog Color
+
 
 /*
 	TODO:
@@ -140,13 +140,15 @@ bool drawObjects()
 
 - (id)initWithFrame: (NSRect) frame
 {
-    NSLog(@"Init render view");
+    USEDEBUG NSLog(@"Init render view");
     
 
     renderV = self;
-    NSLog(@"Creating");
+    USEDEBUG NSLog(@"Creating");
 	// First, we must create an NSOpenGLPixelFormatAttribute
 	NSOpenGLPixelFormat *nsglFormat;
+    
+    
 	NSOpenGLPixelFormatAttribute attr[] = 
 	{
 		NSOpenGLPFADoubleBuffer,
@@ -161,10 +163,11 @@ bool drawObjects()
 		0 
 	};
 
+
     lightScene = false;
-    [self setPostsFrameChangedNotifications: YES];
+    //[self setPostsFrameChangedNotifications: YES];
 	
-    NSLog(@"More inits");
+    USEDEBUG NSLog(@"More inits");
     
 	// Next, we initialize the NSOpenGLPixelFormat itself
     nsglFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
@@ -173,21 +176,22 @@ bool drawObjects()
     // If we could not create one, return nil (the OpenGL is not initialized, and
     // we should send an error message to the user at this point)
     if(!nsglFormat) { NSLog(@"Invalid format... terminating."); return nil; }
-	NSLog(@"Still initing");
+	USEDEBUG  NSLog(@"Still initing");
+    
 	// Now we create the the CocoaGL instance, using our initial frame and the NSOpenGLPixelFormat
     self = [super initWithFrame:frame pixelFormat:nsglFormat];
     [nsglFormat release];
 	
 	// If there was an error, we again should probably send an error message to the user
     if(!self) { NSLog(@"Self not created... terminating."); return nil; }
-	NSLog(@"Making contenxt");
+	USEDEBUG NSLog(@"Making contenxt");
 	// Now we set this context to the current context (means that its now drawable)
     [[self openGLContext] makeCurrentContext];
 	[[self openGLContext] setView:self];
     
 	// Finally, we call the initGL method (no need to make this method too long or complex)
     [self initGL];
-    NSLog(@"Finished");
+    USEDEBUG NSLog(@"Finished");
     return self;
     
 }
@@ -203,15 +207,13 @@ bool drawObjects()
     }
 #endif
     
-	glClearColor(0.5f,0.5f,0.5f,1.0f);          // We'll Clear To The Color Of The Fog ( Modified )
-    
-
+	
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LESS);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 	
    
-	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
+	/*glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
     
     
     if (lightScene)
@@ -229,7 +231,7 @@ bool drawObjects()
         glEnable(GL_COLOR_MATERIAL);                 	              // activate material
         glColorMaterial(GL_FRONT,GL_AMBIENT_AND_DIFFUSE);
         glEnable(GL_NORMALIZE);                      	              // normalize normal vectors
-    }
+    }*/
 	
 	first = YES;
 
@@ -240,7 +242,7 @@ bool drawObjects()
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LESS);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 	
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 	
@@ -437,6 +439,7 @@ bool drawObjects()
 - (void)awakeFromNib
 {
     NSLog(@"Checking mac render view");
+   
     /*
 #ifndef MACVERSION
     return;
@@ -492,8 +495,14 @@ bool drawObjects()
 	
 	color_index = alphaIndex;
     drawO = true;
-    newR = 2;
-   
+    
+#ifdef MACVERSION
+    newR = 3;
+#else
+    newR = 3;
+#endif
+    
+    [renderEngine selectItemAtIndex:newR];
 	
 	currentRenderStyle = textured_tris;
 	
@@ -573,7 +582,7 @@ bool drawObjects()
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
     
-    NSLog(@"Application is terminating");
+    NSLog(@"Application is terminating why");
     
 		//Save main screen window
 	if ([[[NSUserDefaults standardUserDefaults]objectForKey:@"automatic"] isEqualToString:@"NO"])
@@ -697,7 +706,7 @@ int spaceKey = 0;
 
 	unichar character = [characters characterAtIndex:0];
 	//NSLog(@"%x", character);
-    NSLog(@"DOWN: %d %x", k, character);
+    //NSLog(@"DOWN: %d %x", k, character);
 	if (character == NSDeleteCharacter || character == NSBackspaceCharacter)
 	{
 		//Delete the current shape.
@@ -866,7 +875,7 @@ int spaceKey = 0;
     }
     
     int k = [event keyCode];
-    NSLog(@"UP %d %@", k, characters);
+    //NSLog(@"UP %d %@", k, characters);
     
     
 
@@ -1045,9 +1054,21 @@ int spaceKey = 0;
                     type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
                     index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
 
-                    [selections removeAllObjects];
-                    [selections addObject:[NSNumber numberWithLong:[_scenario duplicateScenarioObject:type index:index]]];
-                    _selectFocus = [[selections objectAtIndex:0] longValue];
+                //[selections removeAllObjects];
+                
+                long selection = [_scenario duplicateScenarioObject:type index:index];
+                
+                NSLog(@"%ld", selection);
+                //[selections addObject:[NSNumber numberWithLong:selection]];
+                //_selectFocus = [[selections objectAtIndex:0] longValue];
+                
+                
+                //[self processSelection:selection];
+                 
+                    //[selections removeAllObjects];
+                
+                    //[selections addObject:[NSNumber numberWithLong:[_scenario duplicateScenarioObject:type index:index]]];
+                    //_selectFocus = [[selections objectAtIndex:0] longValue];
                 
                     //dup=0;
                 //}
@@ -1127,6 +1148,7 @@ int spaceKey = 0;
     else
     {
         bool PAINT = TRUE;
+        
         if ([dirtMode state]||[grassMode state]||[lightmapMode state]||[eyedropperMode state])
         {
             
@@ -1135,13 +1157,30 @@ int spaceKey = 0;
             
             NSPoint sp = NSMakePoint(local_point.x, local_point.y);
             
+            
             //Are we interescting the bsp anywhere?
             int selection = [self tryBSPSelection:sp shiftDown:NO width:1 height:1];
+            
+          
             if (selection != -1)
             {
                 //Find the image files associated with this
                 SUBMESH_INFO *pMesha;
                 pMesha = [mapBSP GetActiveBspPCSubmesh:selection];
+                
+                if (!pMesha)
+                    return;
+                if (pMesha->DefaultLightmapIndex == -1)
+                    return;
+                if (pMesha->LightmapIndex == -1)
+                    return;
+                if (pMesha->DefaultBitmapIndex == -1)
+                    return;
+                
+                
+                
+               // NSLog(@"%d %d %d %d", selection, pMesha->DefaultLightmapIndex, pMesha->LightmapIndex, pMesha->DefaultBitmapIndex );
+
                 
                 //Texture ident
                 //NSString *name = [_texManager nameForImage:pMesha->baseMap];
@@ -1170,6 +1209,7 @@ int spaceKey = 0;
                 if ([lightmapMode state])
                 {
                     index = pMesha->LightmapIndex;
+                    
                     tmpBitm = [_texManager bitmapWithIdent:pMesha->DefaultLightmapIndex];
                     
                      x = uva1*lmvertex1[0] + uva2*lmvertex2[0] + uva3*lmvertex3[0];
@@ -1320,10 +1360,11 @@ int spaceKey = 0;
                     //Update the bitmap data
                     if (![lightmapMode state])
                     {
-                    [_texManager updateBitmapDataWithIdent:pMesha->baseMap data:[imgRep bitmapData] index:index];
+                        [_texManager updateBitmapDataWithIdent:pMesha->baseMap data:[imgRep bitmapData] index:index];
                     }
                     else
-                    [_texManager updateBitmapDataWithIdent:pMesha->LightmapIndex data:[imgRep bitmapData] index:index];
+                        [_texManager updateBitmapDataWithIdent:pMesha->LightmapIndex data:[imgRep bitmapData] index:index];
+                    
                     [imgRep release];
                     
                     if (![lightmapMode state])
@@ -1424,7 +1465,7 @@ int spaceKey = 0;
                 
                 [renderImage release];
                 [colorImage release];*/
-                
+                //[NSThread sleepForTimeInterval:0.1];
             }
         }
     }
@@ -1486,7 +1527,7 @@ int spaceKey = 0;
 	acceleration = 0;//(int)[cspeed doubleValue] * (current - previous) / 1000000000.0;
     
     
-
+    USEDEBUG NSLog(@"TICK");
     
     float value = 10000000.0;
     
@@ -1623,6 +1664,7 @@ int spaceKey = 0;
 			}
 		}
 	}
+   USEDEBUG  NSLog(@"TICK2");
     previous = current;
     
     if ([first_person_mode state])
@@ -1638,7 +1680,7 @@ int spaceKey = 0;
         }
         free(gg);
     }
-   
+  USEDEBUG NSLog(@"TICK3");
 	if (key_is_down)
 	{
 		
@@ -1663,11 +1705,13 @@ int spaceKey = 0;
 		acceleration = 0;
 		accelerationCounter = 0;
 	}
-	
+	USEDEBUG NSLog(@"TICK4");
 	if (shouldDraw)
 	{
 		[self performSelectorOnMainThread:@selector(reshape) withObject:nil waitUntilDone:YES];
+        USEDEBUG NSLog(@"TICK4.5");
 		[self setNeedsDisplay:YES];
+       USEDEBUG  NSLog(@"TICK5");
 	}
     else
     {
@@ -1726,36 +1770,68 @@ int spaceKey = 0;
 
 -(void)drawView
 {
-  
+    //Moving
+    if (![[self window] isKeyWindow])
+    {
+        move_keys_down[0].isDown = NO;
+        move_keys_down[1].isDown = NO;
+        move_keys_down[2].isDown = NO;
+        move_keys_down[3].isDown = NO;
+        move_keys_down[4].isDown = NO;
+        move_keys_down[5].isDown = NO;
+    }
+    
     if (![NSApp isActive])
+    {
+        
         return;
+    }
     
-    
+
     glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+    glClearColor(100/100.0,90/100.0,76/100.0,1.0);          // We'll Clear To The Color Of The Fog ( Modified )
+    
 	[_camera Look];
 	[_camera Update];
+
 	//NSLog(@"%f %f %f", [_camera position][0], [_camera position][1], [_camera position][2]);
-	[self drawAxes];
+	//[self drawAxes];
 	
     //shouldDraw = FALSE;
 	if (shouldDraw)
 	{
-        
-        if (useNewRenderer() == 2)
+        if (useNewRenderer() >= 2)
         {
+
+             
+            GLfloat fogColor[4];     // Fog Color
+            fogColor[0] = 1.0f;
+            fogColor[1] = 1.0f;
+            fogColor[2] = 1.0f;
+            fogColor[3] = 1.0f;
+            
+            if (useNewRenderer() == 3)
+            {
+
+                fogColor[0] = 0.5f;
+                 fogColor[1] = 0.5f;
+                 fogColor[2] = 0.5f;
+  
+            }// Fog Color
+            
+            
             
             glFogi(GL_FOG_MODE, GL_LINEAR);        // Fog Mode
             glFogfv(GL_FOG_COLOR, fogColor);            // Set Fog Color
-            glFogf(GL_FOG_DENSITY, 0.1f);              // How Dense Will The Fog Be
+            glFogf(GL_FOG_DENSITY, 0.5f);              // How Dense Will The Fog Be
             glHint(GL_FOG_HINT, GL_NICEST);          // Fog Hint Value
-            glFogf(GL_FOG_START, 1.0f);             // Fog Start Depth
+            glFogf(GL_FOG_START, 0.3f);             // Fog Start Depth
             glFogf(GL_FOG_END, 200.0f);               // Fog End Depth
                            // Enables GL_FOG
             
         }
-        if (useNewRenderer() == 2)
+        if (useNewRenderer() >= 2)
         {
             glEnable(GL_FOG);
             glEnable(GL_MULTISAMPLE);
@@ -1765,12 +1841,19 @@ int spaceKey = 0;
         else
         {
             glDisable(GL_FOG);
-            glDisable(GL_MULTISAMPLE);
+            
+            if (useNewRenderer() >= 1)
+            {
+   
+                glEnable(GL_MULTISAMPLE);
+                glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+                
+            }
             
         }
         
         
-        
+        /*
         if (lightScene)
         {
         
@@ -1784,35 +1867,86 @@ int spaceKey = 0;
             gluQuadricOrientation( sphere, GLU_OUTSIDE);
             gluQuadricTexture( sphere, GL_TRUE);
             
-            gluSphere(sphere,0.5,5,5);
+            gluSphere(sphere,0.5,10,10);
             gluDeleteQuadric ( sphere );
             glPopMatrix();
         
         
         
         }
+        */
         
-        
+        if (true)
+        {
+            glDisable(GL_DEPTH_TEST);
+            if (TRUE)//useNewRenderer())
+            {
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_BLEND);
+            }
+            if (useNewRenderer() >= 2)
+                glDisable(GL_FOG);
+            
+            SkyBox *skies;
+            skies = [_scenario sky];
+
+            
+            USEDEBUG NSLog(@"MP8");
+            int x; float pos[6];
+            for (x = 0; x < [_scenario skybox_count]; x++)
+            {
+                // Lookup goes hur
+                
+                if ([_mapfile isTag:skies[x].modelIdent])
+                {
+                    
+                    pos[0]=0;
+                    pos[1]=0;
+                    pos[2]=0;//-10000;
+                    pos[3]=0;
+                    pos[4]=0;
+                    pos[5]=0;
+                    
+                    [[_mapfile tagForId:skies[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:NO useAlphas:NO distance:0];
+                }
+            }
+            USEDEBUG NSLog(@"MP9");
+            if (useNewRenderer() >= 2)
+                glEnable(GL_FOG);
+            USEDEBUG NSLog(@"MP10");
+            if (TRUE)//useNewRenderer())
+            {
+                glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_BLEND);
+            }
+            glEnable(GL_DEPTH_TEST);
+        }
         
 		if (mapBSP)
 		{
-
 			[self renderVisibleBSP:FALSE];
 		}
-       
+
 		if (_scenario)
 		{
 			[self renderAllMapObjects];
 		}
-        
+
        
         
 	}
     else
     {
     }
-	
+
 	[[self openGLContext] flushBuffer];
+
 }
 
 
@@ -2053,6 +2187,7 @@ int spaceKey = 0;
 					[self renderBSPAsFlatShadedPolygon:i];
 					break;
 				case textured_tris:
+                    glColor3f(1.0, 1.0, 1.0);
 					[self renderBSPAsTexturedAndLightmaps:i];
                     //[self renderHighlighted:indexMesh];
                     //glLineWidth(1.0f);
@@ -2215,31 +2350,38 @@ int spaceKey = 0;
     }
    
     
-	if (pMesh->ShaderIndex == -1)
+	/*if (pMesh->ShaderIndex == -1)
 	{
+        NSLog(@"Missing shader!");
 		//glColor3f(0.1f, 0.1f, 0.1f);
         glColor3f(1.0f, 1.0f, 1.0f);
 	}
 	else
-	{
+	{*/
 	
 		if (pMesh->LightmapIndex != -1)
 		{
 			//glEnable(GL_TEXTURE_2D);
 		}
         
-        if (pMesh->baseMap != -1 && useNewRenderer() == 2)
+        if (useNewRenderer() != 2)
+        {
+            glDisable(GL_ALPHA_TEST);
+            glDisable(GL_BLEND);
+        }
+        
+        if (pMesh->baseMap != -1 && useNewRenderer() >= 1)
         {
            
             
             
-            
+            //glEnable(GL_DEPTH_TEST);
             bool useLightmaps = TRUE;
             
-#ifdef LITE
-      
+        if (useNewRenderer() == 1)
+        {
             useLightmaps = FALSE;
-#endif
+        }
             if (!useLightmaps)
             {
                 glDepthFunc(GL_LEQUAL);
@@ -2328,35 +2470,71 @@ int spaceKey = 0;
 
                 
                 glDepthFunc(GL_LESS);
+                
+                return;
             }
             else
             {
                 
-            
-#ifndef LITE
+                
+                
+if (useNewRenderer() != 1)
+{
+    
+                glActiveTextureARB(GL_TEXTURE3_ARB);
+                glDisable(GL_TEXTURE_2D);
+                
+                glActiveTextureARB(GL_TEXTURE2_ARB);
+                glDisable(GL_TEXTURE_2D);
+                
+                glActiveTextureARB(GL_TEXTURE1_ARB);
+                glDisable(GL_TEXTURE_2D);
+                
+                glActiveTextureARB(GL_TEXTURE0_ARB);
+                glDisable(GL_TEXTURE_2D);
+                
+                
                     glDepthFunc(GL_LEQUAL);
                 
                 
                     glDisable(GL_BLEND);
-                    glColor4f(1,1,1,5);
+                    glColor4f(1.0f,1.0f,1.0f,1.0f);
                 
                     //if (mesh_index == selectedBSP)
                     //    glColor4f(0,1,1,5);
                 
                     bool showDetail = true;
                     bool showDetail2 = true;
+                    useLightmaps = true;
                 
                 
                     //glPushMatrix();
                     [_texManager activateTextureAndLightmap:pMesh->baseMap lightmap:pMesh->secondaryMap secondary:pMesh->DefaultLightmapIndex subImage:pMesh->LightmapIndex];
-                    
-                    //glColor4f(1,1,1,1);
+                    //[_texManager activateTextureOfIdent:pMesh->baseMap subImage:0 useAlphas:NO];
+                
+                    //Whats the diffuse colour? Really need to extend this class to use the shaders
+                    //senv
+                
+                    //
                     glActiveTextureARB(GL_TEXTURE2_ARB);
                 
                     glEnableClientState(GL_VERTEX_ARRAY);
                     glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
-               
-       
+    
+    if (useNewRenderer() == 3)
+    {
+        if (pMesh->isWaterShader)
+        {
+            glEnable(GL_BLEND);
+                glColor4f(1.0, 0, 0, 0.3f);
+        }
+            else
+                glColor4f(pMesh->r, pMesh->g, pMesh->b, 1.0);
+    }
+    else
+         glColor4f(pMesh->r, pMesh->g, pMesh->b, 1.0f);
+                //
+                
                     // texture coord 0
                     glClientActiveTextureARB(GL_TEXTURE0_ARB); // program texcoord unit 0
                     glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
@@ -2370,6 +2548,8 @@ int spaceKey = 0;
                         glTexCoordPointer(2, GL_FLOAT, 20, pMesh->pLightmapVert[0].uv);
                         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
                     }
+                
+                   
                 
                     if (showDetail)
                     {
@@ -2385,7 +2565,14 @@ int spaceKey = 0;
                         glPushMatrix();
                         glScalef(pMesh->secondaryMapScale,pMesh->secondaryMapScale, 0.0);
                     }
-                
+                    else
+                    {
+                        glActiveTextureARB(GL_TEXTURE1_ARB);
+                        glDisable(GL_TEXTURE_2D);
+                        
+                        glClientActiveTextureARB(GL_TEXTURE0_ARB);
+                        glActiveTextureARB(GL_TEXTURE0_ARB);
+                    }
                 
                 
                     
@@ -2424,7 +2611,8 @@ int spaceKey = 0;
                     
                     
                 
-                    
+                    if (showDetail2)
+                    {
                     //[_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:NO];
                     glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2432,8 +2620,7 @@ int spaceKey = 0;
             
                 //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
                 
-                    glColor4f(1,1,1,1);
-                
+ 
                 //if (mesh_index == selectedBSP)
                 //    glColor4f(0.5,1,1,1);
                 
@@ -2474,6 +2661,15 @@ int spaceKey = 0;
                     glPushMatrix();
                     glScalef(pMesh->primaryMapScale,pMesh->primaryMapScale, 0.0);
                 }
+                    
+                    else
+                    {
+                        glActiveTextureARB(GL_TEXTURE1_ARB);
+                        glDisable(GL_TEXTURE_2D);
+                        
+                        glClientActiveTextureARB(GL_TEXTURE0_ARB);
+                        glActiveTextureARB(GL_TEXTURE0_ARB);
+                    }
                 
                 
                 
@@ -2504,21 +2700,48 @@ int spaceKey = 0;
                 glActiveTextureARB(GL_TEXTURE0_ARB);
                 glDisable(GL_TEXTURE_2D);
                 glDisable(GL_BLEND);
+                    }
                 
                 
+                
+                //No fog ;)
+                
+if (useNewRenderer() == 3)
+{
+                //Third pass - brighten your day!
+                if (showDetail2 && pMesh->isWaterShader == NO)
+                {
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_DST_COLOR, GL_ONE);
+                    
+                    glColor4f(1.0f,1.0f,1.0f,0.8f);
+                    
+                    glEnableClientState(GL_VERTEX_ARRAY);
+                    glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
+                    glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+                    glDisableClientState(GL_VERTEX_ARRAY);
+                }
+            }
+            
                 
                 
                 
                     glDepthFunc(GL_LESS);
-#endif
+}
             
             }
             //glPopMatrix();
         }
+
         else if (true)
         {
-        
-#ifndef LITE
+            //glAlphaFunc ( GL_GREATER, 0.1 ) ;
+            //glEnable ( GL_ALPHA_TEST ) ;
+            
+    
+            
+if (useNewRenderer() != 1)
+{
             glActiveTextureARB(GL_TEXTURE2_ARB);
             glDisable(GL_TEXTURE_2D);
             glActiveTextureARB(GL_TEXTURE1_ARB);
@@ -2526,14 +2749,22 @@ int spaceKey = 0;
             glActiveTextureARB(GL_TEXTURE0_ARB);
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_BLEND);
-#endif
+}
             
-            if (useNewRenderer() == 2)
+            if (useNewRenderer() >= 2)
                 [_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:YES];
             else
                 [_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:NO];
             
-            glColor4f(1,1,1,1);
+            
+            if (pMesh->isWaterShader)
+            {
+                glEnable(GL_BLEND);
+                glColor4f(pMesh->r, pMesh->g, pMesh->b, 0.5f);
+                
+                glDisable(GL_FOG);
+            }
+
             
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -2548,6 +2779,12 @@ int spaceKey = 0;
                 
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_BLEND);
+            
+            if (pMesh->isWaterShader)
+            {
+                glDisable(GL_BLEND);
+                glEnable(GL_FOG);
+            }
 
         }
 		else
@@ -2583,7 +2820,7 @@ int spaceKey = 0;
             }
             glEnd();
         }
-	}
+	//}
     
     
     
@@ -2677,6 +2914,7 @@ int spaceKey = 0;
 	/*double time = mach_absolute_time();
      NSLog(@"%fd", (mach_absolute_time()-time)/100000000.0);*/
     
+   USEDEBUG NSLog(@"RENDERING MAP OBJECTS");
     bool nameBSP = false;
 	
 	int x, i, name = 1;
@@ -2698,9 +2936,10 @@ int spaceKey = 0;
     
 	
 	// This one does its own namings
+    USEDEBUG NSLog(@"Render netgames");
     if (!nameBSP)
         [self renderNetgameFlags:&name];
-	
+	USEDEBUG NSLog(@"Load others");
 	bipd_refs = [_scenario bipd_references];
     vehi_refs = [_scenario vehi_references];
 	vehi_spawns = [_scenario vehi_spawns];
@@ -2716,11 +2955,12 @@ int spaceKey = 0;
     //The copyright for other smaller segments that are not identified by these comments are also owned by Samuel Colbran (Samuco).
     //--------------------------------
     
-    /*
+    
     glLineWidth(_lineWidth);
 	
 	//glBegin(GL_LINES);
 
+    /*
     glPushMatrix();
     glTranslatef(toPt[0], toPt[1], toPt[2]);
     glColor3f(1.0, 0.0, 0.0);
@@ -2738,26 +2978,29 @@ int spaceKey = 0;
     
 	//glEnd();
     
-    
-    
-    ModelTag *bipd = [_mapfile tagForId:[_scenario baseModelIdent:bipd_refs[0].bipd_ref.TagId]];
+
+    MapTag *bipd = [_mapfile bipd];
 
 	glColor4f(0.0f,0.0f,0.0f,1.0f);
 	
     BOOL ignoreDrawing = FALSE;
     //rendDistance = 50;
     
+    USEDEBUG NSLog(@"MP0");
     if (!ignoreDrawing)
     {
-
-    if (useNewRenderer())
+        USEDEBUG NSLog(@"MP0.1");
+    if (TRUE)//useNewRenderer())
     {
-        
+        USEDEBUG NSLog(@"MP0.2");
         glEnableClientState(GL_VERTEX_ARRAY);
+        USEDEBUG NSLog(@"MP0.3");
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        USEDEBUG NSLog(@"MP0.4");
     }
 	for (x = 0; x < [_scenario player_spawn_count]; x++)
 	{
+        USEDEBUG NSLog(@"MP0.5 %d", x );
         if (!nameBSP)
         {
             // Lookup goes hur
@@ -2766,19 +3009,24 @@ int spaceKey = 0;
             glLoadName(name);
             name++;
         }
-        
+        USEDEBUG NSLog(@"MP0.6 %d", x );
 		if (spawns[x].bsp_index == activeBSPNumber)
         {
-            if (useNewRenderer())
+             if (TRUE)//useNewRenderer())
             {
                 if (bipd && [bipd respondsToSelector:@selector(drawAtPoint:lod:isSelected:useAlphas:)])
                 {
                     
+                    USEDEBUG NSLog(@"MP0.7 %d", x );
                     int type1 = spawns[x].type1;
           
-                    
+                    USEDEBUG NSLog(@"MP0.8 %d", x );
                     int showType = [[renderGametype selectedItem] tag];
                     
+                    if (showType == -1)
+                        continue;
+                    
+                    USEDEBUG NSLog(@"MP0.9 %d", x );
                     //This visbility is a mess xD
                     BOOL visible = FALSE;
                     if (showType == 12)
@@ -2810,9 +3058,9 @@ int spaceKey = 0;
                                 visible = TRUE;
                         }
                     }
-                    
+                    USEDEBUG NSLog(@"MP1.1 %d", x );
                     int team = spawns[x].team_index;
-                    if (type1 != 1)
+                    if (type1 != 1  && !(type1 == 12 && showType == 1))
                     {
                         glColor4f(1.0,1.0,1.0, 1.0);
                         if (spawns[x].isSelected)
@@ -2854,18 +3102,25 @@ int spaceKey = 0;
                             }
                     }
                     
-                    
+                     USEDEBUG NSLog(@"MP1.2 %d", x );
                     
                     
                     if (visible)
                     {
+                         USEDEBUG NSLog(@"MP1.3 %d", x );
                         for (i = 0; i < 3; i++)
                             pos[i] = spawns[x].coord[i];
+                         USEDEBUG NSLog(@"MP1.4 %d", x );
                         pos[3] = 0;
                         pos[4] = pos[5] = 0.0f;
+                         USEDEBUG NSLog(@"MP1.5 %d", x );
                         distanceTo = [self distanceToObject:pos];
+                         USEDEBUG NSLog(@"MP1.6 %d", x );
                         if (distanceTo < rendDistance || spawns[x].isSelected)
+                        {
+                             USEDEBUG NSLog(@"MP1.7 %d", x );
                             [bipd drawAtPoint:spawns[x].coord lod:5 isSelected:NO useAlphas:_useAlphas distance:distanceTo];
+                        }
                     }
                 }
                 else
@@ -2881,7 +3136,7 @@ int spaceKey = 0;
         }
 	}
         
-    if (useNewRenderer())
+     if (TRUE)//useNewRenderer())
     {
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -2932,7 +3187,7 @@ int spaceKey = 0;
     //END CODE
     //--------------------------------
     
-        
+        USEDEBUG NSLog(@"Encounters");
     glColor4f(0.0f,0.0f,0.0f,1.0f);
 	for (i=0; i < [_scenario encounter_count]; i++)
 	{
@@ -2955,18 +3210,19 @@ int spaceKey = 0;
 		}
 	}
 }
-
+USEDEBUG NSLog(@"MP1");
     
     
 if (drawObjects())
 {
-    if (useNewRenderer())
+    USEDEBUG NSLog(@"MP2");
+    if (TRUE)//useNewRenderer())
     {
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glColor3f(1.0f,1.0f,1.0f);
     }
-    
+    USEDEBUG NSLog(@"MP3");
     glColor4f(1.0f,1.0f,1.0f,1.0f);
     
 	for (x = 0; x < [_scenario item_spawn_count]; x++)
@@ -2992,7 +3248,7 @@ if (drawObjects())
 				[[_mapfile tagForId:equipSpawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:equipSpawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
 		}
 	}
-    
+    USEDEBUG NSLog(@"MP4");
 
     
 	for (x = 0; x < [_scenario mach_spawn_count]; x++)
@@ -3013,7 +3269,7 @@ if (drawObjects())
 		}
 	}
     
-        
+        USEDEBUG NSLog(@"MP5");
 
 	for (x = 0; x < [_scenario vehicle_spawn_count]; x++)
 	{
@@ -3039,7 +3295,7 @@ if (drawObjects())
 				[[_mapfile tagForId:vehi_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:vehi_spawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
 		}
 	}
-
+USEDEBUG NSLog(@"MP6");
     
     
 	for (x = 0; x < [_scenario scenery_spawn_count]; x++)
@@ -3066,36 +3322,11 @@ if (drawObjects())
 				[[_mapfile tagForId:scen_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:scen_spawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
 		}
 	}
+USEDEBUG NSLog(@"MP7");
+    
+    
 
-    
-    
-    if (useNewRenderer() == 2)
-        glDisable(GL_FOG);
-    
-    
-	for (x = 0; x < [_scenario skybox_count]; x++)
-	{
-		// Lookup goes hur
-
-		if ([_mapfile isTag:skies[x].modelIdent])
-		{
-            
-			pos[0]=0;
-			pos[1]=0;
-			pos[2]=0;//-10000;
-			pos[3]=0;
-			pos[4]=0;
-			pos[5]=0;
-
-			distanceTo = [self distanceToObject:pos];
-			[[_mapfile tagForId:skies[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:NO useAlphas:_useAlphas distance:0];
-		}
-	}
-    
-    if (useNewRenderer() == 2)
-        glEnable(GL_FOG);
-    
-    if (useNewRenderer())
+     if (TRUE)//useNewRenderer())
     {
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -3103,6 +3334,7 @@ if (drawObjects())
         glDisable(GL_TEXTURE_2D);
         glDisable(GL_BLEND);
     }
+    USEDEBUG NSLog(@"MP11");
 }
 
 
@@ -3397,7 +3629,7 @@ if (drawObjects())
 - (void)renderBox:(float *)coord rotation:(float *)rotation color:(float *)color selected:(BOOL)selected
 {
 
-    if (useNewRenderer() == 2)
+    if (useNewRenderer() >= 2)
     {
         glPushMatrix();
         glTranslatef(coord[0], coord[1], coord[2]);
@@ -3408,6 +3640,7 @@ if (drawObjects())
             glColor3f(0.0f, 1.0f, 0.0f);
 		if (selected)
         {
+            /*
             glBegin(GL_LINES);
             {
                 // Now to try some other stuffs! Bwahaha!
@@ -3434,6 +3667,7 @@ if (drawObjects())
                 glVertex3f(0.3f,-0.2f,0.0f);
             }
             glEnd();
+             */
         }
         
         
@@ -3441,7 +3675,7 @@ if (drawObjects())
         gluQuadricDrawStyle( sphere, GLU_FILL);
         gluQuadricOrientation( sphere, GLU_OUTSIDE);
 
-        gluSphere(sphere,0.1,5,5);
+        gluSphere(sphere,0.1,10,10);
         gluDeleteQuadric ( sphere );
         glPopMatrix();
         return;
@@ -3610,7 +3844,7 @@ if (drawObjects())
     gluQuadricOrientation( sphere, GLU_OUTSIDE);
     gluQuadricTexture( sphere, GL_TRUE);
     
-    gluSphere(sphere,0.01,5,5);
+    gluSphere(sphere,0.01,10,10);
     gluDeleteQuadric ( sphere );
     glPopMatrix();
     
@@ -3777,19 +4011,116 @@ if (drawObjects())
 			_lookup[*name] = (long)((s_netgame * MAX_SCENARIO_OBJECTS) + i);
 		*name += 1; // For some reason it won't increment when I go *name++;
         
+        int showType = [[renderGametype selectedItem] tag];
+        
+        
 		switch (mp_flags[i].type)
 		{
 			case ctf_flag:
-				[self renderFlag:mp_flags[i].coord team:mp_flags[i].team_index isSelected:mp_flags[i].isSelected];
+                if (showType == 1||showType == 12)
+                {
+                    [self renderFlag:mp_flags[i].coord team:mp_flags[i].team_index isSelected:mp_flags[i].isSelected];
+                }
 				break;
 			case ctf_vehicle:
 				break;
 			case oddball:
-				//NSLog(@"Oddball attempt ID: 0x%x", mp_flags[i].item_used.TagId);
+                if (showType == 3||showType == 12)
+                {
+                    color[0] = 1.0f; color [1] = 1.0f; color[2] = 0.3f;
+                    [self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
+                }
+                
+				
 				break;
 			case race_track:
-                color[0] = 0.5f; color [1] = 0.2f; color[2] = 0.0f;
-				[self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
+                //Only show if race is selected
+                if (showType == 5||showType == 12||showType == 13)
+                {
+                    
+                    color[0] = 1.0f; color [1] = 0.2f; color[2] = 0.0f;
+                    [self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
+                    
+                    
+                    //How many race tracks are there?
+                    int highest=0;
+                    int count = 0;
+                    int a;
+                    for (a = 0; a < [_scenario multiplayer_flags_count]; a++)
+                    {
+                        if (mp_flags[a].type == race_track)
+                        {
+                            if (mp_flags[a].team_index > highest)
+                                highest = mp_flags[a].team_index;
+                            count++;
+                        }
+                    }
+                    
+                    if (showType == 5)
+                    {
+                        [statusMessage setStringValue:[NSString stringWithFormat:@"Track: %d/32", highest+1]];
+                    }
+                    
+                    //Create lines between this and the one to the immediate right.
+                    BOOL found = false;
+                    int smallest = 1000;
+                    multiplayer_flags nextItem;
+                    for (a = 0; a < [_scenario multiplayer_flags_count]; a++)
+                    {
+                        if (a == i)
+                            continue;
+                        
+                        if (mp_flags[a].type == race_track)
+                        {
+                            if (mp_flags[i].team_index == highest)
+                            {
+                                //Link to 0
+                                if (mp_flags[a].team_index == 0)
+                                {
+                                    found = true;
+                                    nextItem = mp_flags[a];
+                                }
+                            }
+                            else
+                            {
+                                if (mp_flags[a].team_index > mp_flags[i].team_index && mp_flags[a].team_index < smallest)
+                                {
+                                    smallest=mp_flags[a].team_index;
+                                    found = true;
+                                    nextItem = mp_flags[a];
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    if (found)
+                    {
+                        //Connect these two objects with a line.
+                        //mp_flags[i].coord
+                        //mp_flags[i+1].coord
+                        
+                        
+                        
+                        float *coord = mp_flags[i].coord;
+                        float *coord2 = nextItem.coord;
+                        
+                        glLineWidth(5.0f);
+                        glBegin(GL_LINES);
+                        {
+                            // pointer arrow
+                            glColor3f(((mp_flags[i].team_index)/(highest*1.0)),((mp_flags[i].team_index)/(highest*1.0)),((highest-mp_flags[i].team_index)/(highest*1.0)));
+                            
+                            glVertex3f(coord[0],coord[1],coord[2]);
+                            glVertex3f(coord2[0],coord2[1],coord2[2]);
+                        }
+                        glEnd();
+                        
+                        
+                        
+                    }
+                    
+                }
 				break;
 			case race_vehicle:
 				break;
@@ -3829,7 +4160,7 @@ if (drawObjects())
                     float *coord = mp_flags[i].coord;
                     float *coord2 = mp_exit.coord;
                     
-                    glLineWidth(0.1f);
+                    glLineWidth(0.01f);
                     glBegin(GL_LINES);
                     {
                         // Now to try some other stuffs! Bwahaha!
@@ -3857,8 +4188,111 @@ if (drawObjects())
 				[self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
 				break;
 			case hill_flag:
-				color[0] = 0.4f; color [1] = color[2] = 0.0f;
-				[self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
+                if (showType == 4||showType == 12||showType == 13||showType == 14)
+                {
+                    color[0] = 0.4f; color [1] = color[2] = 0.0f;
+                    [self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
+                    
+                    
+                    //Link each hill marker
+                    //Create lines between this and the one to the immediate right.
+                    BOOL found = false;
+                    
+                    float closestDistance = 1000;
+                    float secondcloSsestDistance = 1000;
+                    int nid = -1;
+                    struct multiplayer_flags nextItem;
+                    struct  multiplayer_flags nextItem1 ;
+
+                    for (a = 0; a < [_scenario multiplayer_flags_count]; a++)
+                    {
+                        if (a == i)
+                            continue;
+                        
+              
+                        if (mp_flags[a].type == hill_flag)
+                        {
+                            if (mp_flags[a].team_index == mp_flags[i].team_index)
+                            {
+                                float *coord = mp_flags[i].coord;
+                                float *coord2 = mp_flags[a].coord;
+                                
+                                float distance = sqrtf(powf(coord[0]-coord2[0], 2) + powf(coord[1]-coord2[1], 2) + powf(coord[2]-coord2[2], 2));
+                            
+                                if (distance < closestDistance)
+                                {
+                                    closestDistance = distance;
+                                    nextItem = mp_flags[a];
+                                    nid=a;
+                                    found = YES;
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    
+                    for (a = 0; a < [_scenario multiplayer_flags_count]; a++)
+                    {
+                        if (a == i || a == nid)
+                            continue;
+                        
+                        
+                        if (mp_flags[a].type == hill_flag)
+                        {
+                            if (mp_flags[a].team_index == mp_flags[i].team_index)
+                            {
+                                float *coord = mp_flags[i].coord;
+                                float *coord2 = mp_flags[a].coord;
+                                
+                                float distance = sqrtf(powf(coord[0]-coord2[0], 2) + powf(coord[1]-coord2[1], 2) + powf(coord[2]-coord2[2], 2));
+                                
+                                if (distance < secondcloSsestDistance)
+                                {
+                                    secondcloSsestDistance = distance;
+                                    nextItem1 = mp_flags[a];
+                                    
+                                    found = YES;
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    
+                    
+                    if (found)
+                    {
+                        //Connect these two objects with a line.
+                        //mp_flags[i].coord
+                        //mp_flags[i+1].coord
+                        
+                        
+                        
+                        float *coord = mp_flags[i].coord;
+                        float *coord2 = nextItem.coord;
+                        float *coord3 = nextItem1.coord;
+                        
+                        glLineWidth(5.0f);
+                        glBegin(GL_LINES);
+                        {
+                            // pointer arrow
+                            glColor3f(1.0, 0.8, 0.3);
+                            
+                            glVertex3f(coord[0],coord[1],coord[2]);
+                            glVertex3f(coord2[0],coord2[1],coord2[2]);
+                            
+                            glVertex3f(coord[0],coord[1],coord[2]);
+                            glVertex3f(coord3[0],coord3[1],coord3[2]);
+                        }
+                        glEnd();
+                        
+                        
+                        
+                    }
+
+                    
+                }
 				break;
 		}
 	}
@@ -4537,7 +4971,7 @@ if (drawObjects())
 		[select setLevel:101];
 	
 		[main setStyleMask:NSBorderlessWindowMask]; //Allow menu bar exceeding.
-		[main setFrame:NSMakeRect(0, 0, [[NSScreen mainScreen] frame].size.width, [[NSScreen mainScreen] frame].size.height /*for window title bar height*/) display:YES];
+		//[main setFrame:NSMakeRect(0, 0, [[NSScreen mainScreen] frame].size.width, [[NSScreen mainScreen] frame].size.height /*for window title bar height*/) display:YES];
 	
 		//Make the application the 'main'
 		[[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
@@ -4679,47 +5113,53 @@ int check_intersect_tri(fpoint pt1, fpoint pt2, fpoint pt3, fpoint linept, fpoin
     BOOL found = NO;
     BOOL collison = NO;
     float closestDistance = 1000;
-
-    float *pos1 = malloc(sizeof(float)*3);
-    pos1[0]=pos[0];
-    pos1[1]=pos[1];
-    pos1[2]=pos[2]+3000.0;
-    
-    float *pos2 = malloc(sizeof(float)*3);
-    pos2[0]=pos[0];
-    pos2[1]=pos[1];
-    pos2[2]=pos[2]-3000.0;
-    
-    /*
-    //NEW METHOD
-    NSLog(@"Finding intersection %f %f", pos2[2], pos1[2]);
     
     BspMesh *mesh = [mapBSP mesh];
-    closest = [mesh findIntersection:pos1 withOther:pos2];
+    closest = [mesh findIntersection:pos withOther:pos];
     
-    if (closest)
+    float *currentPos = malloc(sizeof(float)*3);
+    currentPos[0] = pos[0];
+    currentPos[1] = pos[1];
+    currentPos[2] = pos[2];
+    
+    if (!closest)
     {
-        NSLog(@"Coord to ground %f %f %f", closest[0],closest[1],closest[2]);
-        
-        float *ret = malloc(sizeof(float)*3);
-        ret[0]=closest[0];
-        ret[1]=closest[1];
-        ret[2]=closest[2];
-        
-        return ret;
-    }
-    else
-    {
-        float *ret = malloc(sizeof(float)*3);
-        ret[0]=0;
-        ret[1]=0;
-        ret[2]=0;
-        
-        NSLog(@"Not found");
-        return ret;
+        currentPos[2] = pos[2]+30;
     }
     
-    */
+    //LAZY METHOD (which MIGHT work!) Similar to newtons method
+    int iterations = 20;
+    float distance = 1000.0f;
+
+    
+    for (i=0; i < iterations; i++)
+    {
+        
+        distance/=2.0;
+        //First, is currentPos above or below the plane?
+        float *closest = [mesh findIntersection:currentPos withOther:currentPos];
+        if (closest)
+        {
+            //Above the plane. Move down by distance/=2.0
+            currentPos[2] = currentPos[2] - distance;
+        }
+        else
+        {
+            //Below the plane
+            currentPos[2] = currentPos[2] + distance;
+        }
+        
+        
+    }
+    
+    currentPos[2] = currentPos[2] + 0.01;
+    closest = [mesh findIntersection:currentPos withOther:currentPos];
+    if (!closest)
+    {
+        currentPos[2] = pos[2];
+    }
+    
+    return currentPos;
     
     
     mesh_count = [mapBSP GetActiveBspSubmeshCount];
@@ -4857,13 +5297,13 @@ int check_intersect_tri(fpoint pt1, fpoint pt2, fpoint pt3, fpoint linept, fpoin
 
 -(BOOL)isAboveGround:(float*)pos
 {
-    float *gg = [self coordtoGround:pos];
-    if (pos[2] >= (gg[2]))
+    //New smexy method
+    BspMesh *mesh = [mapBSP mesh];
+    float *closest = [mesh findIntersection:pos withOther:pos];
+    if (closest)
     {
-        free(gg);
         return TRUE;
     }
-    free(gg);
     return FALSE;
 }
 
@@ -5190,13 +5630,15 @@ BOOL isPainting;
 
         //}
 
+    
         if (found)
         {
-    isPainting= NO;
-    //NSLog(@"%f %f %f", p.x, p.y, p.z);
-    return selectedBSP;
+          
+            isPainting= NO;
+            //NSLog(@"%f %f %f", p.x, p.y, p.z);
+            return selectedBSP;
         }
-    
+
     
         //This function is broken but it'll do for now. We can always hide the mouse cursor. Find where this line intersects the bsp
         
@@ -5771,6 +6213,16 @@ char *int2bin(int a, char *buffer, int buf_size) {
                                       @"Lima", @"Mike", @"November", @"Oscar", @"Papa", @"Quebec", @"Romeo", @"Sierra", @"Tango", @"Uniform", @"Victor", @"Whiskey", @"X-ray", @"Yankee", @"Zulu"];
                 NSArray *teams = @[@"Red", @"Blue"];
                 
+                NSMutableArray *teamIndicies = [[NSMutableArray alloc] init];
+                
+                int a;
+                for (a=0; a < 255; a++)
+                {
+                    [teamIndicies addObject:[NSString stringWithFormat:@"%d", a]];
+                }
+                
+               // NSArray *teamIndicies = @[@"0", @"1", @"2", @"3", @"4", @"5", @"6", @"7", @"8", @"9", @"10", @"11", @"12", @"13", @"14", @"15", @"16", @"17", @"18", @"19", @"20"];
+                
                 switch ([_scenario netgame_flags][index].type)
 				{
 					case teleporter_entrance:
@@ -5781,6 +6233,14 @@ char *int2bin(int a, char *buffer, int buf_size) {
 						settings = @[@{kName:@"Type", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].type], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].type)]},
                                      @{kName:@"Channel", kType:kPopup, kData:channels, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].team_index)]}];
 						break;
+                    case hill_flag:
+                        settings = @[@{kName:@"Type", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].type], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].type)]},
+                                     @{kName:@"Hill Index", kType:kPopup, kData:teamIndicies, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].team_index)]}];
+                        break;
+                    case race_track:
+                        settings = @[@{kName:@"Type", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].type], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].type)]},
+                                     @{kName:@"Track Index", kType:kPopup, kData:teamIndicies, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].team_index)]}];
+                        break;
 					default:
                         settings = @[@{kName:@"Type", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].type], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].type)]},
                                      @{kName:@"Team Index", kType:kPopup, kData:teams, kSelection:[NSNumber numberWithShort:[_scenario netgame_flags][index].team_index], kPointer:[NSNumber numberWithLong:&([_scenario netgame_flags][index].team_index)]}];

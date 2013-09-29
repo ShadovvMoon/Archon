@@ -27,13 +27,13 @@
 		0 
 	};
     
-    NSLog(@"Creating bitmapview");
+    USEDEBUG NSLog(@"Creating bitmapview");
     [self setPostsFrameChangedNotifications: YES];
     nsglFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
-    if(!nsglFormat) { NSLog(@"Invalid format... terminating."); return nil; }
+    USEDEBUG if(!nsglFormat) { NSLog(@"Invalid format... terminating."); return nil; }
     self = [super initWithFrame:frame pixelFormat:nsglFormat];
     [nsglFormat release];
-    if(!self) { NSLog(@"Self not created... terminating."); return nil; }
+    USEDEBUG if(!self) { NSLog(@"Self not created... terminating."); return nil; }
     [[self openGLContext] makeCurrentContext];
     [self initGL];
 	
@@ -44,7 +44,7 @@
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LESS);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 }
 - (void)awakeFromNib

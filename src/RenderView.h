@@ -21,8 +21,8 @@
 #import "Scenario.h"
 #import "BspMesh.h"
 
-#define BITS_PER_PIXEL          32.0
-#define DEPTH_SIZE              32.0
+#define BITS_PER_PIXEL          64.0
+#define DEPTH_SIZE              64.0
 #define DEFAULT_TIME_INTERVAL   0.001
 
 //@class Camera;
@@ -96,6 +96,7 @@
 	IBOutlet NSTextField *selectedType;
 	IBOutlet NSPopUpButton *selectedSwapButton;
 	IBOutlet NSPopUpButton *selectedTypeSwapButton;
+	IBOutlet NSPopUpButton *renderEngine;
 	/* End Selection Related */
 	
 	/* Begin Scenario Editing Related */
@@ -212,7 +213,7 @@
 	IBOutlet NSPanel *spawne;
 	IBOutlet NSPanel *select;
 	IBOutlet NSPanel *machine;
-	
+	IBOutlet NSTextField *statusMessage;
 	IBOutlet NSButton *player_1;
 	IBOutlet NSButton *player_2;
 	IBOutlet NSButton *player_3;

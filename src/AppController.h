@@ -51,6 +51,8 @@
     IBOutlet NSWindow *editorWindow;
     IBOutlet NSWindow *renderingWindow;
     IBOutlet NSWindow *selectionSWindow;
+    
+    IBOutlet NSMenu *recentMenu;
 	//NSString *opened;
 }
 - (void)awakeFromNib;

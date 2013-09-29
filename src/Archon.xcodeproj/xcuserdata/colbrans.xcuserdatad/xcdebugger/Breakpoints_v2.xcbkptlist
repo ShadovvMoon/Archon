@@ -26,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Geometry.m"
-            timestampString = "393916976.264056"
+            timestampString = "402023154.637372"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "303"
-            endingLineNumber = "303"
+            startingLineNumber = "309"
+            endingLineNumber = "309"
             landmarkName = "-determineBoundingBox"
             landmarkType = "5">
          </BreakpointContent>
@@ -72,12 +72,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "HaloMap.m"
-            timestampString = "393549242.910861"
+            timestampString = "402029262.983244"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "916"
-            endingLineNumber = "916"
-            landmarkName = "-loadSCHI:forID:"
+            startingLineNumber = "970"
+            endingLineNumber = "970"
+            landmarkName = "-loadSCEX:forID:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

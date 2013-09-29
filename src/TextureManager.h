@@ -18,9 +18,13 @@
 	GLuint *_glTextureNames;
 	
 	GLuint **_glTextureTable;
-	
+    GLuint **_glTextureTable_Alphas;
+	GLuint **_glTextureTable_Compiled;
+    
 	int _textureCounter;
+    int lastShaderIndex;
 }
+-(BitmapTag*)bitmapForIdent:(long)ident;
 - (id)init;
 - (id)initWithCapacity:(int)capacity;
 - (void)setCapacity:(int)capacity;
@@ -37,5 +41,7 @@
 @property unsigned int *_glTextureNameLookup;
 @property GLuint *_glTextureNames;
 @property GLuint **_glTextureTable;
+@property GLuint **_glTextureTable_Alphas;
+@property GLuint **_glTextureTable_Compiled;
 @property int _textureCounter;
 @end

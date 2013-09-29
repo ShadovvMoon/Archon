@@ -54,9 +54,15 @@
 }
 
 
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
+{
+   [self OpenMap:filename];
+    return YES;
+}
+
+
 - (void)awakeFromNib
 {
-    NSLog(@"Checking mac");
     /*
 #ifndef MACVERSION
     userDefaults = [NSUserDefaults standardUserDefaults];
@@ -158,6 +164,7 @@
         [[NSUserDefaults standardUserDefaults] setObject:@"No" forKey:@"FirstTime"];
     }
     
+    NSLog(@"Show window");
     [mainWindow makeKeyAndOrderFront:self];
     
 }
@@ -207,7 +214,7 @@
 		default:
 			break;
 	}
-	[mainWindow setTitle:[[NSString stringWithString:@"Sunlight : "] stringByAppendingString:[mapfile mapName]]];
+	[mainWindow setTitle:[[NSString stringWithString:@"Archon : "] stringByAppendingString:[mapfile mapName]]];
 }
 
 - (IBAction)loadMap:(id)sender
@@ -231,7 +238,16 @@
 		
 		[opened setStringValue:[open filename]];
 
-		
+        //Add the filename to the recent menu
+        NSMutableArray *recent = [NSMutableArray arrayWithArray:[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent"]];
+        [recent insertObject:[open filename] atIndex:0];
+        if ([recent count] > 11)
+            [recent removeLastObject];
+        [[NSUserDefaults standardUserDefaults] setObject:recent forKey:@"Recent"];
+        
+        //Add a menu item.
+        [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:[open URL]];
+        
 		[self OpenMap:[open filename]];
 		
 	}

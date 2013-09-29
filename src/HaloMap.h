@@ -68,6 +68,8 @@ enum MapFileReadResult
 	
 	NSMutableArray *bitmTagList;
 	NSMutableDictionary *bitmTagLookupDict;
+    
+    
 }
 -(ModelTag*)bipd;
 - (id)init;

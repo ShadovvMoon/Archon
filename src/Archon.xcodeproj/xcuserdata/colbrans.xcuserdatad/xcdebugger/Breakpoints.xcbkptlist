@@ -8,11 +8,11 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "RenderView.m"
-         timestampString = "400824771.415668"
+         timestampString = "402136877.452571"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "3674"
-         endingLineNumber = "3674"
+         startingLineNumber = "3881"
+         endingLineNumber = "3881"
          landmarkName = "-renderPoint:isSelected:"
          landmarkType = "5">
       </FileBreakpoint>
@@ -21,12 +21,12 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "Geometry.m"
-         timestampString = "400420401.075528"
+         timestampString = "402132288.289538"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "278"
-         endingLineNumber = "278"
-         landmarkName = "-determineBoundingBox"
+         startingLineNumber = "375"
+         endingLineNumber = "375"
+         landmarkName = "-loadBitmaps"
          landmarkType = "5">
       </FileBreakpoint>
       <FileBreakpoint
@@ -34,11 +34,11 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "Geometry.m"
-         timestampString = "400420401.075528"
+         timestampString = "402132288.289538"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "265"
-         endingLineNumber = "265"
+         startingLineNumber = "362"
+         endingLineNumber = "362"
          landmarkName = "-loadBitmaps"
          landmarkType = "5">
       </FileBreakpoint>
@@ -47,11 +47,11 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "RenderView.m"
-         timestampString = "400824771.415668"
+         timestampString = "402136877.452571"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "1696"
-         endingLineNumber = "1696"
+         startingLineNumber = "1731"
+         endingLineNumber = "1731"
          landmarkName = "-DropCamera:"
          landmarkType = "5">
       </FileBreakpoint>
@@ -91,6 +91,19 @@
          endingColumnNumber = "9223372036854775807"
          startingLineNumber = "12"
          endingLineNumber = "12">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "Geometry.m"
+         timestampString = "402132288.289538"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "360"
+         endingLineNumber = "360"
+         landmarkName = "-loadBitmaps"
+         landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>
    <SymbolicBreakpoints>

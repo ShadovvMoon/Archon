@@ -131,13 +131,13 @@
 	[_mapfile skipBytes:(9 * sizeof(unsigned long))];
     
     
-	NSLog(@"LM1");
+	 NSLog(@"LM1");
 	[self LoadMaterialMeshHeaders];
-    NSLog(@"LM2");
+     NSLog(@"LM2");
 	[self LoadCollisionMeshHeaders];
-    NSLog(@"LM3");
+     NSLog(@"LM3");
 	[self LoadPcSubmeshes];
-    NSLog(@"LM4");
+     NSLog(@"LM4");
 }
 - (void)LoadPcSubmeshes
 {
@@ -238,13 +238,13 @@
     int i;
 	
 	
-	NSLog(@"SUbmeshes: %d", m_SubMeshCount);
+	NSLog(@"SUbmeshe2s: %d", m_SubMeshCount);
     
 	for (i = 0; i < m_SubMeshCount; i++)
 	{
 		
 		int gm = 1;
-		if (TRUE)//useNewRenderer() == 2)
+		if (TRUE)//useNewRenderer() >= 2)
 		{
         
             [_texManager exportTextureOfIdent:m_pMesh[i].baseMap subImage:0];
@@ -255,37 +255,51 @@
 
 - (void)LoadPcSubmeshTextures
 {
+    
 	int i;
 	
 	if (texturesLoaded)
+    {
+        NSLog(@"Textures are already loaded!");
 		return;
+    }
+    else
+    {
+        NSLog(@"Loading submeshes");
+    }
 	
-	NSLog(@"SUbmeshes: %d", m_SubMeshCount);
+	USEDEBUG NSLog(@"SUbmeshe3s: %d", m_SubMeshCount);
 	
     
 	for (i = 0; i < m_SubMeshCount; i++)
 	{
-		
+		USEDEBUG NSLog(@"Loading %d", i);
 		int gm = 1;
-		if (TRUE)//useNewRenderer() == 2)
+		if (TRUE)//useNewRenderer() >= 2)
 		{
             //NSMutableArray *bitms = [_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId];
             m_pMesh[i].DefaultLightmapIndex = m_BspHeader.LightmapsTag.TagId;
             
+            m_pMesh[i].r = 1.0f;
+            m_pMesh[i].g = 1.0f;
+            m_pMesh[i].b = 1.0f;
+            m_pMesh[i].isWaterShader = NO;
             if ([[NSString stringWithCString: m_pMesh[i].header.ShaderTag.tag length:4] isEqualToString:@"vnes"])
-            {  
+            {
+                USEDEBUG NSLog(@"vnes");
                 m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
                 [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
                 
                 senv *shader = (senv *)malloc(sizeof(senv));
                 [_mapfile loadShader:shader forID:m_pMesh[i].header.ShaderTag.TagId];
             
+                //Colour of it
+                
+                
                 //BASE MAP
 				m_pMesh[i].baseMap = shader->baseMapBitm.TagId;
 				[_texManager loadTextureOfIdent:m_pMesh[i].baseMap subImage:0];
  
-                
-                
                 m_pMesh[i].primaryMap = shader->primaryMapBitm.TagId;
                 m_pMesh[i].primaryMapScale = shader->primaryMapScale;
                 [_texManager loadTextureOfIdent:m_pMesh[i].primaryMap subImage:0];
@@ -296,21 +310,58 @@
                 m_pMesh[i].secondaryMapScale = shader->secondaryMapScale;
                 [_texManager loadTextureOfIdent:m_pMesh[i].secondaryMap subImage:0];
 				
+                m_pMesh[i].r = shader->r;
+                m_pMesh[i].g = shader->g;
+                m_pMesh[i].b = shader->b;
+                
                 //MICRO DETAIL MAP
                 //m_pMesh[i].microMap = [[bitmaps objectAtIndex:3] idOfTag];
                 //[_texManager loadTextureOfIdent:m_pMesh[i].microMap subImage:0];
             }
             else if ([[NSString stringWithCString: m_pMesh[i].header.ShaderTag.tag length:4] isEqualToString:@"algs"])
             {
-                m_pMesh[i].DefaultBitmapIndex = [[[_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] objectAtIndex:2] idOfTag];
+                
+                NSMutableArray *bitms = [_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId];
+                if (!bitms)
+                    continue;
+                
+               USEDEBUG  NSLog(@"algs %d", [bitms count]);
+                if ([bitms count] > 2)
+                    m_pMesh[i].DefaultBitmapIndex = [[bitms objectAtIndex:2] idOfTag];
+                else if ([bitms count] > 1)
+                    m_pMesh[i].DefaultBitmapIndex = [[bitms objectAtIndex:1] idOfTag];
+                else
+                    continue;
+                
+                USEDEBUG NSLog(@"loading alg");
                 [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
                 
                 m_pMesh[i].baseMap = -1;// m_pMesh[i].DefaultBitmapIndex;
             }
-            else
+            else if ([[NSString stringWithCString: m_pMesh[i].header.ShaderTag.tag length:4] isEqualToString:@"taws"])
             {
                 m_pMesh[i].DefaultBitmapIndex = [[[_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] objectAtIndex:0] idOfTag];
-                [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
+                [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0 removeAlpha:YES];
+                
+                //Find the colours
+                //m_pMesh[i].header.ShaderTag.TagId
+                swat *shader = (swat *)malloc(sizeof(swat));
+                [_mapfile loadSWAT:shader forID:m_pMesh[i].header.ShaderTag.TagId];
+            
+                m_pMesh[i].r = shader->r;
+                m_pMesh[i].g = shader->g;
+                m_pMesh[i].b = shader->b;
+                
+                m_pMesh[i].baseMap = -1;// m_pMesh[i].DefaultBitmapIndex;
+                m_pMesh[i].isWaterShader = YES;
+            }
+            else
+            {
+                USEDEBUG NSLog(@"other");
+                //Lets alpha out the black using our smexy techniques
+                
+                m_pMesh[i].DefaultBitmapIndex = [[[_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] objectAtIndex:0] idOfTag];
+                [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0 removeAlpha:YES];
                 
                 m_pMesh[i].baseMap = -1;// m_pMesh[i].DefaultBitmapIndex;
             }
@@ -344,10 +395,6 @@
 //164578
 #define EPSILON 0.0001
 //New bsp methods!
--(float*)findIntersection:(float*)p withOther:(float*)q
-{
-    return [self traverseBspTree:p withOther:q andNode:0];
-}
 
 float dot3n(struct Plane a, float*p)
 {
@@ -540,7 +587,7 @@ float *newPt(float x, float y, float z)
 -(float*)hitTestLeaf:(float*)p withOther:(float*)q andLeaf:(int)leaf
 {
     //5920
-    NSLog(@"Leaf %d %d %d %f %f", leaf, leaves[leaf].bsp2dRef, leaves[leaf].bsp2dCount, p[2], q[2]);
+    //NSLog(@"Leaf %d %d %d %f %f", leaf, leaves[leaf].bsp2dRef, leaves[leaf].bsp2dCount, p[2], q[2]);
     
     int reference = leaves[leaf].bsp2dRef;
     float *S = malloc(sizeof(float)*3);
@@ -557,13 +604,22 @@ float *newPt(float x, float y, float z)
         // check if the line segment crosses the 2d plane upon which the 2dBsp was projected
         float s = dot3n(N,p) - N.d;
         float t = dot3n(N,q) - N.d;
-        if(s*t >= 0) // if the line does not cross the plane, don't consider it
-            continue;
         
-        NSLog(@"CONSIDER");
+        if(s*t >= 0) // if the line does not cross the plane, don't consider it
+        {
+            continue;
+        }
+        
+ 
         float* V = subtractPoints(q,p);
-        float ins = -(N.d + dot3n(N,p))/dot3n(N, V);
+        float ins = -(-N.d + dot3n(N,p))/(dot3n(N, V));
         T = addPoints(p, multPoint(ins, V));
+        
+        
+        //NSLog(@"POSSIBLE HIT!");
+        S = T;
+        continue;
+        
         float *Tp = [self HaloProjectPoint2D:N withT:T];
         
         float distanceS = sqrtf(powf(S[0]-p[0], 2) + powf(S[1]-p[1], 2) + powf(S[2]-p[2], 2));
@@ -577,19 +633,32 @@ float *newPt(float x, float y, float z)
     return S;
 }
 
--(float*)traverseBspTree:(float*)p withOther:(float*)q andNode:(int)node
+
+-(float*)findIntersection:(float*)p withOther:(float*)q
+{
+    return [self traverseBspTree:p withOther:q andNode:0];
+}
+
+
+-(float*)traverseBspTree:(float*)p withOther:(float*)q andNode:(int)node //PERFECT
 {
     if (node == -1)
-        return nil;
+        return nil; //Most definately correct!
     
     if (node < 0) // we've hit a leaf, perform hit test
     {
+        //Who cares.
+        return p;
         return [self hitTestLeaf:p withOther:q andLeaf:node & 0x7FFFFFFF];
     }
     
     struct Plane N = planes[bsp3d_nodes[node].plane];
     float s = N.a*p[0]+ N.b*p[1]+ N.c*p[2] - N.d; // if this is < 0 the point is behind the plane, > 0 in front
     float t = N.a*q[0]+ N.b*q[1]+ N.c*q[2] - N.d; // same as above, but for Q
+    
+    
+    
+    
     
    // NSLog(@"%f %f %f %f", N.a, N.b, N.c, N.d);
    // NSLog(@"S %f T %f", s, t);
@@ -716,15 +785,15 @@ float *newPt(float x, float y, float z)
                     
                 }
                 
-                NSLog(@"BSP COUNT %ld", m_BspHeader.CollBspHeader.chunkcount);
-                NSLog(@"PLANE COUNT %ld", m_pCollisions[0].Planes.chunkcount);
-                NSLog(@"BSP2dRef COUNT %ld", m_pCollisions[0].BSP2DRef.chunkcount);
-                NSLog(@"BSP2dnode COUNT %ld", m_pCollisions[0].BSP2DNodes.chunkcount);
-                NSLog(@"SURFACE COUNT %ld", m_pCollisions[0].Surfaces.chunkcount);
-                NSLog(@"Edges COUNT %ld", m_pCollisions[0].Edges.chunkcount);
-                NSLog(@"MATERIAL COUNT %ld", m_pCollisions[0].Material.chunkcount);
-                NSLog(@"LEAVES COUNT %ld", m_pCollisions[0].Leaves.chunkcount);
-                NSLog(@"3d COUNT %ld", m_pCollisions[0].Node3D.chunkcount);
+                USEDEBUG NSLog(@"BSP COUNT %ld", m_BspHeader.CollBspHeader.chunkcount);
+                USEDEBUG NSLog(@"PLANE COUNT %ld", m_pCollisions[0].Planes.chunkcount);
+                USEDEBUG NSLog(@"BSP2dRef COUNT %ld", m_pCollisions[0].BSP2DRef.chunkcount);
+                USEDEBUG NSLog(@"BSP2dnode COUNT %ld", m_pCollisions[0].BSP2DNodes.chunkcount);
+                USEDEBUG NSLog(@"SURFACE COUNT %ld", m_pCollisions[0].Surfaces.chunkcount);
+               USEDEBUG  NSLog(@"Edges COUNT %ld", m_pCollisions[0].Edges.chunkcount);
+                USEDEBUG NSLog(@"MATERIAL COUNT %ld", m_pCollisions[0].Material.chunkcount);
+                USEDEBUG NSLog(@"LEAVES COUNT %ld", m_pCollisions[0].Leaves.chunkcount);
+               USEDEBUG  NSLog(@"3d COUNT %ld", m_pCollisions[0].Node3D.chunkcount);
 
                 coll_count = col_mesh_count;
                 coll_verts = malloc(col_mesh_count * sizeof(vert));
@@ -999,7 +1068,7 @@ float *newPt(float x, float y, float z)
 	unsigned long offset;
 	int x, i, j, hdr_count;
 	
-    NSLog(@"NUMBER OF LIGHTMAPS %d %d %d", sizeof(BSP_LIGHTMAP) * m_BspHeader.SubmeshHeader.chunkcount, sizeof(short), m_BspHeader.SubmeshHeader.offset);
+    USEDEBUG NSLog(@"NUMBER OF LIGHTMAPS %d %d %d", sizeof(BSP_LIGHTMAP) * m_BspHeader.SubmeshHeader.chunkcount, sizeof(short), m_BspHeader.SubmeshHeader.offset);
 	m_pLightmaps = malloc(sizeof(BSP_LIGHTMAP) * m_BspHeader.SubmeshHeader.chunkcount);
 	
 	[_mapfile seekToAddress:m_BspHeader.SubmeshHeader.offset];
@@ -1012,7 +1081,7 @@ float *newPt(float x, float y, float z)
 		[_mapfile readShort:&m_pLightmaps[x].LightmapIndex];
 		[_mapfile readShort:&m_pLightmaps[x].unk1];
         
-        NSLog(@"LIGHTMAP INDEX %d %d %d", (int)(m_pLightmaps[x].LightmapIndex), (int)(m_pLightmaps[x].LightmapIndex -1 ), sizeof(m_pLightmaps[x].LightmapIndex));
+        USEDEBUG NSLog(@"LIGHTMAP INDEX %d %d %d", (int)(m_pLightmaps[x].LightmapIndex), (int)(m_pLightmaps[x].LightmapIndex -1 ), sizeof(m_pLightmaps[x].LightmapIndex));
         
         
 		[_mapfile skipBytes:(4 * sizeof(unsigned long))];
@@ -1025,7 +1094,7 @@ float *newPt(float x, float y, float z)
         
         
 	}
-	NSLog(@"Complete. Loading verticies %d", m_SubMeshCount * sizeof(SUBMESH_INFO));
+	USEDEBUG NSLog(@"Complete. Loading verticies %d", m_SubMeshCount * sizeof(SUBMESH_INFO));
 	m_pMesh = malloc(m_SubMeshCount * sizeof(SUBMESH_INFO));
 	hdr_count = 0;
 	for (i = 0; i < m_BspHeader.SubmeshHeader.chunkcount; i++)
@@ -1051,7 +1120,7 @@ float *newPt(float x, float y, float z)
         if (m_pLightmaps[i].LightmapIndex != -1 && [_mapfile isTag:m_BspHeader.LightmapsTag.TagId])
             [_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:m_pLightmaps[i].LightmapIndex];
     }
-    NSLog(@"Loading4");
+    USEDEBUG NSLog(@"Loading4");
 }
 
 

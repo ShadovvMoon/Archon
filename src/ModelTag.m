@@ -183,19 +183,19 @@
 {
 	int i, x;
 	
-    
+    USEDEBUG NSLog(@"DAP 0");
     
 	if (bb == NULL)
 		[self determineBoundingBox];
 	
     
-    
+    USEDEBUG NSLog(@"DAP 1");
 	glPushMatrix();
     glTranslatef(point[0],point[1],point[2]);
-    
+    USEDEBUG NSLog(@"DAP 2");
     if (isSelected)
     {
-        if (useNewRenderer())
+        if (TRUE)//useNewRenderer())
         {
             glDisableClientState(GL_VERTEX_ARRAY);
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -224,21 +224,21 @@
         glEnd();
         
         
-        if (useNewRenderer())
+        if (TRUE)//useNewRenderer())
         {
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         }
         
     }
-    
+    USEDEBUG NSLog(@"DAP 3");
     
     /* Perform rotation */
     glRotatef(point[5] * (57.29577951), 1, 0, 0);
     glRotatef(-point[4] * (57.29577951), 0, 1, 0);
     glRotatef(point[3] * (57.29577951), 0, 0, 1);
     
-    
+    USEDEBUG NSLog(@"DAP 4");
     if (bb->max[2]-bb->min[2]<= 0.001)
     {
         glDisable(GL_TEXTURE_2D);
@@ -252,7 +252,7 @@
         gluQuadricOrientation( sphere, GLU_OUTSIDE);
         gluQuadricTexture( sphere, GL_TRUE);
         
-        gluSphere(sphere,0.05,5,5);
+        gluSphere(sphere,0.05,10,10);
         gluDeleteQuadric ( sphere );
         
         glDisable(GL_BLEND);
@@ -271,7 +271,7 @@
         
     }
     
-    
+    USEDEBUG NSLog(@"DAP 5");
     
     
     
@@ -279,20 +279,22 @@
     //The copyright for the following code is owned by Samuel Colbran (Samuco).
     //The copyright for other smaller segments that are not identified by these comments are also owned by Samuel Colbran (Samuco).
     //--------------------------------
-    
+    USEDEBUG NSLog(@"DAP 6");
     if (isSelected)
     {
-        if (useNewRenderer())
+         if (TRUE)//useNewRenderer())
         {
+            USEDEBUG NSLog(@"DAP 7");
             glDisableClientState(GL_VERTEX_ARRAY);
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
             
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_BLEND);
+            USEDEBUG NSLog(@"DAP 8");
         }
         
         glColor4f(1.0f,1.0f,0.0f,4.0f);
-        
+        USEDEBUG NSLog(@"DAP 9");
         if (renderV)
         {
                 if (![renderV isAboveGround:point])
@@ -303,64 +305,69 @@
         }
         else
             glColor4f(1.0f,1.0f,0.0f,4.0f);
-        
+        USEDEBUG NSLog(@"DAP 10");
         //isAboveGround
        
         [self drawBoundingBox];
+        USEDEBUG NSLog(@"DAP 11");
         
         
-        
-        if (useNewRenderer())
+        if (TRUE)//useNewRenderer())
         {
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         }
-        
+        USEDEBUG NSLog(@"DAP 12");
         
         
     }
  
-    
+    USEDEBUG NSLog(@"DAP 13");
     int z;
     for (i = 0; i < numRegions; i++)
     {
+        USEDEBUG NSLog(@"DAP 14 %d", i);
         for (x = 0; x < regions[i].Permutations.chunkcount; x++)
         {
             
-            
+            USEDEBUG NSLog(@"DAP 15 %d", x);
       
                // NSLog([NSString stringWithCString:regions[i].modPermutations[x].Name encoding:NSUTF8StringEncoding]);
             
             int g = regions[i].modPermutations[x].Flags[0];
             if ((g & 0xFF) == 1)
             {
-                
+                USEDEBUG NSLog(@"DAP 16 %d", x);
                 //NSLog([NSString stringWithCString:regions[i].modPermutations[x].Name encoding:NSUTF8StringEncoding]);
                 //continue;
             }
             else
             {
+                USEDEBUG NSLog(@"DAP 17 %d", x);
                 int index;
                 //if (dist < 10.0)
                     index = regions[i].modPermutations[x].LOD_MeshIndex[4];
                 //else
                 //  index = regions[i].modPermutations[x].LOD_MeshIndex[0];
                 
-
+                USEDEBUG NSLog(@"DAP 18 %d", x);
                 if (index>=[subModels count])
                 {
                     continue;
                 }
-                
+                USEDEBUG NSLog(@"DAP 19 %d", x);
                 id model = [subModels objectAtIndex:index];
                 if (model)
                 {
+                    USEDEBUG NSLog(@"DAP 20 %d", x);
     #ifdef fasterRendering
                     glBegin(GL_TRIANGLE_STRIP);
     #endif
-                    [model drawIntoView:useAlphas];
+                    USEDEBUG NSLog(@"DAP 21 %d", x);
+                    [model drawIntoView:useAlphas distance:dist];
     #ifdef fasterRendering
                     glEnd();
+                    USEDEBUG NSLog(@"DAP 22 %d", x);
     #endif
                 }
                 else
@@ -371,16 +378,20 @@
             
         }
     }
-    
+    USEDEBUG NSLog(@"DAP 23");
     //END CODE
     
     glColor3f(1.0f,1.0f,1.0f);
+    USEDEBUG NSLog(@"DAP 24");
 	glPopMatrix();
+    USEDEBUG NSLog(@"DAP 25");
 }
 
 - (void)loadAllBitmaps
 {
+    if (!loaded)
 	[subModels makeObjectsPerformSelector:@selector(loadBitmaps)];
+    loaded=TRUE;
 }
 - (long)shaderIdentForIndex:(int)index
 {

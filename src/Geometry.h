@@ -30,6 +30,7 @@
 	part *parts;
 	geometry me;
 	
+    BOOL drawingSetup;
     
     GLuint cubeVBO;
 	GLuint cubeIBO;
