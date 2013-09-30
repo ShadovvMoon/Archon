@@ -209,7 +209,7 @@ bool drawObjects()
     
 	
 	glClearDepth(1.0f);
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LEQUAL);
 	//glEnable(GL_DEPTH_TEST);
 	
    
@@ -241,7 +241,7 @@ bool drawObjects()
 {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClearDepth(1.0f);
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LEQUAL);
 	//glEnable(GL_DEPTH_TEST);
 	
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
@@ -1161,6 +1161,7 @@ int spaceKey = 0;
             //Are we interescting the bsp anywhere?
             int selection = [self tryBSPSelection:sp shiftDown:NO width:1 height:1];
             
+
           
             if (selection != -1)
             {
@@ -1194,15 +1195,15 @@ int spaceKey = 0;
                 float *vertex2 =  pMesha->pVert[pMesha->pIndex[selectedPIndex].tri_ind[1]].uv;
                 float *vertex3 =  pMesha->pVert[pMesha->pIndex[selectedPIndex].tri_ind[2]].uv;
                 
-                
                 float *lmvertex1 =  pMesha->pLightmapVert[pMesha->pIndex[selectedPIndex].tri_ind[0]].uv;
                 float *lmvertex2 =  pMesha->pLightmapVert[pMesha->pIndex[selectedPIndex].tri_ind[1]].uv;
                 float *lmvertex3 =  pMesha->pLightmapVert[pMesha->pIndex[selectedPIndex].tri_ind[2]].uv;
                 
-                
                 float x = uva1*vertex1[0] + uva2*vertex2[0] + uva3*vertex3[0];
                 float y = uva1*vertex1[1] + uva2*vertex2[1] + uva3*vertex3[1];
-               
+                
+                //NSLog(@"%f %f | %f %f %f | %f %f %f %f %f %f", x, y, uva1, uva2, uva3, vertex1[0], vertex1[1], vertex2[0], vertex2[1], vertex3[0], vertex3[1]);
+                
                 int index = 0;
                 BitmapTag *tmpBitm;
                 
@@ -2189,12 +2190,19 @@ int spaceKey = 0;
 				case textured_tris:
                     glColor3f(1.0, 1.0, 1.0);
 					[self renderBSPAsTexturedAndLightmaps:i];
-                    //[self renderHighlighted:indexMesh];
+                    
+#ifdef DEBUGPAINT
+                    glEnable(GL_BLEND);
+                    glColor4f(1.0, 1.0, 1.0, 0.5f);
+                    [self renderHighlighted:indexMesh];
+                    glDisable(GL_BLEND);
+#endif
+                    
                     //glLineWidth(1.0f);
 					//[self renderBSPAsWireframe:i];
 					//[self renderBSPAsPoints:i];
 					glLineWidth(2.0f);
-					glColor3f(1.0, 1.0, 1.0);
+					glColor4f(1.0, 1.0, 1.0, 1.0);
 					break;
 			}
 			 
@@ -2271,17 +2279,17 @@ int spaceKey = 0;
 	
 	pMesh = [mapBSP GetActiveBspPCSubmesh:mesh_index];
 	//NSLog(@"%d %d", indexMesh, indexHighlight);
+    glColor4f(1.0f, 0.0f, 0.0f, 0.2f);
 	glBegin(GL_TRIANGLE_STRIP);
-	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-	i=indexHighlight;
+	
+	i=selectedPIndex;
     glVertex3fv((float *)(pMesh->pVert[pMesh->pIndex[i].tri_ind[0]].vertex_k));
     glVertex3fv((float *)(pMesh->pVert[pMesh->pIndex[i].tri_ind[1]].vertex_k));
     glVertex3fv((float *)(pMesh->pVert[pMesh->pIndex[i].tri_ind[2]].vertex_k));
 
 	glEnd();
     
-    glDepthFunc(GL_LESS);
-    
+    glDepthFunc(GL_LEQUAL);
 }
 
 - (void)renderBSPAsFlatShadedPolygon:(int)mesh_index
@@ -2341,7 +2349,10 @@ int spaceKey = 0;
     if (mesh_index == selectedBSP)
     {
         //Update the texture using the photoshop file
+        if (pMesh->baseMap != -1)
         [_texManager refreshTextureOfIdent:pMesh->baseMap];
+        
+        if (pMesh->LightmapIndex != -1)
         [_texManager refreshTextureOfIdent:pMesh->DefaultLightmapIndex index:pMesh->LightmapIndex];
         
         
@@ -2469,7 +2480,7 @@ int spaceKey = 0;
                 glDepthMask(1); // Re-enable writing to depth buffer
 
                 
-                glDepthFunc(GL_LESS);
+                glDepthFunc(GL_LEQUAL);
                 
                 return;
             }
@@ -2726,7 +2737,7 @@ if (useNewRenderer() == 3)
                 
                 
                 
-                    glDepthFunc(GL_LESS);
+                    glDepthFunc(GL_LEQUAL);
 }
             
             }
@@ -2956,28 +2967,14 @@ if (useNewRenderer() != 1)
     //--------------------------------
     
     
+#ifdef DEBUGPAINT
     glLineWidth(_lineWidth);
 	
-	//glBegin(GL_LINES);
-
-    /*
-    glPushMatrix();
-    glTranslatef(toPt[0], toPt[1], toPt[2]);
-    glColor3f(1.0, 0.0, 0.0);
-    
-    GLUquadric *sphere=gluNewQuadric();
-    gluQuadricDrawStyle( sphere, GLU_FILL);
-    gluQuadricNormals( sphere, GLU_SMOOTH);
-    gluQuadricOrientation( sphere, GLU_OUTSIDE);
-    gluQuadricTexture( sphere, GL_TRUE);
-    
-    gluSphere(sphere,0.5,20,20);
-    gluDeleteQuadric ( sphere );
-    glPopMatrix();
-    */
-    
-	//glEnd();
-    
+	glBegin(GL_LINES);
+    glVertex3f(fromPt[0], fromPt[1], fromPt[2]);
+    glVertex3f(toPt[0], toPt[1], toPt[2]);
+	glEnd();
+#endif
 
     MapTag *bipd = [_mapfile bipd];
 
@@ -5112,7 +5109,7 @@ int check_intersect_tri(fpoint pt1, fpoint pt2, fpoint pt3, fpoint linept, fpoin
     float *closest;
     BOOL found = NO;
     BOOL collison = NO;
-    float closestDistance = 1000;
+    float closestDistance = 10000;
     
     BspMesh *mesh = [mapBSP mesh];
     closest = [mesh findIntersection:pos withOther:pos];
@@ -5441,7 +5438,8 @@ BOOL isPainting;
         fromPt[0] = cx+vector_x*0.1;
         fromPt[1] = cy+vector_y*0.1;
         fromPt[2] = cz+vector_z*0.1;
-        
+    
+    
         /*
         
         //sx/=20;
@@ -5478,17 +5476,39 @@ BOOL isPainting;
         fMouseZ = 0.0f;
         
         glReadPixels(fMouseX, fMouseY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &fMouseZ);
-        
+    
         double dTempX, dTempY, dTempZ;
         gluUnProject(fMouseX, fMouseY, fMouseZ, afModelviewMatrix, afProjectionMatrix, anViewport, &dTempX, &dTempY, &dTempZ);
-        //ofObjX, Y and Z should be populated and returned now
-        
-       
+    
+    
+     //ofObjX, Y and Z should be populated and returned now
+    //NSLog(@"%f %f %f %f %f %f", dTempX, dTempY, dTempZ,fMouseX,fMouseY,fMouseZ);
+   
         CVector3 vPosition= NewCVector3(cx,cy,cz);
         CVector3 vFar= NewCVector3(dTempX,dTempY,dTempZ);
         
         //Check intersection
         CVector3 l = SubtractTwoVectors(vFar, vPosition);
+    
+    
+        if (Magnitude(l) > lastExtreme)
+        {
+            lastExtreme = Magnitude(l) + 10;
+            return NO;
+        }
+        lastExtreme = Magnitude(l) + 10;
+    
+   // NSLog(@"%f", Magnitude(l));
+     //NSLog(@"%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", afProjectionMatrix[0],afProjectionMatrix[1],afProjectionMatrix[2],afProjectionMatrix[3],afProjectionMatrix[4],afProjectionMatrix[5],afProjectionMatrix[6],afProjectionMatrix[7],afProjectionMatrix[8],afProjectionMatrix[9],afProjectionMatrix[10],afProjectionMatrix[11],afProjectionMatrix[12],afProjectionMatrix[13],afProjectionMatrix[14],afProjectionMatrix[15],afProjectionMatrix[16]);
+    //NSLog(@"%f", Magnitude(l));
+    
+    
+    
+    toPt[0] = vPosition.x+l.x*100;
+    toPt[1] = vPosition.y+l.y*100;
+    toPt[2] = vPosition.z+l.z*100;
+    
+    
         float *closest;
         BOOL found = NO;
     float closestDistance = 1000;
@@ -5508,8 +5528,8 @@ BOOL isPainting;
             float *vertex3 = pMesha->pVert[pMesha->pIndex[i].tri_ind[2]].vertex_k;
             float *normal = pMesha->pVert[pMesha->pIndex[i].tri_ind[0]].normal;
           
-            CVector3 a= NewCVector3(vertex[0],vertex[1],vertex[2]);
-            CVector3 n= NewCVector3(normal[0],normal[1],normal[2]);
+            //CVector3 a= NewCVector3(vertex[0],vertex[1],vertex[2]);
+            //CVector3 n= NewCVector3(normal[0],normal[1],normal[2]);
             
             /*
             float dot = Dot(n, l);
@@ -5551,7 +5571,8 @@ BOOL isPainting;
                 
                 if (pt1[0] == pt2[0] || pt1[1] == pt2[1])
                 {
-                    continue;
+                   // NSLog(@"Continuing");
+                   // continue;
                 }
                 
                 fpoint fpt1 = {pt1[0], pt1[1], pt1[2]};
@@ -5566,6 +5587,22 @@ BOOL isPainting;
                 if (check_intersect_tri(fpt1, fpt2, fpt3, fpt4, v, pt_int))
                 {
                     float dist = (float)sqrt(powf(vPosition.x - pt_int->x,2) + powf(vPosition.y - pt_int->y, 2) + powf(vPosition.z - pt_int->z, 2));
+                    
+                    //Is this point infront of us
+                    CVector3 vPosition = NewCVector3(cx,cy,cz);
+                    CVector3 vFar = NewCVector3(dTempX,dTempY,dTempZ);
+                    CVector3 l = SubtractTwoVectors(vFar, vPosition);
+                    
+                    float delta = (pt_int->x - vPosition.x)/(l.x/Magnitude(l));
+                    
+                    
+                    //NSLog(@"%f",  delta);
+                    
+                   
+                    if (delta < 0)
+                        continue;
+                    
+                    
                     if (dist < closestDistance)
                     {
                         if (found)
@@ -5581,32 +5618,30 @@ BOOL isPainting;
                         //}
                         //return closest;
                      
-                    selectedBSP = mesh_index;
-                    indexMesh = selectedBSP;
-                    //indexHighlight = i;
-                    selectedPIndex = i;
-          
-                    toPt[0] = pt_int->x;
-                    toPt[1] = pt_int->y;
-                    toPt[2] = pt_int->z;
-                    
-                    //now, where ON the triangle does it intersect?
-                    
-                    // calculate vectors from point f to vertices p1, p2 and p3:
-                    CVector3 f = NewCVector3(pt_int->x, pt_int->y, pt_int->z);
-                    CVector3 p1 = NewCVector3(pt1[0], pt1[1], pt1[2]);
-                    CVector3 p2 = NewCVector3(pt2[0], pt2[1], pt2[2]);
-                    CVector3 p3 = NewCVector3(pt3[0], pt3[1], pt3[2]);
-                    
-                    CVector3 f1 = SubtractTwoVectors(p1, f);
-                    CVector3 f2 = SubtractTwoVectors(p2, f);
-                    CVector3 f3 = SubtractTwoVectors(p3, f);
-                    
-                    // calculate the areas and factors (order of parameters doesn't matter):
-                    float a = Magnitude(Cross(SubtractTwoVectors(p1, p2), SubtractTwoVectors(p1, p3)));
-                     uva1 = Magnitude(Cross(f2, f3)) / a;
-                     uva2 = Magnitude(Cross(f3, f1)) / a;
-                     uva3 = Magnitude(Cross(f1, f2)) / a;
+                        selectedBSP = mesh_index;
+                        indexMesh = selectedBSP;
+                        //indexHighlight = i;
+                        selectedPIndex = i;
+              
+                       
+                        
+                        //now, where ON the triangle does it intersect?
+                        
+                        // calculate vectors from point f to vertices p1, p2 and p3:
+                        CVector3 f = NewCVector3(pt_int->x, pt_int->y, pt_int->z);
+                        CVector3 p1 = NewCVector3(pt1[0], pt1[1], pt1[2]);
+                        CVector3 p2 = NewCVector3(pt2[0], pt2[1], pt2[2]);
+                        CVector3 p3 = NewCVector3(pt3[0], pt3[1], pt3[2]);
+                        
+                        CVector3 f1 = SubtractTwoVectors(p1, f);
+                        CVector3 f2 = SubtractTwoVectors(p2, f);
+                        CVector3 f3 = SubtractTwoVectors(p3, f);
+                        
+                        // calculate the areas and factors (order of parameters doesn't matter):
+                        float a = Magnitude(Cross(SubtractTwoVectors(p1, p2), SubtractTwoVectors(p1, p3)));
+                         uva1 = Magnitude(Cross(f2, f3)) / a;
+                         uva2 = Magnitude(Cross(f3, f1)) / a;
+                         uva3 = Magnitude(Cross(f1, f2)) / a;
                     
                    
 

@@ -22,6 +22,8 @@
 //#define __DEBUG__ 1
 #define NEWSKY 1
 #define USEDEBUG if (FALSE) 
+//#define DEBUGPAINT 1
+
 int newR;
 bool drawO ;
 bool lightScene;

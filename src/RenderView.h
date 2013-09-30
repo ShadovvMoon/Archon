@@ -244,6 +244,8 @@
     IBOutlet NSView *settingsView;
     
     BOOL duplicatedAlready;
+    
+    float lastExtreme;
 }
 
 

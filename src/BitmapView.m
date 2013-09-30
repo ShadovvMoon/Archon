@@ -115,7 +115,7 @@
 	{
 		if (_mapfile && [_mapfile isTag:selectedBitmapIdent])
 		{
-			return [[(BitmapTag *)[_mapfile tagForId:selectedBitmapIdent] subImages] count];
+			return [(BitmapTag *)[_mapfile tagForId:selectedBitmapIdent] imageCount];
 		}
 		return 0;
 	}
@@ -129,7 +129,7 @@
 	}
 	else if (tableView == subImageList)
 	{
-		return [NSString stringWithFormat:@"Image [%d]", [[[[_mapfile tagForId:selectedBitmapIdent] subImages] objectAtIndex:row] intValue]];
+		return [NSString stringWithFormat:@"Image [%d]", [[[_mapfile tagForId:selectedBitmapIdent] subImages][row] intValue]];
 	}
 	return nil;
 }

@@ -84,6 +84,7 @@ enum MapFileReadResult
 - (void)loadShader:(senv*)shader forID:(long)shaderId ;
 - (void)seekToAddress:(unsigned long)address;
 - (void)skipBytes:(long)bytesToSkip;
+- (BOOL)writeChar:(char)byte;
 - (BOOL)writeByte:(void *)byte;
 - (BOOL)writeShort:(void *)byte;
 - (BOOL)writeFloat:(float *)toWrite;

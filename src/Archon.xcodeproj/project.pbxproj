@@ -32,7 +32,6 @@
 		5CB883580DD12E070024EB30 /* RenderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CB883570DD12E070024EB30 /* RenderView.m */; };
 		5CBCEEB90E07075500AE841B /* TextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CBCEEB70E07075500AE841B /* TextureManager.m */; };
 		5CC6F9010E92ACE50087C4FA /* FadeView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC6F8FF0E92ACE50087C4FA /* FadeView.m */; };
-		5CC72E9E0E0887C9003B27C2 /* BitmapTag.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC72E9C0E0887C9003B27C2 /* BitmapTag.m */; };
 		5CD1EC350CD5131900043A25 /* BspMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CD1EC340CD5131900043A25 /* BspMesh.m */; };
 		5CD87FEB0DD117D000DAA97D /* HaloMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CD87FEA0DD117D000DAA97D /* HaloMap.m */; };
 		5CD87FFA0DD1180100DAA97D /* Scenario.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CD87FF90DD1180100DAA97D /* Scenario.m */; };
@@ -74,7 +73,6 @@
 		AD55C56C17DDE2E00067CD85 /* BitmapView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C07BFE00DF4A5B500577EEC /* BitmapView.m */; };
 		AD55C56D17DDE2E00067CD85 /* TextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CBCEEB70E07075500AE841B /* TextureManager.m */; };
 		AD55C56E17DDE2E00067CD85 /* Vector.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CDA371A0E081F9300F3F2B9 /* Vector.m */; };
-		AD55C56F17DDE2E00067CD85 /* BitmapTag.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC72E9C0E0887C9003B27C2 /* BitmapTag.m */; };
 		AD55C57017DDE2E00067CD85 /* Bitmask.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C74EB5E0E1464FA003276FB /* Bitmask.c */; };
 		AD55C57117DDE2E00067CD85 /* GeneralMath.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C61EC640E24EB5200CB35F1 /* GeneralMath.c */; };
 		AD55C57217DDE2E00067CD85 /* Preferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CB4D5EE0E69A6C400784930 /* Preferences.m */; };
@@ -89,6 +87,28 @@
 		AD55C59017DDE9D60067CD85 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97324FDCFA39411CA2CEA /* AppKit.framework */; };
 		AD55C59117DDE9D80067CD85 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD79512E1763266E0029CCFE /* Security.framework */; };
 		AD79512F1763266E0029CCFE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD79512E1763266E0029CCFE /* Security.framework */; };
+		AD893D5417F845A20090E892 /* alpha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3817F845A20090E892 /* alpha.cpp */; };
+		AD893D5517F845A20090E892 /* alpha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3817F845A20090E892 /* alpha.cpp */; };
+		AD893D5617F845A20090E892 /* clusterfit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3A17F845A20090E892 /* clusterfit.cpp */; };
+		AD893D5717F845A20090E892 /* clusterfit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3A17F845A20090E892 /* clusterfit.cpp */; };
+		AD893D5817F845A20090E892 /* colourblock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3C17F845A20090E892 /* colourblock.cpp */; };
+		AD893D5917F845A20090E892 /* colourblock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3C17F845A20090E892 /* colourblock.cpp */; };
+		AD893D5A17F845A20090E892 /* colourfit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3E17F845A20090E892 /* colourfit.cpp */; };
+		AD893D5B17F845A20090E892 /* colourfit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3E17F845A20090E892 /* colourfit.cpp */; };
+		AD893D5C17F845A20090E892 /* colourset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D4017F845A20090E892 /* colourset.cpp */; };
+		AD893D5D17F845A20090E892 /* colourset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D4017F845A20090E892 /* colourset.cpp */; };
+		AD893D6417F845A20090E892 /* maths.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D4717F845A20090E892 /* maths.cpp */; };
+		AD893D6517F845A20090E892 /* maths.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D4717F845A20090E892 /* maths.cpp */; };
+		AD893D6617F845A20090E892 /* rangefit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D4917F845A20090E892 /* rangefit.cpp */; };
+		AD893D6717F845A20090E892 /* rangefit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D4917F845A20090E892 /* rangefit.cpp */; };
+		AD893D6817F845A20090E892 /* singlecolourfit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D4F17F845A20090E892 /* singlecolourfit.cpp */; };
+		AD893D6917F845A20090E892 /* singlecolourfit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D4F17F845A20090E892 /* singlecolourfit.cpp */; };
+		AD893D6A17F845A20090E892 /* singlecolourlookup.inl in Resources */ = {isa = PBXBuildFile; fileRef = AD893D5117F845A20090E892 /* singlecolourlookup.inl */; };
+		AD893D6B17F845A20090E892 /* singlecolourlookup.inl in Resources */ = {isa = PBXBuildFile; fileRef = AD893D5117F845A20090E892 /* singlecolourlookup.inl */; };
+		AD893D6C17F845A20090E892 /* squish.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D5217F845A20090E892 /* squish.cpp */; };
+		AD893D6D17F845A20090E892 /* squish.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D5217F845A20090E892 /* squish.cpp */; };
+		AD893D6F17F847BB0090E892 /* BitmapTag.mm in Sources */ = {isa = PBXBuildFile; fileRef = AD893D6E17F847BB0090E892 /* BitmapTag.mm */; };
+		AD893D7017F847BB0090E892 /* BitmapTag.mm in Sources */ = {isa = PBXBuildFile; fileRef = AD893D6E17F847BB0090E892 /* BitmapTag.mm */; };
 		AD9CA5BA176D8E03004B109A /* NonKeyPanels.m in Sources */ = {isa = PBXBuildFile; fileRef = AD9CA5B9176D8E03004B109A /* NonKeyPanels.m */; };
 		ADD558011765866D0023C115 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD558001765866D0023C115 /* Main.xib */; };
 		ADD958DC17E2F25200A7E674 /* csbsp.c in Sources */ = {isa = PBXBuildFile; fileRef = ADD958DB17E2F25200A7E674 /* csbsp.c */; };
@@ -204,7 +224,6 @@
 		5CC6F8FF0E92ACE50087C4FA /* FadeView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = FadeView.m; sourceTree = "<group>"; };
 		5CC6F9000E92ACE50087C4FA /* FadeView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FadeView.h; sourceTree = "<group>"; };
 		5CC72E9B0E0887C9003B27C2 /* BitmapTag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BitmapTag.h; sourceTree = "<group>"; };
-		5CC72E9C0E0887C9003B27C2 /* BitmapTag.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BitmapTag.m; sourceTree = "<group>"; };
 		5CD1EC330CD5131900043A25 /* BspMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BspMesh.h; sourceTree = "<group>"; };
 		5CD1EC340CD5131900043A25 /* BspMesh.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BspMesh.m; sourceTree = "<group>"; };
 		5CD87FE90DD117D000DAA97D /* HaloMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HaloMap.h; sourceTree = "<group>"; };
@@ -232,6 +251,31 @@
 		AD55C58617DDE2E00067CD85 /* ArchonPC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ArchonPC.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD55C58817DDE2E00067CD85 /* swordedi-win32-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "swordedi-win32-Info.plist"; path = "/Users/colbrans/Documents/Programming/Projects/Swordedit/SE/swordedi-win32-Info.plist"; sourceTree = "<absolute>"; };
 		AD79512E1763266E0029CCFE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = ../../../../../../../System/Library/Frameworks/Security.framework; sourceTree = "<group>"; };
+		AD893D3817F845A20090E892 /* alpha.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = alpha.cpp; sourceTree = "<group>"; };
+		AD893D3917F845A20090E892 /* alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = alpha.h; sourceTree = "<group>"; };
+		AD893D3A17F845A20090E892 /* clusterfit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clusterfit.cpp; sourceTree = "<group>"; };
+		AD893D3B17F845A20090E892 /* clusterfit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = clusterfit.h; sourceTree = "<group>"; };
+		AD893D3C17F845A20090E892 /* colourblock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colourblock.cpp; sourceTree = "<group>"; };
+		AD893D3D17F845A20090E892 /* colourblock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = colourblock.h; sourceTree = "<group>"; };
+		AD893D3E17F845A20090E892 /* colourfit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colourfit.cpp; sourceTree = "<group>"; };
+		AD893D3F17F845A20090E892 /* colourfit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = colourfit.h; sourceTree = "<group>"; };
+		AD893D4017F845A20090E892 /* colourset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colourset.cpp; sourceTree = "<group>"; };
+		AD893D4117F845A20090E892 /* colourset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = colourset.h; sourceTree = "<group>"; };
+		AD893D4217F845A20090E892 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		AD893D4717F845A20090E892 /* maths.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = maths.cpp; sourceTree = "<group>"; };
+		AD893D4817F845A20090E892 /* maths.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = maths.h; sourceTree = "<group>"; };
+		AD893D4917F845A20090E892 /* rangefit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rangefit.cpp; sourceTree = "<group>"; };
+		AD893D4A17F845A20090E892 /* rangefit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rangefit.h; sourceTree = "<group>"; };
+		AD893D4B17F845A20090E892 /* simd_float.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd_float.h; sourceTree = "<group>"; };
+		AD893D4C17F845A20090E892 /* simd_sse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd_sse.h; sourceTree = "<group>"; };
+		AD893D4D17F845A20090E892 /* simd_ve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd_ve.h; sourceTree = "<group>"; };
+		AD893D4E17F845A20090E892 /* simd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simd.h; sourceTree = "<group>"; };
+		AD893D4F17F845A20090E892 /* singlecolourfit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = singlecolourfit.cpp; sourceTree = "<group>"; };
+		AD893D5017F845A20090E892 /* singlecolourfit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = singlecolourfit.h; sourceTree = "<group>"; };
+		AD893D5117F845A20090E892 /* singlecolourlookup.inl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = singlecolourlookup.inl; sourceTree = "<group>"; };
+		AD893D5217F845A20090E892 /* squish.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = squish.cpp; sourceTree = "<group>"; };
+		AD893D5317F845A20090E892 /* squish.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = squish.h; sourceTree = "<group>"; };
+		AD893D6E17F847BB0090E892 /* BitmapTag.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BitmapTag.mm; sourceTree = "<group>"; };
 		AD9CA5B8176D8E03004B109A /* NonKeyPanels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NonKeyPanels.h; sourceTree = "<group>"; };
 		AD9CA5B9176D8E03004B109A /* NonKeyPanels.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NonKeyPanels.m; sourceTree = "<group>"; };
 		ADD558001765866D0023C115 /* Main.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Main.xib; sourceTree = "<group>"; };
@@ -460,7 +504,7 @@
 				5CBCEEB60E07075500AE841B /* TextureManager.h */,
 				5CBCEEB70E07075500AE841B /* TextureManager.m */,
 				5CC72E9B0E0887C9003B27C2 /* BitmapTag.h */,
-				5CC72E9C0E0887C9003B27C2 /* BitmapTag.m */,
+				AD893D6E17F847BB0090E892 /* BitmapTag.mm */,
 			);
 			name = "Texture Related";
 			sourceTree = "<group>";
@@ -552,6 +596,30 @@
 		AD7661F517F842B4003129A2 /* Squish */ = {
 			isa = PBXGroup;
 			children = (
+				AD893D3817F845A20090E892 /* alpha.cpp */,
+				AD893D3917F845A20090E892 /* alpha.h */,
+				AD893D3A17F845A20090E892 /* clusterfit.cpp */,
+				AD893D3B17F845A20090E892 /* clusterfit.h */,
+				AD893D3C17F845A20090E892 /* colourblock.cpp */,
+				AD893D3D17F845A20090E892 /* colourblock.h */,
+				AD893D3E17F845A20090E892 /* colourfit.cpp */,
+				AD893D3F17F845A20090E892 /* colourfit.h */,
+				AD893D4017F845A20090E892 /* colourset.cpp */,
+				AD893D4117F845A20090E892 /* colourset.h */,
+				AD893D4217F845A20090E892 /* config.h */,
+				AD893D4717F845A20090E892 /* maths.cpp */,
+				AD893D4817F845A20090E892 /* maths.h */,
+				AD893D4917F845A20090E892 /* rangefit.cpp */,
+				AD893D4A17F845A20090E892 /* rangefit.h */,
+				AD893D4B17F845A20090E892 /* simd_float.h */,
+				AD893D4C17F845A20090E892 /* simd_sse.h */,
+				AD893D4D17F845A20090E892 /* simd_ve.h */,
+				AD893D4E17F845A20090E892 /* simd.h */,
+				AD893D4F17F845A20090E892 /* singlecolourfit.cpp */,
+				AD893D5017F845A20090E892 /* singlecolourfit.h */,
+				AD893D5117F845A20090E892 /* singlecolourlookup.inl */,
+				AD893D5217F845A20090E892 /* squish.cpp */,
+				AD893D5317F845A20090E892 /* squish.h */,
 			);
 			name = Squish;
 			sourceTree = "<group>";
@@ -680,6 +748,7 @@
 				143B86EA12A25A0A0092D35E /* machine.seo in Resources */,
 				ADE09D78176C0CDD007B74E3 /* item.seo in Resources */,
 				ADD558011765866D0023C115 /* Main.xib in Resources */,
+				AD893D6A17F845A20090E892 /* singlecolourlookup.inl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -699,6 +768,7 @@
 				AD55C55917DDE2E00067CD85 /* machine.seo in Resources */,
 				AD55C55A17DDE2E00067CD85 /* item.seo in Resources */,
 				AD55C55B17DDE2E00067CD85 /* Main.xib in Resources */,
+				AD893D6B17F845A20090E892 /* singlecolourlookup.inl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -743,7 +813,6 @@
 				5C07BFE20DF4A5B500577EEC /* BitmapView.m in Sources */,
 				5CBCEEB90E07075500AE841B /* TextureManager.m in Sources */,
 				5CDA371C0E081F9300F3F2B9 /* Vector.m in Sources */,
-				5CC72E9E0E0887C9003B27C2 /* BitmapTag.m in Sources */,
 				5C74EB600E1464FA003276FB /* Bitmask.c in Sources */,
 				5C61EC660E24EB5200CB35F1 /* GeneralMath.c in Sources */,
 				5CB4D5F00E69A6C400784930 /* Preferences.m in Sources */,
@@ -754,6 +823,16 @@
 				1406E51610F93B28004A983D /* Selection.m in Sources */,
 				1406E5A510F93FBB004A983D /* SelectView.m in Sources */,
 				ADD958DC17E2F25200A7E674 /* csbsp.c in Sources */,
+				AD893D5417F845A20090E892 /* alpha.cpp in Sources */,
+				AD893D5617F845A20090E892 /* clusterfit.cpp in Sources */,
+				AD893D5817F845A20090E892 /* colourblock.cpp in Sources */,
+				AD893D5A17F845A20090E892 /* colourfit.cpp in Sources */,
+				AD893D5C17F845A20090E892 /* colourset.cpp in Sources */,
+				AD893D6417F845A20090E892 /* maths.cpp in Sources */,
+				AD893D6617F845A20090E892 /* rangefit.cpp in Sources */,
+				AD893D6817F845A20090E892 /* singlecolourfit.cpp in Sources */,
+				AD893D6C17F845A20090E892 /* squish.cpp in Sources */,
+				AD893D6F17F847BB0090E892 /* BitmapTag.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -761,6 +840,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD893D7017F847BB0090E892 /* BitmapTag.mm in Sources */,
 				AD30D40617E19EC50071EF5B /* glew.c in Sources */,
 				AD55C55D17DDE2E00067CD85 /* main.m in Sources */,
 				AD55C55E17DDE2E00067CD85 /* BSP.m in Sources */,
@@ -780,7 +860,6 @@
 				AD55C56C17DDE2E00067CD85 /* BitmapView.m in Sources */,
 				AD55C56D17DDE2E00067CD85 /* TextureManager.m in Sources */,
 				AD55C56E17DDE2E00067CD85 /* Vector.m in Sources */,
-				AD55C56F17DDE2E00067CD85 /* BitmapTag.m in Sources */,
 				AD55C57017DDE2E00067CD85 /* Bitmask.c in Sources */,
 				AD55C57117DDE2E00067CD85 /* GeneralMath.c in Sources */,
 				AD55C57217DDE2E00067CD85 /* Preferences.m in Sources */,
@@ -790,6 +869,15 @@
 				AD55C57617DDE2E00067CD85 /* Utility.m in Sources */,
 				AD55C57717DDE2E00067CD85 /* Selection.m in Sources */,
 				AD55C57817DDE2E00067CD85 /* SelectView.m in Sources */,
+				AD893D5517F845A20090E892 /* alpha.cpp in Sources */,
+				AD893D5717F845A20090E892 /* clusterfit.cpp in Sources */,
+				AD893D5917F845A20090E892 /* colourblock.cpp in Sources */,
+				AD893D5B17F845A20090E892 /* colourfit.cpp in Sources */,
+				AD893D5D17F845A20090E892 /* colourset.cpp in Sources */,
+				AD893D6517F845A20090E892 /* maths.cpp in Sources */,
+				AD893D6717F845A20090E892 /* rangefit.cpp in Sources */,
+				AD893D6917F845A20090E892 /* singlecolourfit.cpp in Sources */,
+				AD893D6D17F845A20090E892 /* squish.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

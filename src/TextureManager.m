@@ -97,12 +97,14 @@
 	//NSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
     
 	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
+    [tmpBitm writeImageToMap:index withBytes:[tmpBitm imagePixelsForImageIndex:index]];
+    
 
 	//if (![tmpBitm imageAlreadyLoaded:index])
 	//{
 		//[tmpBitm loadImage:index];
 
-        if (TRUE)//useNewRenderer() >= 2)
+        if (FALSE)//useNewRenderer() >= 2)
 		{
             NSSize size = NSMakeSize([tmpBitm textureSizeForImageIndex:index].width, [tmpBitm textureSizeForImageIndex:index].height);
             NSImage *renderImage = [[NSImage alloc] initWithSize:size];
@@ -210,9 +212,7 @@
 
             }
             
-            [tmpBitm writeImageToMap:index withBytes:[tmpBitm imagePixelsForImageIndex:index]];
-
-        }
+                    }
     //}
     return;
 
@@ -459,6 +459,7 @@
     int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
 	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
     
+    [tmpBitm changed];
     
     //Delete texture
     if( &_glTextureTable[texIndex][index] != 0 )

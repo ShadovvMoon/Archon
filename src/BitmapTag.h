@@ -10,6 +10,8 @@
 #import "HaloMap.h"
 #import "MapTag.h"
 
+#import <Foundation/Foundation.h>
+
 #define BITM_FORMAT_A8			0x00
 #define BITM_FORMAT_Y8			0x01
 #define BITM_FORMAT_AY8			0x02
@@ -84,7 +86,8 @@ typedef struct
 } rgba_color_t;
 
 
-@interface BitmapTag : MapTag {
+@interface BitmapTag : MapTag
+{
 	HaloMap *_mapfile;
 	FILE *bitmapFile;
 	
@@ -97,7 +100,12 @@ typedef struct
 	
 	unsigned int *imageBytesLookup;
 	BOOL *imageLoaded;
+    
+    int *subImages;
+    int cImage;
 	
+    BOOL bitmapModified;
+    
 	NSMutableArray *subImageee;
 }
 - (void)setImagePixelsForImageIndex:(int)index withBytes:(unsigned int)imageBytes;
@@ -113,5 +121,5 @@ typedef struct
 - (BOOL)loadImage:(int)index;
 - (BOOL)imageAlreadyLoaded:(int)index;
 - (int)imageCount;
-- (NSMutableArray *)subImages;
+- (int *)subImages;
 @end

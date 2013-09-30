@@ -669,6 +669,13 @@
 	}
 	return NO;
 }
+- (BOOL)writeChar:(char)byte
+{
+	if (fwrite(byte,1,1,mapFile) == 1)
+		return YES;
+	else
+		return NO;
+}
 - (BOOL)writeByte:(void *)byte
 {
 	if (fwrite(byte,1,1,mapFile) == 1)

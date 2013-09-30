@@ -9,7 +9,15 @@
 
 #import "BitmapTag.h"
 #import <Foundation/Foundation.h>
+#include <squish.h>
 
+using namespace squish;
+
+#import "colourset.h"
+#import "colourfit.h"
+#import "singlecolourfit.h"
+#import "rangefit.h"
+#import "clusterfit.h"
 
 static BOOL isPPC;
 
@@ -152,7 +160,7 @@ void DecodeLinearA8R8G8B8 (int width, int height, const char *texdata, unsigned 
 
 void EncodeLinearR5G6B5 (int width, int height, const int *texdata, unsigned short *outdata)
 {
-    NSLog(@"Encoding");
+    //NSLog(@"Encoding");
     rgba_color_t	color;
 	unsigned int cdata;
 	int x,y;
@@ -180,7 +188,7 @@ void EncodeLinearR5G6B5 (int width, int height, const int *texdata, unsigned sho
             
 		}
 	}
-    NSLog(@"Finished encoding");
+    //NSLog(@"Finished encoding");
 }
 
 /*================================
@@ -247,11 +255,16 @@ inline long bmpEndianSwap32(unsigned int x)
 		[_mapfile seekToAddress:(header.image_reflexive.offset)];
 
         //#ifdef MACVERSION
-		subImageee = [[NSMutableArray alloc] initWithCapacity:header.image_reflexive.chunkcount];
+        subImages = (int*)malloc(sizeof(int)*100);
+        
+		//subImageee = [[NSMutableArray alloc] initWithCapacity:header.image_reflexive.chunkcount];
 		
 		for (x = 0; x < header.image_reflexive.chunkcount; x++)
 		{
-			[subImageee addObject:[NSNumber numberWithInt:x]];
+            subImages[cImage] = x;
+            cImage++;
+            
+			//[subImageee addObject:[[NSNumber alloc] initWithInt:x]];
 			bitm_image_t *tempImage = &images[x];
 			[_mapfile readLong:&tempImage->id];
 			[_mapfile readShort:&tempImage->width];
@@ -261,12 +274,18 @@ inline long bmpEndianSwap32(unsigned int x)
 			[_mapfile readShort:&tempImage->format];
 			//[_mapfile readShort:&tempImage->flags];
 			[_mapfile readByte:&tempImage->flag0];
+            
+            
+            
 			[_mapfile readByte:&tempImage->internalized];
 			[_mapfile readShort:&tempImage->reg_point_x];
 			[_mapfile readShort:&tempImage->reg_point_y];
 			[_mapfile readShort:&tempImage->num_mipmaps];
 			[_mapfile readShort:&tempImage->pixel_offset];
 			[_mapfile readLong:&tempImage->offset];
+            
+            //NSLog(@"%d %d", tempImage->pixel_offset, tempImage->offset);
+            
 			[_mapfile readLong:&tempImage->size];
 			[_mapfile readLong:&tempImage->unknown8];
 			[_mapfile readLong:&tempImage->unknown9];
@@ -283,8 +302,11 @@ inline long bmpEndianSwap32(unsigned int x)
 	
 	[self freeAllImages];
 	
-	[subImageee removeAllObjects];
-	[subImageee release];
+    cImage=0;
+    free(subImages);
+    
+	//[subImageee removeAllObjects];
+	//[subImageee release];
 	
 	bitmapFile = NULL;
 	
@@ -311,7 +333,7 @@ inline long bmpEndianSwap32(unsigned int x)
 	int i;
 	unsigned int *imageBytes;
 	
-	for (i = 0; i < [subImageee count]; i++)
+	for (i = 0; i < cImage; i++)
 	{
 		if (imageLoaded[i])
 		{
@@ -395,6 +417,10 @@ inline long bmpEndianSwap32(unsigned int x)
 	}
 }
 
+-(void)changed
+{
+    bitmapModified = YES;
+}
 
 /*! @brief Decompresses an image in memory.
  
@@ -416,7 +442,7 @@ inline long bmpEndianSwap32(unsigned int x)
  Internally this function calls squish::Decompress for each block.
  */
 
-
+/*
 static uint32_t PackRGBA (uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     return r | (g << 8) | (b << 16) | (a << 24);
@@ -504,16 +530,7 @@ static void DecompressBlockDXT1Internal (const uint8_t* block,
     }
 }
 
-/*
- void DecompressBlockDXT1(): Decompresses one block of a DXT1 texture and stores the resulting pixels at the appropriate offset in 'image'.
- 
- uint32_t x:                                             x-coordinate of the first pixel in the block.
- uint32_t y:                                             y-coordinate of the first pixel in the block.
- uint32_t width:                                 width of the texture being decompressed.
- uint32_t height:                                height of the texture being decompressed.
- const uint8_t *blockStorage:    pointer to the block to decompress.
- uint32_t *image:                                pointer to image where the decompressed pixel data should be stored.
- */
+
 void DecompressBlockDXT1(uint32_t x, uint32_t y, uint32_t width,
                          const uint8_t* blockStorage,
                          uint32_t* image)
@@ -522,16 +539,7 @@ void DecompressBlockDXT1(uint32_t x, uint32_t y, uint32_t width,
                                  image + x + (y * width), width, NULL);
 }
 
-/*
- void DecompressBlockDXT5(): Decompresses one block of a DXT5 texture and stores the resulting pixels at the appropriate offset in 'image'.
- 
- uint32_t x:                                             x-coordinate of the first pixel in the block.
- uint32_t y:                                             y-coordinate of the first pixel in the block.
- uint32_t width:                                 width of the texture being decompressed.
- uint32_t height:                                height of the texture being decompressed.
- const uint8_t *blockStorage:    pointer to the block to decompress.
- uint32_t *image:                                pointer to image where the decompressed pixel data should be stored.
- */
+
 void DecompressBlockDXT5(uint32_t x, uint32_t y, uint32_t width,
                          const uint8_t* blockStorage,
                          uint32_t* image)
@@ -586,7 +594,7 @@ void DecompressBlockDXT5(uint32_t x, uint32_t y, uint32_t width,
                 alphaCode = (alphaCode2 >> alphaCodeIndex) & 0x07;
             } else if (alphaCodeIndex == 15) {
                 alphaCode = (alphaCode2 >> 15) | ((alphaCode1 << 1) & 0x06);
-            } else /* alphaCodeIndex >= 18 && alphaCodeIndex <= 45 */ {
+            } else{
                 alphaCode = (alphaCode1 >> (alphaCodeIndex - 16)) & 0x07;
             }
             
@@ -631,16 +639,7 @@ void DecompressBlockDXT5(uint32_t x, uint32_t y, uint32_t width,
     }
 }
 
-/*
- void DecompressBlockDXT3(): Decompresses one block of a DXT3 texture and stores the resulting pixels at the appropriate offset in 'image'.
- 
- uint32_t x:                                             x-coordinate of the first pixel in the block.
- uint32_t y:                                             y-coordinate of the first pixel in the block.
- uint32_t width:                                 width of the texture being decompressed.
- uint32_t height:                                height of the texture being decompressed.
- const uint8_t *blockStorage:    pointer to the block to decompress.
- uint32_t *image:                                pointer to image where the decompressed pixel data should be stored.
- */
+
 void DecompressBlockDXT3(uint32_t x, uint32_t y, uint32_t width,
                          const uint8_t* blockStorage,
                          uint32_t* image)
@@ -667,37 +666,6 @@ void DecompressBlockDXT3(uint32_t x, uint32_t y, uint32_t width,
 typedef unsigned char u8;
 
 // -----------------------------------------------------------------------------
-
-enum
-{
-	//! Use DXT1 compression.
-	kDxt1 = ( 1 << 0 ),
-	
-	//! Use DXT3 compression.
-	kDxt3 = ( 1 << 1 ),
-	
-	//! Use DXT5 compression.
-	kDxt5 = ( 1 << 2 ),
-	
-	//! Use a very slow but very high quality colour compressor.
-	kColourIterativeClusterFit = ( 1 << 8 ),
-	
-	//! Use a slow but high quality colour compressor (the default).
-	kColourClusterFit = ( 1 << 3 ),
-	
-	//! Use a fast but low quality colour compressor.
-	kColourRangeFit	= ( 1 << 4 ),
-	
-	//! Use a perceptual metric for colour error (the default).
-	kColourMetricPerceptual = ( 1 << 5 ),
-    
-	//! Use a uniform metric for colour error.
-	kColourMetricUniform = ( 1 << 6 ),
-	
-	//! Weight the colour by alpha during cluster fit (disabled by default).
-	kWeightColourByAlpha = ( 1 << 7 )
-};
-
 
 
 void DecompressImage( u8* rgba, int width, int height, void const* blocks, int flags );
@@ -1150,9 +1118,7 @@ void CompressMasked( u8 const* rgba, int mask, void* block, int flags )
 	void* alphaBock = block;
 	if( ( flags & ( kDxt3 | kDxt5 ) ) != 0 )
 		colourBlock = (u8*)( block ) + 8;
-    
-    
-   /*
+   
 	// create the minimal point set
 	ColourSet colours( rgba, mask, flags );
 	
@@ -1175,7 +1141,7 @@ void CompressMasked( u8 const* rgba, int mask, void* block, int flags )
 		ClusterFit fit( &colours, flags );
 		fit.Compress( colourBlock );
 	}
-*/
+
     
 	// compress alpha separately if necessary
 	if( ( flags & kDxt3 ) != 0 )
@@ -1287,36 +1253,79 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
 		}
 	}
 }
+*/
 
+
+-(void)internaliseImage:(int)index size:(long)lengthOfData withBytes:(void *)imageBytes
+{
+    
+    long oldOffset = images[index].offset;
+    long oldSize = images[index].size;
+    
+    fseek([_mapfile currentFile], 0L, SEEK_END);
+    long sz = ftell([_mapfile currentFile]);
+    
+    //Update the actual mapfile to fix the image values we just added.
+    long currentOffset = [_mapfile currentOffset];
+    
+    [_mapfile seekToAddress:([self offsetInMap] + 0x54)];
+    header.reflexive_to_first = [_mapfile readReflexive];
+    header.image_reflexive = [_mapfile readReflexive];
+    
+    //Where is the end of the file?
+    images[index].offset = sz;
+    images[index].internalized = 0;
+
+    [_mapfile seekToAddress:(header.image_reflexive.offset) + (48*index)+15];
+    [_mapfile writeByteAtAddress:(void*)(&images[index].internalized) address:((header.image_reflexive.offset) + (48*index)+15)];
+    [_mapfile seekToAddress:(header.image_reflexive.offset) + (48*index)+24];
+    [_mapfile writeLong:(long*)(&images[index].offset)];
+    
+    [_mapfile seekToAddress:currentOffset];
+    
+    //Copy across the old data from the bitmaps file
+    
+    char *inData;
+	inData = (char *)malloc(oldSize);
+    [self seekToOffset:oldOffset];
+    [self readData:inData address:[self currentOffset] size:oldSize];
+        
+    [_mapfile writeAnyDataAtAddress:inData size:oldSize address:images[index].offset];
+    [_mapfile writeAnyDataAtAddress:imageBytes size:lengthOfData address:images[index].offset];
+    
+    free(inData);
+}
 
 -(BOOL)writeImageToMap:(int)index withBytes:(unsigned int *)imageBytes
 {
-    NSLog(@"Writing image to map");
-    unsigned char *outData;
+    if (!bitmapModified)
+        return NO;
+    
+    unsigned short *outData;
 	int lengthOfData;
 	
     if (!imageBytes)
         return NO;
     
-	//if (((unsigned int)index) < 0 || ((unsigned int)index) > ((unsigned int)header.image_reflexive.chunkcount))
-	//	return NULL;
-    
 	if (!bitmapFile)
 		return FALSE;
 	
 	lengthOfData = getImageSize(images[index].format, images[index].width, images[index].height);
-	
-	outData = (char *)malloc(lengthOfData);
+	outData = (unsigned short *)malloc(lengthOfData);
 	
 	switch (images[index].format)
 	{
         case BITM_FORMAT_R5G6B5:
-            NSLog(@"R5G6B5");
-			EncodeLinearR5G6B5(images[index].width,images[index].height,imageBytes,outData);
+			EncodeLinearR5G6B5(images[index].width,images[index].height,(const int*)imageBytes,(unsigned short*)outData);
+            break;
+        case BITM_FORMAT_DXT1:
+			CompressImage((u8*)imageBytes,images[index].width,images[index].height,(u8 *)outData,kDxt1);
             break;
         case BITM_FORMAT_DXT2AND3:
-            NSLog(@"DXT");
-			CompressImage((u8 *)outData,images[index].width,images[index].height,imageBytes,kDxt3);
+			CompressImage((u8*)imageBytes,images[index].width,images[index].height,(u8 *)outData,kDxt3);
+            break;
+        case BITM_FORMAT_DXT4AND5:
+			CompressImage((u8*)imageBytes,images[index].width,images[index].height,(u8 *)outData,kDxt5);
 			break;
         default:
         {
@@ -1324,22 +1333,15 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
         }
 	}
     
-   
-   
     if (images[index].internalized == 0)
 	{
-        NSLog(@"Writing bytes");
         [_mapfile writeAnyDataAtAddress:outData size:lengthOfData address:images[index].offset];
     }
     else
     {
-        NSLog(@"Writing");
-        [self seekToOffset:images[index].offset];
-        [self writeData:outData address:[self currentOffset] size:lengthOfData];
-        
+        [self internaliseImage:index size:lengthOfData withBytes:outData];
     }
     
-    NSLog(@"Finished");
     return YES;
 }
 
@@ -1396,7 +1398,7 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
 			DecompressImage((u8 *)imageBytes,images[index].width,images[index].height,inData,kDxt1);
 			break;
         default:
-            NSLog(@"Failure");
+            return NO;
 	
 	}
     
@@ -1461,10 +1463,11 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
 }
 - (int)imageCount
 {
-	return [subImageee count];
+    return cImage;
+	//return [subImageee count];
 }
-- (NSMutableArray *)subImages
+- (int *)subImages
 {
-	return subImageee;
+	return subImages;
 }
 @end
