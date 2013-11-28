@@ -8,12 +8,12 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "RenderView.m"
-         timestampString = "402200174.320642"
+         timestampString = "403963154.637216"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "3878"
-         endingLineNumber = "3878"
-         landmarkName = "-renderPoint:isSelected:"
+         startingLineNumber = "8286"
+         endingLineNumber = "8286"
+         landmarkName = "-renderObject:"
          landmarkType = "5">
       </FileBreakpoint>
       <FileBreakpoint
@@ -47,12 +47,12 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "RenderView.m"
-         timestampString = "402200174.320642"
+         timestampString = "403963154.637216"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "1732"
-         endingLineNumber = "1732"
-         landmarkName = "-DropCamera:"
+         startingLineNumber = "5967"
+         endingLineNumber = "5967"
+         landmarkName = "-timerTick:"
          landmarkType = "5">
       </FileBreakpoint>
       <FileBreakpoint
@@ -130,6 +130,71 @@
          endingLineNumber = "172"
          landmarkName = "CompressImage( u8 const* rgba, int width, int height, void* blocks, int flags )"
          landmarkType = "7">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "Camera.m"
+         timestampString = "402282786.848164"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "204"
+         endingLineNumber = "204"
+         landmarkName = "-MoveCameraStraight:"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "RenderView.m"
+         timestampString = "403963154.637216"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "9716"
+         endingLineNumber = "9716"
+         landmarkName = "-lookAtFocusedItem"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "RenderView.m"
+         timestampString = "403963154.637216"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "5154"
+         endingLineNumber = "5154"
+         landmarkName = "-mouseDown:"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "RenderView.m"
+         timestampString = "403959878.583445"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "2484"
+         endingLineNumber = "2484"
+         landmarkName = "-connectBackground:"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "RenderView.m"
+         timestampString = "403959878.583445"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "2906"
+         endingLineNumber = "2906"
+         landmarkName = "-connectBackground:"
+         landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>
    <SymbolicBreakpoints>

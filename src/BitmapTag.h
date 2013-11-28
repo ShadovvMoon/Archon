@@ -74,6 +74,8 @@ typedef struct
 	int							unknown9;	// always 0xFFFFFFFF?
 	int							unknown10;	// always 0x00000000?
 	int							unknown11;	// always 0x024F0040?
+    
+    BOOL loadedAlready;
 } bitm_image_t;
 
 typedef struct
@@ -103,11 +105,14 @@ typedef struct
     
     int *subImages;
     int cImage;
+    
+    BOOL alreadyDouble;
 	
     BOOL bitmapModified;
     
 	NSMutableArray *subImageee;
 }
+-(BOOL)alreadyDouble:(int)index;
 - (void)setImagePixelsForImageIndex:(int)index withBytes:(unsigned int)imageBytes;
 - (id)initWithMapFiles:(HaloMap *)mapfile bitmap:(FILE *)bitmap ppc:(BOOL)ppc;
 - (void)dealloc;

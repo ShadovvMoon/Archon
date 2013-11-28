@@ -164,17 +164,33 @@
 
 		NSLog(@"Were Halo Full");
 
-		[self readLong:&mapHeader.version];
-		[self readLong:&mapHeader.map_length];
-		[self readLong:&mapHeader.zeros];
+		[self readLong:&mapHeader.version]; //Check for halo2
+		[self readLong:&mapHeader.map_length]; //Check for halo2
+		[self readLong:&mapHeader.zeros]; //Not sure
 		[self readLong:&mapHeader.offsetToIndex];
 		[self readLong:&mapHeader.metaSize];
-		[self skipBytes:8];
-		isPPC = NO;
-		[self readBlockOfData:&mapHeader.name size_of_buffer:0x20];
-		[self readBlockOfData:&mapHeader.builddate size_of_buffer:0x20];
-		isPPC = tmpPPC;
-		[self readLong:&mapHeader.maptype];
+        
+        if (mapHeader.version == 8) //Halo 2
+        {
+            [self skipBytes:396];
+            
+            isPPC = NO;
+            [self readBlockOfData:&mapHeader.name size_of_buffer:0x20];
+            [self readBlockOfData:&mapHeader.builddate size_of_buffer:0x20];
+            isPPC = tmpPPC;
+            [self readLong:&mapHeader.maptype];
+            
+        }
+        else //Halo 1
+        {
+            [self skipBytes:8];
+        
+            isPPC = NO;
+            [self readBlockOfData:&mapHeader.name size_of_buffer:0x20];
+            [self readBlockOfData:&mapHeader.builddate size_of_buffer:0x20];
+            isPPC = tmpPPC;
+            [self readLong:&mapHeader.maptype];
+        }
         
 	}
 	
@@ -183,35 +199,89 @@
 	NSLog(@"File Length: 0x%x", mapHeader.map_length);
 	NSLog(@"Offset To Index: 0x%x", mapHeader.offsetToIndex);
 	NSLog(@"Total Metadata Size: 0x%x", mapHeader.metaSize);
+    NSLog(@"Map type: 0x%x", mapHeader.maptype);
+    
 	NSLog(@"File Name: %s \n", (char *)mapHeader.name);
 	NSLog(@"Build Date: %s \n", (char *)mapHeader.builddate);
 	#endif
-			
-	// Index time!
-	[self readLongAtAddress:&indexHead.indexMagic address:mapHeader.offsetToIndex];
-	[self readLong:&indexHead.starting_id];
-	[self readLong:&indexHead.vertexsize];
-	[self readLong:&indexHead.tagcount];
-	[self readLong:&indexHead.vertex_object_count];
-	[self readLong:&indexHead.vertex_offset];
-	[self readLong:&indexHead.indices_object_count];
-	[self readLong:&indexHead.vertex_size];
-	[self readLong:&indexHead.modelsize];
-	[self readLong:&indexHead.tagstart];
+    
+    if (mapHeader.version == 8) //Halo 2
+    {
+        [self readLongAtAddress:&indexHead.indexMagic address:mapHeader.offsetToIndex];
+        [self readLong:&indexHead.tagcount];
+        [self readLong:&indexHead.vertex_offset];
+        [self skipBytes:0x4]; //scenarioId
+        [self readLong:&indexHead.starting_id];
+        [self skipBytes:0x4]; //unknown
+        [self readLong:&indexHead.vertex_object_count];
+        [self skipBytes:0x4]; //tags
+    }
+    else
+    {
+        // Index time!
+        [self readLongAtAddress:&indexHead.indexMagic address:mapHeader.offsetToIndex];
+        [self readLong:&indexHead.starting_id];
+        [self readLong:&indexHead.vertexsize];
+        [self readLong:&indexHead.tagcount];
+        [self readLong:&indexHead.vertex_object_count];
+        [self readLong:&indexHead.vertex_offset];
+        [self readLong:&indexHead.indices_object_count];
+        [self readLong:&indexHead.vertex_size];
+        [self readLong:&indexHead.modelsize];
+        [self readLong:&indexHead.tagstart];
+        
+    }
 	
 	#ifdef __DEBUG__
 	NSLog(@"Tag count: %d", indexHead.tagcount);
 	NSLog(@"Tag starting id: 0x%x", indexHead.starting_id);
+    NSLog(@"Tag starting: %d", indexHead.tagstart);
+    
 	#endif
 	
 	_magic = (indexHead.indexMagic - (mapHeader.offsetToIndex + 40));
 	
 	#ifdef __DEBUG__
 	NSLog(@"Magic: [0x%x]", _magic);
+    
+    //0x40440000
+    
+    //indexHead.indexMagic = 0x40440028;
+    //_magic = (indexHead.indexMagic - 0x40440000);
+	//NSLog(@"New Magic: [0x%x]", _magic);
+    NSLog(@"Primary Magic: [0x%x]", indexHead.indexMagic);
+    
+    
+    
 	printf("\n");
 	#endif
-	
+    
+    
+	//0x1400000
+    long offset = 0x40440000;
+    if (mapHeader.version == 8) //Halo 2
+    {
+        offset=0x1400000;
+    }
+    
+    
+    //Beat the protection
+    long someOffset = offset-mapHeader.offsetToIndex;
+    long newOffset = indexHead.indexMagic-someOffset;
+    
+    if (mapHeader.version == 8) //Halo 2
+    {
+        newOffset = someOffset;
+    }
+    
+    NSLog(@"%ld %ld", someOffset, newOffset);
+    
+    [self seekToAddress:newOffset];
+    
+    
+    
 	// Now lets create and load our tag arrays
+    NSLog(@"%ld", indexHead.tagcount);
 	tagArray = [[NSMutableArray alloc] initWithCapacity:indexHead.tagcount];
 	tagLookupDict = [[NSMutableDictionary alloc] initWithCapacity:indexHead.tagcount];
 	
@@ -241,23 +311,35 @@
 	NSMutableArray *mach_offsets = [[NSMutableArray alloc] init];
 	
     NSLog(@"Index tag amount %d", indexHead.tagcount);
+    int scnrTag = 0;
 	for (i = 0; i < indexHead.tagcount; i++)
 	{
 		int r = 1;
 		tempTag = [[MapTag alloc] initWithDataFromFile:self];
 		nextOffset = [self currentOffset];
 		
-		//NSLog(@"Tag name: %@, id: 0x%x, offset in map: 0x%x %@", [tempTag tagName], [tempTag idOfTag], [tempTag offsetInMap], [NSString stringWithCString:[tempTag tagClassHigh] encoding:NSMacOSRomanStringEncoding]);
+		//NSLog(@"Tag name: %@, id: 0x%x, offset in map: 0x%x offset in mapfile: 0x%x  %@", [tempTag tagName], [tempTag idOfTag], [tempTag offsetInMap],[self currentOffset], [NSString stringWithCString:[tempTag tagClassHigh] encoding:NSMacOSRomanStringEncoding]);
 		
-		if (i != 0)
-			[[tagArray objectAtIndex:(i -1)] setTagLength:([tempTag offsetInMap] - [[tagArray objectAtIndex:(i - 1)] offsetInMap])];
-		
+		if (i != 0)//Surely theres a better methid?
+        {
+            
+            if ([[tagArray objectAtIndex:(i - 1)] offsetInMap] > [tempTag offsetInMap])
+            {
+                //Stupid 002's protection
+                //NSLog(@"Protected");
+                //[[tagArray objectAtIndex:(i -1)] setTagLength:([[tagArray objectAtIndex:(i - 1)] offsetInMap]-[tempTag offsetInMap])];
+            }
+            else
+                [[tagArray objectAtIndex:(i -1)] setTagLength:([tempTag offsetInMap] - [[tagArray objectAtIndex:(i - 1)] offsetInMap])];
+		}
+        
 		if (memcmp([tempTag tagClassHigh], (isPPC ? "scnr" : "rncs"), 4) == 0)
 		{
 			[self skipBytes:IndexTagSize];
 			scenario_offset = [self currentOffset];
 			// I'll load the scenario later
 			[tagArray addObject:tempTag];
+            scnrTag = [tagArray count]-1;
 			[self seekToAddress:nextOffset];
 		}
 		else if (memcmp([tempTag tagClassHigh], (isPPC ? "matg" : "gtam"), 4) == 0)
@@ -399,6 +481,10 @@
 		Second pass here to create some arrays
 	*/
 	[self seekToAddress:(mapHeader.offsetToIndex + 0x28)];
+    
+    
+    
+    NSLog(@"Creating arrays");
 	for (i = 0; i < indexHead.tagcount; i++)
 	{
 		int r = 1;
@@ -485,11 +571,11 @@
 	[self seekToAddress:scenario_offset];
     USEDEBUG NSLog(@"Allocating");
 	mapScenario = [[Scenario alloc] initWithMapFile:self];
-	//NSLog([tagArray description]);
+	//USEDEBUG NSLog([tagArray description]);
     
     USEDEBUG NSLog(@"Tag count: %d", [tagArray count]);
-    USEDEBUG NSLog(@"%d", [[tagArray objectAtIndex:0] tagLength]);
-	[mapScenario setTagLength:[[tagArray objectAtIndex:0] tagLength]];
+    USEDEBUG NSLog(@"%d", [[tagArray objectAtIndex:scnrTag] tagLength]);
+	[mapScenario setTagLength:[[tagArray objectAtIndex:scnrTag] tagLength]];
 	NSLog(@"Tag length set.");
 #ifdef __DEBUG__
 	if ([mapScenario loadScenario])
@@ -505,7 +591,8 @@
 	[bspHandler loadVisibleBspInfo:[mapScenario header].StructBsp version:mapHeader.version];
 	[bspHandler setActiveBsp:0];
 	
-	
+
+    
 	if ([mapScenario mach_ref_count] < mach_counter)
 	{
 		int response = NSRunAlertPanel(@"Machines detected", @"Swordedit has detected machinery tags which are not referenced in the scenario. Would you like to rebuild references?", @"No", @"OK", nil);
@@ -559,6 +646,42 @@
         [self loadAllBitmaps];
     }
 	
+    
+    
+    //New object images
+    //Generate a 128x128 image for this object.
+    [[NSFileManager defaultManager] removeItemAtPath:@"/tmp/Archon/scen" error:nil];
+    [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/Archon/scen" withIntermediateDirectories:YES attributes:Nil error:nil];
+    [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/Archon/vehi" withIntermediateDirectories:YES attributes:Nil error:nil];
+    [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/Archon/mach" withIntermediateDirectories:YES attributes:Nil error:nil];
+    
+    int m;
+    for (m=0; m < [mapScenario scen_ref_count]; m++)
+    {
+        NSString *name = [[self tagForId:[mapScenario scen_references][m].scen_ref.TagId] tagName];
+        long modelIdent = [mapScenario baseModelIdent:[mapScenario scen_references][m].scen_ref.TagId];
+        ModelTag *model = [self tagForId:modelIdent];
+        [model generateImage:[NSString stringWithFormat:@"/tmp/Archon/scen/%@.tiff", name]];
+    }
+    
+    for (m=0; m < [mapScenario vehi_ref_count]; m++)
+    {
+        NSString *name = [[self tagForId:[mapScenario vehi_references][m].vehi_ref.TagId] tagName];
+        long modelIdent = [mapScenario baseModelIdent:[mapScenario vehi_references][m].vehi_ref.TagId];
+        ModelTag *model = [self tagForId:modelIdent];
+        [model generateImage:[NSString stringWithFormat:@"/tmp/Archon/vehi/%@.tiff", name]];
+    }
+    
+    for (m=0; m < [mapScenario mach_ref_count]; m++)
+    {
+        NSString *name = [[self tagForId:[mapScenario mach_references][m].machTag.TagId] tagName];
+        long modelIdent = [mapScenario baseModelIdent:[mapScenario mach_references][m].machTag.TagId];
+        ModelTag *model = [self tagForId:modelIdent];
+        [model generateImage:[NSString stringWithFormat:@"/tmp/Archon/mach/%@.tiff", name]];
+    }
+    
+    [renderV updateObjectTable];
+    
 	//NSLog(@"LOGGING THE TARG INFO");
 	//NSLog([tagArray description]);
 
@@ -1410,6 +1533,20 @@
 	
 	[tmpDict release];
 	[tmpArray release];
+}
+- (NSString*)keyForItemid:(long)keyv
+{
+    int i;
+    for (i=0; i < [[itmcLookupDict allKeys] count]; i++)
+    {
+        NSString *key = [[itmcLookupDict allKeys] objectAtIndex:i];
+        if ([[itmcLookupDict objectForKey:[NSNumber numberWithInt:key] ] longValue] == keyv)
+        {
+            return key;
+        }
+    }
+    return @"Missing ID";
+	//return [[itmcLookupDict objectForKey:[NSNumber numberWithInt:key]] longValue];
 }
 - (long)itmcIdForKey:(int)key
 {

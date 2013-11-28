@@ -601,6 +601,11 @@
                 if ((currentPart.hasShader==3 || currentPart.hasShader == 4) && useNewRenderer() >= 2)
                 {
                    
+                    
+                    
+                    
+                    
+                    
                     USEDEBUG NSLog(@"DIV 6 %d", i);
                     glEnable(GL_BLEND);
                     glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
@@ -611,7 +616,12 @@
                     int maps;
                     if (currentPart.hasShader == 4)
                     {
-                        maps = currentPart.scexshader->maps2.chunkcount+currentPart.scexshader->maps.chunkcount;
+                        if (useNewRenderer() == 4)
+                        {
+                            maps = currentPart.scexshader->maps2.chunkcount;
+                        }
+                        else
+                            maps = currentPart.scexshader->maps2.chunkcount+currentPart.scexshader->maps.chunkcount;
                     }
                     else
                     {
@@ -632,7 +642,7 @@
                 if (useNewRenderer()!=1)
                 {
                     
-                    #ifdef NEWSKY
+#ifdef NEWSKY
                     
                     glAlphaFunc(GL_GREATER, 0.1);
                     //glEnable(GL_ALPHA_TEST);
@@ -672,9 +682,15 @@
                     }
                     else
                     {
-                    
+
+#define FLIP 1
+#ifdef FLIP
                     for (g=maps-1; g>=0; g--)
                     {
+#else
+                    for (g=0; g<maps; g++)
+                    {
+#endif
                         //scexshader
                         int texIndex;
                         
@@ -683,7 +699,11 @@
                         else //schi
                             texIndex = [[[parent _texManager]._textureLookupByID objectForKey:[NSNumber numberWithLong:currentPart.shader->read_maps[g].bitm.TagId]] intValue];
                         
-                        glActiveTextureARB(GL_TEXTURE0_ARB);
+                        if (useNewRenderer() == 4)
+                            glActiveTextureARB(g);
+                        else
+                            glActiveTextureARB(GL_TEXTURE0_ARB);
+                        
                         glEnable(GL_TEXTURE_2D);
                         
                         glBindTexture(GL_TEXTURE_2D, [parent _texManager]._glTextureTable[texIndex][0]);
@@ -698,69 +718,187 @@
                         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
                         
                         
+                        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+                        
                         if (currentPart.hasShader == 4) //scex
                         {
-                            //glColor4f(1.0, 1.0, 1.0, 1.0f);
-                            if (currentPart.scexshader->read_maps[g].colorFunction == 0) //Current
-                                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-                            else if (currentPart.scexshader->read_maps[g].colorFunction == 4) //Add
-                                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-                            else //Other
-                                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-                            
-                            if (currentPart.scexshader->read_maps[g].alphaFunction == 0) //Current
-                                glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
-                            else if (currentPart.scexshader->read_maps[g].alphaFunction == 4) //Add
-                                glBlendFunc(GL_SRC_ALPHA,GL_ONE);
-                            //else //Other
+                            if (useNewRenderer() == -1)
+                            {
+                                
+                                //glColor4f(1.0, 1.0, 1.0, 1.0f);
+                                if (currentPart.scexshader->read_maps[g].colorFunction == 0) //Current
+                                {
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);   //Modulate RGB with RGB
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+                                }
+                                else if (currentPart.scexshader->read_maps[g].colorFunction == 4) //Add
+                                {
+                                    //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);   //Modulate RGB with RGB
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+                                }
+                                else //Other
+                                {
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);   //Modulate RGB with RGB
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+                                }
+                                
+                                
+                                
+                                if (currentPart.scexshader->read_maps[g].alphaFunction == 0) //Current
+                                {
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_INTERPOLATE);   //Interpolate ALPHA with ALPHA
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, GL_PREVIOUS);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
+                                }
+                                else if (currentPart.scexshader->read_maps[g].alphaFunction == 4) //Add
+                                {
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_ADD);  //Modulate ALPHA with ALPHA
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+                                }
+                                else //Other
+                                {
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);  //Modulate ALPHA with ALPHA
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+                                }
                                 //glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
+                            }
+                            else
+                            {
+                                //glColor4f(1.0, 1.0, 1.0, 1.0f);
+                                if (currentPart.scexshader->read_maps[g].colorFunction == 0) //Current
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                                else if (currentPart.scexshader->read_maps[g].colorFunction == 4) //Add
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                                else //Other
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+                                
+                                if (currentPart.scexshader->read_maps[g].alphaFunction == 0) //Current
+                                    glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
+                                else if (currentPart.scexshader->read_maps[g].alphaFunction == 4) //Add
+                                    glBlendFunc(GL_SRC_ALPHA,GL_ONE);
+                                //else //Other
+                                    //glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
+                            }
+                            
+                            //(useNewRenderer() == 4)
                             
                         }
                         else  //schi
                         {
-                            //continue;
-                            if (currentPart.shader->read_maps[g].colorFunction == 0)
+                            if (useNewRenderer() == 4)
                             {
-                                if (maps > 1)
-                                    continue;
+                                glColor4f(1.0, 1.0, 1.0, 0.8f);
+                                if (currentPart.shader->read_maps[g].colorFunction == 0) //Current
+                                {
+                                    
+                                }
+                                else if (currentPart.shader->read_maps[g].colorFunction == 4) //Add
+                                {
+                                   
+                                }
+                                else //Other
+                                {
+                                    //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+                                   // glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);   //Modulate RGB with RGB
+        
+                                }
                                 
-                                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-                                glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
-                                //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                            }
-                            else if (currentPart.shader->read_maps[g].colorFunction == 4)
-                                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-                            else
-                            {
-                                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-                                glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
-                                //(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
                                 
                                 
-                            }
-                            
-                            
-                            //glBlendFuncSeparate
+                                if (currentPart.shader->read_maps[g].alphaFunction == 0) //Current
+                                {
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-                            if (currentPart.shader->read_maps[g].alphaFunction == 0) //Current
-                            {
-                                glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-                                //glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA);
-                                //continue;
-                            }
-                            else if (currentPart.shader->read_maps[g].alphaFunction == 4) //Add
-                            {
-                                
-                                //continue;
+                                }
+                                else if (currentPart.shader->read_maps[g].alphaFunction == 4) //Add
+                                {
+          
+                                }
+                                else //Other
+                                {
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, g);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, g+1);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR );
+                 
+                                    
+                                }
                             }
                             else
                             {
-                               //glBlendFunc(GL_DST_COLOR, GL_ZERO);
+                                //continue;
+                                if (currentPart.shader->read_maps[g].colorFunction == 0)
+                                {
+                                    if (maps > 1)
+                                        continue;
+                                    
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+                                    //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                                }
+                                else if (currentPart.shader->read_maps[g].colorFunction == 4)
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                                else
+                                {
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+                                    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
+                                    //(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+                                    
+                                    
+                                }
+                                
+                                
+                                //glBlendFuncSeparate
+
+                                if (currentPart.shader->read_maps[g].alphaFunction == 0) //Current
+                                {
+                                    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+                                    //glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+                                    //continue;
+                                }
+                                else if (currentPart.shader->read_maps[g].alphaFunction == 4) //Add
+                                {
+                                    
+                                    //continue;
+                                }
+                                else
+                                {
+                                   //glBlendFunc(GL_DST_COLOR, GL_ZERO);
+                                }
                             }
                             
                         }
                         
                         //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                        
+                        if (useNewRenderer() == 4)
+                            glClientActiveTextureARB(g);
+                        else
                         glClientActiveTextureARB(GL_TEXTURE0_ARB);
                         
                         glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);//&currentPart.shader->read_maps[g].texture_uv);
@@ -789,9 +927,18 @@
                         glPopMatrix();
                         glMatrixMode(GL_MODELVIEW);
 
+                        if (useNewRenderer() == 4)
+                        {
+                            glBindTexture(GL_TEXTURE_2D, g);
+                            glClientActiveTextureARB(g);
+                        }
+                        else
+                        {
                         glBindTexture(GL_TEXTURE_2D, GL_TEXTURE0);
                         glClientActiveTextureARB(GL_TEXTURE0_ARB);
+                        }
 
+                        glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
                         glDisable(GL_TEXTURE_2D);
                         glAlphaFunc(GL_GREATER, 0.1);
                         //glEnable(GL_ALPHA_TEST);
@@ -803,10 +950,15 @@
                     
                     
 #else
+                        
+                        //---------------//---------------//---------------//---------------
+                        //OLD SKY CODE
+                        //---------------//---------------//---------------//---------------
+                        
                     USEDEBUG NSLog(@"DIV 10 %d", i);
                         for (g=maps-1; g >=0 ; g--)
                         {
-        
+                            
                             //scexshader
                             int texIndex;
                             
@@ -825,18 +977,20 @@
                             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
                             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
                             glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-                            glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
                             
+                      
+                            glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+
                             
                             glEnable(GL_BLEND);
                             //glColor4f(1.0, 1.0, 1.0, 0.2f);
                             //glBlendFunc(GL_DST_ALPHA,GL_ONE);
-                            //glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-                            
+                            glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
                             
                             
                             if (currentPart.hasShader == 4) //scex
                             {
+                               
                                 if (currentPart.scexshader->read_maps[g].colorFunction == 0)
                                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
                                 else if (currentPart.scexshader->read_maps[g].colorFunction == 4)
@@ -847,12 +1001,65 @@
                             else  //schi
                             {
                             
-                                if (currentPart.shader->read_maps[g].colorFunction == 0)
-                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                                else if (currentPart.shader->read_maps[g].colorFunction == 4)
-                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                                if (useNewRenderer() == 4)
+                                {
+                                    
+                                    
+                                    if (currentPart.shader->read_maps[g].colorFunction == 0) //Current
+                                    {
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                                    }
+                                    else if (currentPart.shader->read_maps[g].colorFunction == 4) //Add
+                                    {
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);   //Modulate RGB with RGB
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+                                    }
+                                    else //Other
+                                    {
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);   //Modulate RGB with RGB
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+                                    }
+                                    
+                                    
+                                    
+                                    if (currentPart.shader->read_maps[g].alphaFunction == 0) //Current
+                                    {
+                                        
+                                    }
+                                    else if (currentPart.shader->read_maps[g].alphaFunction == 4) //Add
+                                    {
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_ADD);  //Modulate ALPHA with ALPHA
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+                                    }
+                                    else //Other
+                                    {
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);  //Modulate ALPHA with ALPHA
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+                                    }
+                                }
                                 else
-                                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                                {
+                                    if (currentPart.shader->read_maps[g].colorFunction == 0)
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                                    else if (currentPart.shader->read_maps[g].colorFunction == 4)
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                                    else
+                                        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                                }
                             }
 
                             //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -862,21 +1069,14 @@
                     }
     
                     
-                    USEDEBUG NSLog(@"DIV 11 %d", i);
-                 
+          
                         for (g=0; g < maps; g++)
                         {
-                            USEDEBUG NSLog(@"DIV 11.1 %d", g);
-                            
-#ifndef MACVERSION
+#ifndef MACVERSION 
                             glClientActiveTextureARB(0x84C0+g);
-#else
-                            glClientActiveTextureARB(g);
-#endif
-                            //0x84C0
-#ifndef MACVERSION
                             glActiveTextureARB(0x84C0+g);
 #else
+                            glClientActiveTextureARB(g);
                             glActiveTextureARB(g);
 #endif
                             
@@ -884,9 +1084,6 @@
                             
                             glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);//&currentPart.shader->read_maps[g].texture_uv);
                             glEnableClientState(GL_TEXTURE_COORD_ARRAY); // enable array data to shader
-                            
-                            
-                            //uscale, vscale
                         }
                     
                     
@@ -903,6 +1100,23 @@
                     
                         if (currentPart.hasShader == 4)
                         {
+                            for (g=0; g < maps; g++)
+                            {
+    #ifndef MACVERSION
+                                glActiveTextureARB(0x84C0+g);
+    #else
+                                glActiveTextureARB(g);
+    #endif
+                                glMatrixMode(GL_TEXTURE);
+                                glPushMatrix();
+                                glScalef(currentPart.scexshader->read_maps[g].uscale,currentPart.scexshader->read_maps[g].vscale, 0.0);
+                         
+                            }
+                        }
+                        else if (currentPart.hasShader == 3)
+                        {
+                            for (g=0; g < maps; g++)
+                            {
 #ifndef MACVERSION
                             glActiveTextureARB(0x84C0+g);
 #else
@@ -910,24 +1124,15 @@
 #endif
                             glMatrixMode(GL_TEXTURE);
                             glPushMatrix();
-                            glScalef(currentPart.scexshader->read_maps[maps-2].uscale,currentPart.scexshader->read_maps[maps-2].vscale, 0.0);
-                        }
-                        else if (currentPart.hasShader == 3)
-                        {
-#ifndef MACVERSION
-                            glActiveTextureARB(0x84C0+0);
-#else
-                            glActiveTextureARB(0);
-#endif
-                            glMatrixMode(GL_TEXTURE);
-                            glPushMatrix();
-                            glScalef(currentPart.shader->read_maps[0].uscale,currentPart.shader->read_maps[0].vscale, 0.0);
+                            glScalef(currentPart.shader->read_maps[g].uscale,currentPart.shader->read_maps[g].vscale, 0.0);
+                        
+                            }
                         }
                     
-                    if (currentIndex+currentPart.indexPointer.count+2 <= indexCount_R)
-                    {
-                        glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
-                    }
+                        if (currentIndex+currentPart.indexPointer.count+2 <= indexCount_R)
+                        {
+                            glDrawElements(GL_TRIANGLE_STRIP, currentPart.indexPointer.count+2, GL_UNSIGNED_SHORT, &index_array[currentIndex]);
+                        }
         
                         if (currentPart.hasShader == 4)
                         {
@@ -936,17 +1141,17 @@
 #else
                             glActiveTextureARB(0);
 #endif
-                            glPopMatrix();
+                            //glPopMatrix();
                             glMatrixMode(GL_MODELVIEW);
                         }
                         else if (currentPart.hasShader == 3)
                         {
 #ifndef MACVERSION
-                            glActiveTextureARB(0x84C0+0);
+                            glActiveTextureARB(0x84C0+g);
 #else
-                            glActiveTextureARB(0);
+                            glActiveTextureARB(g);
 #endif
-                            glPopMatrix();
+                            //glPopMatrix();
                             glMatrixMode(GL_MODELVIEW);
                         }
 
@@ -1197,8 +1402,11 @@ USEDEBUG NSLog(@"DIV 31 %d", i);
                         continue;
                     
                     [[parent _texManager] activateTextureOfIdent:currentPart.shaderBitmapIndex subImage:0 useAlphas:true ];
+                        
+       
                     glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
-                    
+
+                        
                     //glColor4f(1.0, 1.0, 1.0, 0.5);
                     glClientActiveTextureARB(GL_TEXTURE0_ARB); // program texcoord unit 0
                     glTexCoordPointer(2, GL_FLOAT, 0, texture_uv);

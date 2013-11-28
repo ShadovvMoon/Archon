@@ -19,9 +19,13 @@
 #define SUN 1
 #define VBO 1
 //#define VBO2 1
+
 //#define __DEBUG__ 1
+#define USEDEBUG if (FALSE)
 #define NEWSKY 1
-#define USEDEBUG if (FALSE) 
+
+#define LOWRAM 1
+//#define THREADREFRESH 1
 //#define DEBUGPAINT 1
 
 int newR;

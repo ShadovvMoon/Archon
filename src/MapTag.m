@@ -12,6 +12,11 @@
 
 
 @implementation MapTag
+-(NSString*)description
+{
+    return [NSString stringWithFormat:@"%@ %@", [self stringTagClassHigh], [self tagName]];
+}
+
 - (id)initWithDataFromFile:(HaloMap *)mapFile
 {
 	if ((self = [super init]) != nil)
@@ -23,7 +28,11 @@
 		[mapFile readLong:&identity];
 		[mapFile readLong:&stringOffset];
 		[mapFile readLong:&offset];
-		[mapFile skipBytes:8];
+        [mapFile readLong:&someNumber];
+        [mapFile readLong:&someNumber2];
+        
+        
+		//[mapFile skipBytes:8];
 		
 		resolvedOffset = (offset - [mapFile getMagic]);
 		resolvedStringOffset = (stringOffset - [mapFile getMagic]);

@@ -1118,7 +1118,7 @@ float *newPt(float x, float y, float z)
     for (i = 0; i< m_BspHeader.SubmeshHeader.chunkcount; i++)
 	{
         if (m_pLightmaps[i].LightmapIndex != -1 && [_mapfile isTag:m_BspHeader.LightmapsTag.TagId])
-            [_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:m_pLightmaps[i].LightmapIndex];
+            [_texManager loadTextureOfIdent:m_BspHeader.LightmapsTag.TagId subImage:m_pLightmaps[i].LightmapIndex removeAlpha:NO useMipmaps:NO];
     }
     USEDEBUG NSLog(@"Loading4");
 }

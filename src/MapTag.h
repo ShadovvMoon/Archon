@@ -27,6 +27,8 @@
 	long resolvedStringOffset;
 	char *tagName;
 	long offsetInIndex;
+    long someNumber;
+    long someNumber2;
 	unsigned int tagLength;
 }
 - (id)initWithDataFromFile:(HaloMap *)mapFile;

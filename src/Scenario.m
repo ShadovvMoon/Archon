@@ -94,6 +94,11 @@ int compare(const void *a, const void *b);
 	
 	_reflexCounter = 0;
 	
+    
+    BOOL oldLoader = FALSE;
+    if (oldLoader)
+    {
+    
 	[self readScenario:&header.unk_str1 size:0x10];
 	[self readScenario:&header.unk_str2 size:0x10];
 	[self readScenario:&header.unk_str3 size:0x10];
@@ -202,10 +207,7 @@ int compare(const void *a, const void *b);
 	/* NEED TO WORK ON THIS, KK? */
 	NSLog(@"header.ScriptDataSize position: 0x%x", positionInScenario);
 	[self readScenario:&header.ScriptDataSize size:4];
-
 	[self readScenario:&header.Unknown4 size:4];
-	/* TO WORK ON ^^^^ */
-	
 	[self readScenarioReflexive:&header.ScriptCrap];
 	[self readScenarioReflexive:&header.Commands];
 	[self readScenarioReflexive:&header.Points];
@@ -229,7 +231,144 @@ int compare(const void *a, const void *b);
 	//positionInScenario += 96;
 	
 	[self readScenario:&header.Unknown7 size:(8)];
-	
+	}
+    else
+    {
+        [self readScenario:&header.unk_str1 size:0x10];
+        [self readScenario:&header.unk_str2 size:0x10];
+        [self readScenario:&header.unk_str3 size:0x10];
+        
+        [self readScenarioReflexive:&header.SkyBox];
+        
+        [self readScenario:&header.unk1 size:0x4];
+        
+        [self readScenarioReflexive:&header.ChildScenarios];
+        
+        [self readScenario:&header.unneeded1 size:(0xB8)];
+        
+        [self readScenario:&header.EditorScenarioSize size:0x4];
+        [self readScenario:&header.unk2 size:0x4];
+        [self readScenario:&header.unk3 size:0x4];
+        [self readScenario:&header.pointertoindex size:4];
+        
+        [self readScenario:&header.unneeded2 size:(0x8)];
+        
+        [self readScenario:&header.pointertoendofindex size:0x4];
+        
+        [self readScenario:&header.zero1 size:(0xE4)];
+        
+        // Now we can continue on to read the reflexives pointing to the interesting stuff
+        
+        // Lots 'O Reflexives
+        [self readScenarioReflexive:&header.ObjectNames];
+        
+        // Scenery Spawns
+        [self readScenarioReflexive:&header.Scenery];
+        [self readScenarioReflexive:&header.SceneryRef];
+        
+        // Biped Spawns
+        [self readScenarioReflexive:&header.Biped];
+        [self readScenarioReflexive:&header.BipedRef];
+        
+        // Vehicle Spawns
+        [self readScenarioReflexive:&header.Vehicle];
+        [self readScenarioReflexive:&header.VehicleRef];
+        
+        // Equipment Spawns
+        [self readScenarioReflexive:&header.Equip];
+        [self readScenarioReflexive:&header.EquipRef];
+        
+        // Weapon Spawns?
+        [self readScenarioReflexive:&header.Weap];
+        [self readScenarioReflexive:&header.WeapRef];
+        
+        // Device groups, whatever the hell those are
+        [self readScenarioReflexive:&header.DeviceGroups];
+        
+        // Machines
+        [self readScenarioReflexive:&header.Machine];
+        [self readScenarioReflexive:&header.MachineRef];
+        
+        // Control?
+        [self readScenarioReflexive:&header.Control];
+        [self readScenarioReflexive:&header.ControlRef];
+		
+        // Light Fixtures!
+        [self readScenarioReflexive:&header.LightFixture];
+        [self readScenarioReflexive:&header.LightFixtureRef];
+        
+        // Sound Scenery
+        [self readScenarioReflexive:&header.SoundScenery];
+        [self readScenarioReflexive:&header.SoundSceneryRef];
+        
+        // More reflexives again!
+        // There seem to be several unknowns here...
+        for (i = 0; i < 7; i++)
+            [self readScenarioReflexive:&header.Unknown1[i]];
+        //positionInScenario += 84;
+        
+        [self readScenarioReflexive:&header.PlayerStartingProfile];
+        
+        // Player spawn
+        [self readScenarioReflexive:&header.PlayerSpawn];
+        [self readScenarioReflexive:&header.TriggerVolumes];
+        [self readScenarioReflexive:&header.Animations];
+        
+        // CTF Flag location, ctf vehicles, race track, hill, ball, teleporters, all the good stuff
+        //[self readScenarioReflexive:&header.MultiplayerFlags];
+        [self readScenarioReflexive:&header.MultiplayerFlags];
+        
+        // MP Equipment, aka weapon spawns
+        [self readScenarioReflexive:&header.MpEquip];
+        [self readScenarioReflexive:&header.StartingEquip];
+        [self readScenarioReflexive:&header.BspSwitchTrigger];
+        [self readScenarioReflexive:&header.Decals];
+        [self readScenarioReflexive:&header.DecalsRef];
+        [self readScenarioReflexive:&header.DetailObjCollRef];
+        
+        for (i = 0; i < 7; i++)
+            [self readScenarioReflexive:&header.Unknown3[i]];
+        //positionInScenario += 84;
+        
+        [self readScenarioReflexive:&header.ActorVariantRef];
+        [self readScenarioReflexive:&header.Encounters];
+        
+        [self readScenarioReflexive:&header.CommandLists]; //Confirm
+        [self readScenarioReflexive:&header.Unknown2]; //Ai animation refs
+        [self readScenarioReflexive:&header.StartingLocations]; //Ai script refs
+        [self readScenarioReflexive:&header.Platoons]; //Ai recording refs
+        [self readScenarioReflexive:&header.AiConversations]; //Ai conversations
+        
+        /* NEED TO WORK ON THIS, KK? */
+        NSLog(@"header.ScriptDataSize position: 0x%x", positionInScenario);
+        [self readScenario:&header.ScriptDataSize size:4];
+        [self readScenario:&header.Unknown4 size:4];
+        [self readScenarioReflexive:&header.ScriptCrap];
+        [self readScenarioReflexive:&header.Commands];
+        [self readScenarioReflexive:&header.Points];
+        [self readScenarioReflexive:&header.AiAnimationRefs];
+        [self readScenarioReflexive:&header.GlobalsVerified];
+        [self readScenarioReflexive:&header.AiRecordingRefs];
+        [self readScenarioReflexive:&header.Unknown5];
+        [self readScenarioReflexive:&header.Participants];
+        [self readScenarioReflexive:&header.Lines];
+        [self readScenarioReflexive:&header.ScriptTriggers];
+        [self readScenarioReflexive:&header.VerifyCutscenes];
+        [self readScenarioReflexive:&header.VerifyCutsceneTitle];
+        [self readScenarioReflexive:&header.SourceFiles];
+        [self readScenarioReflexive:&header.CutsceneFlags];
+        [self readScenarioReflexive:&header.CutsceneCameraPoi];
+        [self readScenarioReflexive:&header.CutsceneTitles];
+        
+        // Seems to be 8 more unknown reflexives. Damn there are a lot of these!
+        for (i = 0; i < 8; i++)
+            [self readScenarioReflexive:&header.Unknown6[i]];
+        //positionInScenario += 96;
+        
+        [self readScenario:&header.Unknown7 size:4];
+    }
+    
+    
 	positionInScenario = 0x5A4;
 	
 	[self readScenarioReflexive:&header.StructBsp];
@@ -2098,14 +2237,14 @@ Item swapping
 		[inactiveMachTagArray release];
 	}
 	
-	NSLog(@"hur?");
+	//NSLog(@"hur?");
 	//[_mapfile constructArrayAndLookupForTagType:([_mapfile isPPC] ? "mach" : "hcam") array:tmpArray dictionary:tmpDict];
 	tmpArray = [_mapfile constructArrayForTagType:([_mapfile isPPC] ? "mach" : "hcam")];
 	
 	
 	if ([tmpArray count] > 0)
 	{
-		NSLog(@"HOLY HELL");
+		//NSLog(@"HOLY HELL");
 		inactiveMachTagArray = [NSMutableArray arrayWithArray:tmpArray];
 		[inactiveMachTagArray removeObjectsInArray:machTagArray];
 	}

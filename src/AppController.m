@@ -65,6 +65,7 @@
 {
     [[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
     
+    
     /*
 #ifndef MACVERSION
     userDefaults = [NSUserDefaults standardUserDefaults];
@@ -216,7 +217,7 @@
 		default:
 			break;
 	}
-	[mainWindow setTitle:[[NSString stringWithString:@"Archon (Beta 1) : "] stringByAppendingString:[mapfile mapName]]];
+	[mainWindow setTitle:[[NSString stringWithString:@"Archon (Beta 3) : "] stringByAppendingString:[mapfile mapName]]];
 }
 
 - (IBAction)loadMap:(id)sender

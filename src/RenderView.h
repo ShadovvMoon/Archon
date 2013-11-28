@@ -20,6 +20,8 @@
 #import "Camera.h"
 #import "Scenario.h"
 #import "BspMesh.h"
+#import "Stamps.h"
+
 
 #define BITS_PER_PIXEL          64.0
 #define DEPTH_SIZE              64.0
@@ -33,6 +35,16 @@
 @class TextureManager;
 @class SpawnEditorController;
 
+float fromPt[3];
+float toPt[3];
+int docopyme;
+int packetReady;
+int didReceive;
+
+float insX, insY, insZ;
+struct sockaddr *peeraddress;
+int socketAddress;
+int currentPacketNumberFirst;
 
 @interface RenderView : NSOpenGLView
 {
@@ -59,7 +71,7 @@
 	IBOutlet NSSlider *framesSlider;
 	IBOutlet NSTextField *fpsText;
 	/* End BSP Rendering */
-	
+	IBOutlet Stamps *stamp;
 	/* Begin object rendering options */
 	IBOutlet NSSlider *lodDropdownButton;
 	IBOutlet NSButton *useAlphaCheckbox;
@@ -68,7 +80,24 @@
 	IBOutlet NSTextField *opened;
 	
 	IBOutlet NSTextField *cam_p;
+    
+	IBOutlet NSTextField *serveraddress;
+	IBOutlet NSTextField *serverport;
 	
+    IBOutlet NSTextField *ai_playerNumber;
+    IBOutlet NSButton *ai_seek;
+    IBOutlet NSButton *ai_move;
+    IBOutlet NSButton *ai_shoot;
+    IBOutlet NSButton *ai_crouch;
+    IBOutlet NSButton *ai_headers;
+    IBOutlet NSButton *ai_team;
+    IBOutlet NSButton *ai_team1;
+    IBOutlet NSButton *ai_grenade;
+    IBOutlet NSButton *ai_teamswitch;
+    IBOutlet NSButton *ai_action;
+    IBOutlet NSButton *ai_melee;
+    IBOutlet NSTextField *playerNumberImpersonate;
+    float gah;
 	/* Begin mouse movement style */
 	IBOutlet NSButton *selectMode;
 	IBOutlet NSButton *translateMode;
@@ -79,6 +108,8 @@
 	IBOutlet NSButton *moveCameraMode;
 	IBOutlet NSButton *duplicateSelected;
 	IBOutlet NSButton *b_deleteSelected;
+	IBOutlet NSButton *filterNetwork;
+	IBOutlet NSButton *isStrafed;
 	
 	IBOutlet NSSlider *cspeed;
 	
@@ -211,7 +242,7 @@
 	IBOutlet NSPanel *render;
 	IBOutlet NSPanel *spawnc;
 	IBOutlet NSPanel *spawne;
-	IBOutlet NSPanel *select;
+	IBOutlet NSPanel *select_panel;
 	IBOutlet NSPanel *machine;
 	IBOutlet NSTextField *statusMessage;
 	IBOutlet NSButton *player_1;
@@ -246,9 +277,101 @@
     BOOL duplicatedAlready;
     
     float lastExtreme;
+    
+    BOOL isJumping;
+    BOOL isInAir;
+    float xv,yv,zv;
+    
+    float jumpSpeed;
+    float jumpStrafe;
+    
+    float currentHeight;
+    float goalHeight;
+    
+    float lastPosition[6];
+    float Gg[6];
+    
+    BOOL hasn;
+    float normalAmount;
+    float *n;
+    
+    uint64_t initialTime;
+    float jumpZ;
+    
+    IBOutlet NSSlider *tickSlider;
+    IBOutlet NSPanel *debugWindow;
+    
+    IBOutlet NSTextField *tickAmount;
+    IBOutlet NSButton *paintDebug;
+    IBOutlet NSButton *wireframeBSP;
+    
+    IBOutlet NSButton *teleporterLines;
+    IBOutlet NSButton *raceLines;
+    IBOutlet NSButton *hillLines;
+    IBOutlet NSButton *clipPaint;
+    IBOutlet NSButton *pixelPaint;
+    
+    IBOutlet NSSlider *netgamesize;
+    IBOutlet NSSlider *spherequality;
+    
+    
+    IBOutlet NSTextField *normalHeight;
+    IBOutlet NSTextField *crouchHeight;
+    IBOutlet NSTextField *changeSpeed;
+    
+    IBOutlet NSTextField *gravityAmount;
+    IBOutlet NSTextField *jumpVelocity;
+    IBOutlet NSTextField *forwardSpeed;
+    IBOutlet NSTextField *colorRGBA;
+    
+    IBOutlet NSButton *copyMe;
+    IBOutlet NSButton *doHost;
+    
+    
+    
+    
+    
+    IBOutlet NSButton *render_playerSpawns;
+    IBOutlet NSButton *render_Encounters;
+    IBOutlet NSButton *render_itemSpawns;
+    IBOutlet NSButton *render_machines;
+    IBOutlet NSButton *render_vehicles;
+    IBOutlet NSButton *render_scen;
+    IBOutlet NSButton *render_sky;
+    IBOutlet NSButton *render_netgame;
+    
+    IBOutlet NSButton *render_bsp;
+    IBOutlet NSButton *render_objects;
+    IBOutlet NSButton *render_settings;
+    IBOutlet NSButton *render_flush;
+    
+    IBOutlet NSButton *render_reshape;
+    IBOutlet NSButton *render_junk;
+    IBOutlet NSButton *render_colours;
+    IBOutlet NSButton *render_idents;
+    IBOutlet NSButton *render_meshc;
+    IBOutlet NSButton *render_scaling;
+     IBOutlet NSButton *render_det1;
+     IBOutlet NSButton *render_det2;
+    IBOutlet NSButton *render_LM;
+    IBOutlet NSButton *render_sun;
+    IBOutlet NSButton *render_SP;
+    NSDate *jumpTime;
+    
+    BOOL needsReshape;
+    NSRect lastRectShape;
+    
+    BOOL alreadyRefreshing;
+    
+    BOOL needsPaintRefresh;
 }
 
 
+
+-(IBAction)doubleLightmaps:(id)sender;
+-(IBAction)connectToServer:(id)sender;
+
+-(IBAction)changeGametype:(id)sender;
 -(IBAction)reloadBitmapsForMap:(id)sender;
 -(IBAction)openSettingsPopup:(id)sender;
 /* Begin Renderview-Specific Functions */
@@ -437,7 +560,7 @@
 @property (retain) NSPanel *render;
 @property (retain) NSPanel *spawnc;
 @property (retain) NSPanel *spawne;
-@property (retain) NSPanel *select;
+@property (retain) NSPanel *select_panel;
 @property (retain) NSButton *player_1;
 @property (retain) NSButton *player_2;
 @property (retain) NSButton *player_3;

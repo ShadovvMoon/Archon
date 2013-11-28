@@ -223,6 +223,11 @@
     [self loadTextureOfIdent:ident subImage:index removeAlpha:NO];
 }
 
+- (void)loadTextureOfIdent:(long)ident subImage:(int)index removeAlpha:(BOOL)removeAlpha
+{
+    [self loadTextureOfIdent:ident subImage:index removeAlpha:removeAlpha useMipmaps:YES];
+}
+
 -(BitmapTag*)bitmapForIdent:(long)ident
 {
     if (!_textures)
@@ -260,7 +265,7 @@
     return lastShaderIndex;
 }
 
-- (void)loadTextureOfIdent:(long)ident subImage:(int)index removeAlpha:(BOOL)ra
+- (void)loadTextureOfIdent:(long)ident subImage:(int)index removeAlpha:(BOOL)ra useMipmaps:(BOOL)mipmap
 {
 	
 	if (!_textures)
@@ -304,13 +309,29 @@
         
         if (imageData !=  NULL)
         {
-            gluBuild2DMipmaps(GL_TEXTURE_2D,
-                                  GL_RGBA,
-                                   [tmpBitm textureSizeForImageIndex:index].width,
-                                   [tmpBitm textureSizeForImageIndex:index].height,
-                                   GL_RGBA,
-                                   GL_UNSIGNED_BYTE,
-                                   imageData);
+            if (!mipmap)
+            {
+                NSLog(@"GENERATING MIPMAPS %f %f", [tmpBitm textureSizeForImageIndex:index].width, [tmpBitm textureSizeForImageIndex:index].height);
+                glTexImage2D(GL_TEXTURE_2D,
+                         0,
+                         GL_RGBA,
+                         [tmpBitm textureSizeForImageIndex:index].width,
+                         [tmpBitm textureSizeForImageIndex:index].height,
+                         0,
+                         GL_RGBA,
+                         GL_UNSIGNED_BYTE,
+                         imageData);
+            }
+            else
+            {
+                gluBuild2DMipmaps(GL_TEXTURE_2D,
+                                      GL_RGBA,
+                                       [tmpBitm textureSizeForImageIndex:index].width,
+                                       [tmpBitm textureSizeForImageIndex:index].height,
+                                       GL_RGBA,
+                                       GL_UNSIGNED_BYTE,
+                                       imageData);
+            }
             
         }
        
@@ -338,17 +359,39 @@
         
         if (newData !=  NULL)
         {
-            gluBuild2DMipmaps(GL_TEXTURE_2D,
+            
+            //Alpha doesnt need mipmaps..
+            if (TRUE)
+            {
+                glTexImage2D(GL_TEXTURE_2D,
+                             0,
+                             GL_RGBA,
+                             [tmpBitm textureSizeForImageIndex:index].width,
+                             [tmpBitm textureSizeForImageIndex:index].height,
+                             0,
+                             GL_RGBA,
+                             GL_UNSIGNED_BYTE,
+                             newData);
+            }
+            else
+            {
+                gluBuild2DMipmaps(GL_TEXTURE_2D,
                               GL_RGBA,
                               [tmpBitm textureSizeForImageIndex:index].width,
                               [tmpBitm textureSizeForImageIndex:index].height,
                               GL_RGBA,
                               GL_UNSIGNED_BYTE,
                               newData);
-            
+            }
         }
         
         free(newData);
+        
+        //Only nonpaintables
+#ifdef LOWRAM
+        imageData=nil;
+        free(imageData);
+#endif
         
         
 	}
@@ -453,6 +496,7 @@
 /* Ok, here comes the fun part. */
 - (void)refreshTextureOfIdent:(long)ident index:(int)index
 {
+    
 	if (!_textures)
 		return;
     
@@ -464,17 +508,32 @@
     //Delete texture
     if( &_glTextureTable[texIndex][index] != 0 )
     {
+        
+#ifndef THREADREFRESH
         glDeleteTextures( 1, &_glTextureTable[texIndex][index] );
         glDeleteTextures( 1, &_glTextureTable_Alphas[texIndex][index] );
+#endif
+        
         //glDeleteTextures( 1, &_glTextureTable_Compiled[texIndex][index] );
     }
-    
+
     // Now lets upload it to OpenGL
-    glGenTextures(1,&_glTextureTable[texIndex][index]);
+    //glGenTextures(1,&_glTextureTable[texIndex][index]);
     glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][index]);
         
     if ([tmpBitm imagePixelsForImageIndex:index] !=  NULL)
     {
+#ifdef THREADREFRESH
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     [tmpBitm textureSizeForImageIndex:index].width,
+                     [tmpBitm textureSizeForImageIndex:index].height,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     [tmpBitm imagePixelsForImageIndex:index]);
+#else
         gluBuild2DMipmaps(GL_TEXTURE_2D,
                           GL_RGBA,
                           [tmpBitm textureSizeForImageIndex:index].width,
@@ -482,14 +541,16 @@
                           GL_RGBA,
                           GL_UNSIGNED_BYTE,
                           [tmpBitm imagePixelsForImageIndex:index]);
+#endif
     }
    
     // Now lets upload it to OpenGL
-    glGenTextures(1,&_glTextureTable_Alphas[texIndex][index]);
+    //glGenTextures(1,&_glTextureTable_Alphas[texIndex][index]);
     glBindTexture(GL_TEXTURE_2D,_glTextureTable_Alphas[texIndex][index]);
     
     if ([tmpBitm imagePixelsForImageIndex:index] !=  NULL)
     {
+        #ifndef THREADREFRESH
         gluBuild2DMipmaps(GL_TEXTURE_2D,
                           GL_RGBA,
                           [tmpBitm textureSizeForImageIndex:index].width,
@@ -497,6 +558,7 @@
                           GL_RGBA,
                           GL_UNSIGNED_BYTE,
                           [tmpBitm imagePixelsForImageIndex:index]);
+#endif
     }
     
 	
@@ -746,7 +808,6 @@
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	}
 	
-    
 	glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
 	glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
 				
@@ -756,7 +817,6 @@
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_BLEND, GL_MODULATE);
 	
 	[tmpBitm release];
@@ -799,10 +859,16 @@ if (useNewRenderer() != 1)
         else
             glBindTexture(GL_TEXTURE_2D, _glTextureTable[lightmapIndex][0]);
         
+
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+        
+
         glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    
         glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+
+        
         glTexEnvi( GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD );
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
     }
@@ -816,8 +882,12 @@ if (useNewRenderer() != 1)
         glBindTexture(GL_TEXTURE_2D, _glTextureTable[texIndex][0]);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+    
+
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     
    
@@ -826,10 +896,18 @@ if (useNewRenderer() != 1)
         glActiveTextureARB(GL_TEXTURE2_ARB);
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, _glTextureTable[secondaryIndex][subImage]);
+        
+                    #ifndef LOWRAM
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+        
+    
         glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        
+
         glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+#endif
+        
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
 }
@@ -837,10 +915,18 @@ if (useNewRenderer() != 1)
     {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, _glTextureTable[texIndex][0]);
+        
+
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+        
+                
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        
+
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+
+        
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
     

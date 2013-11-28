@@ -14,6 +14,7 @@
 
 	m_vPosition	= vZero;					// Init the position to zero
 	m_vView		= vView;					// Init the view to a std starting view
+        
 	m_vUpVector	= vUp;						// Init the UpVector
 
 	m_Speed = 0.1f;
@@ -63,6 +64,10 @@
 - (void)lockZ
 {
 	[self RotateView:0 x:m_vPosition.x y:m_vPosition.y z:m_vPosition.z];
+}
+-(float)rotationR
+{
+    return m_CurrentRotX;
 }
 - (void) UpdateMouseMove:(int) DeltaX deltaY:(int) DeltaY
 {
@@ -193,6 +198,39 @@
 	m_vView.x += m_vStrafe.x * delta;
 	m_vView.y += m_vStrafe.y * delta;
 }
+- (void) MoveCameraStraight:(float)delta;
+{
+	// Get the current view vector (the direction we are looking)
+    CVector3 m_vViewNew = NewCVector3(m_vView.x, m_vView.y, m_vView.z);
+	CVector3 vVector = SubtractTwoVectors(m_vViewNew , m_vPosition);
+    
+    
+    /////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
+    
+	// I snuck this change in here!  We now normalize our view vector when
+	// moving throughout the world.  This is a MUST that needs to be done.
+	// That way you don't move faster than you strafe, since the strafe vector
+	// is normalized too.
+	vVector = Normalize(vVector);
+	
+    /////// * /////////// * /////////// * NEW * /////// * /////////// * /////////// *
+    
+    
+	//m_vPosition.x += vVector.x * speed;		// Add our acceleration to our position's X
+	//m_vPosition.z += vVector.z * speed;		// Add our acceleration to our position's Z
+	//m_vView.x += vVector.x * speed;			// Add our acceleration to our view's X
+	//m_vView.z += vVector.z * speed;			// Add our acceleration to our view's Z
+    //	delta = 1;
+	
+    m_vPosition.x += vVector.x * delta;		// Add our acceleration to our position's X
+	m_vPosition.y += vVector.y * delta;		// Add our acceleration to our position's Z
+	m_vPosition.z += vVector.z * delta;
+	m_vView.x += vVector.x * delta;			// Add our acceleration to our view's X
+	m_vView.y += vVector.y * delta;			// Add our acceleration to our view's Z
+	m_vView.z += vVector.z * delta;
+    
+}
+
 - (void) MoveCamera:(float)delta;
 {
 	// Get the current view vector (the direction we are looking)
@@ -316,6 +354,7 @@
 	gluLookAt(m_vPosition.x, m_vPosition.y, m_vPosition.z,	
 			  m_vView.x,	 m_vView.y,     m_vView.z,	
 			  m_vUpVector.x, m_vUpVector.y, m_vUpVector.z);
+
 	//gluLookAt(100, 100, 0,	
 	//		      0, 0, 0, 
 	//		  0, 0, 0);

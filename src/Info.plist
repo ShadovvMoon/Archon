@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>Archon</string>
 	<key>CFBundleIdentifier</key>
-	<string>net.samuco.sunlight</string>
+	<string>net.samuco.archon</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -32,11 +32,13 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
-	<string>sword</string>
+	<string>Samuco</string>
 	<key>CFBundleVersion</key>
-	<string>Archon</string>
+	<string>1.0</string>
 	<key>NSMainNibFile</key>
 	<string>Main</string>
+	<key>SecTaskAccess</key>
+	<string>allowed</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>
