@@ -100,6 +100,7 @@ int currentPacketNumberFirst;
     float gah;
 	/* Begin mouse movement style */
 	IBOutlet NSButton *selectMode;
+    IBOutlet NSButton *newMode;
 	IBOutlet NSButton *translateMode;
     IBOutlet NSButton *dirtMode;
     IBOutlet NSButton *grassMode;
@@ -215,6 +216,11 @@ int currentPacketNumberFirst;
 	NSPoint prevDown;
 	NSPoint prevRightDown;
 	
+    CVector3 initialPosition;
+    CVector3 initialMouse;
+    CVector3 initialObjectPosition;
+    NSNumber *moveNameLookup;
+    
 	// Current selection mode
 	int _mode;
 	dynamic_object map_objects[8000];
@@ -230,6 +236,10 @@ int currentPacketNumberFirst;
 	int isfull;
 	int should_update;
 	uint64_t        previous;
+    
+    NSPopover *settingsPopover;
+    IBOutlet NSView *settingsView;
+    NSViewController *settingsViewController;
     
 	// Render settings
 	float _lineWidth;
@@ -266,16 +276,16 @@ int currentPacketNumberFirst;
     int indexHighlight;
     int indexMesh;
     
+    IBOutlet NSScrollView *scroll_settings;
     
     IBOutlet NSPanel *settings_Window_Object;
     
 	SUBMESH_INFO *pMesh;
     id popover;
     NSViewController *c;
-    IBOutlet NSView *settingsView;
-    
+   
     BOOL duplicatedAlready;
-    
+    BOOL didMoveObject;
     float lastExtreme;
     
     BOOL isJumping;

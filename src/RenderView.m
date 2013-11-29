@@ -4542,9 +4542,21 @@ int playernumberinitial=0;;
 }
 - (void)awakeFromNib
 {
-    _mode = select;
+    _mode = newmode;
     [self unpressButtons];
-    [selectMode setState:NSOnState];
+    [newMode setState:NSOnState];
+    
+
+    //New popover
+    //Open the settings window
+    settingsViewController = [[NSViewController alloc] init];
+    settingsViewController.view = settingsView;
+    
+    settingsPopover = [[NSPopover alloc] init];
+    [settingsPopover setContentViewController:settingsViewController];
+    [settingsPopover setContentSize:[settingsView frame].size];
+    
+    [settingsPopover setAppearance:NSPopoverAppearanceMinimal];
     
     
     
@@ -4899,13 +4911,13 @@ int playernumberinitial=0;;
     //NSLog(@"RESHAPING");
     
     //[[self window] setFrame:[[self window] frame] display:NO];
-    [self setFrame:[[[self window] contentView] bounds]];
+    //[self setFrame:[[[self window] contentView] bounds]];
     [[self openGLContext] update];
     
     //[self setFrame:[[[self window] contentView] bounds]];
     
    // [self setFrame:[[[self window] contentView] bounds]];
-	NSSize sceneBounds = [self frame].size;
+	NSSize sceneBounds = [self bounds].size;
 	glViewport(0,0,sceneBounds.width,sceneBounds.height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -4963,6 +4975,8 @@ int playernumberinitial=0;;
 
 - (void)scrollWheel:(NSEvent*)theEvent
 {
+    if ([selections count] == 0)
+        return;
     
 #ifdef MACVERSION
     if ([s_xRotation floatValue]+[theEvent scrollingDeltaY] < 0)
@@ -5205,14 +5219,142 @@ int spaceKey = 0;
 */
 #endif
 }
-- (void)mouseUp:(NSEvent *)theEvent
+
+
+
+-(void)showSelectionController:(BOOL)show
 {
+    if (show)
+    {
+        NSRect b = [[[self window] contentView] bounds];
+        [self setFrame:NSMakeRect(b.origin.x, b.origin.y, b.size.width-285, b.size.height)];
+    }
+    else
+    {
+        [self setFrame:[[[self window] contentView] bounds]];
+    }
+    
+    needsReshape = YES;
+    [self reshape];
+}
+
+-(void)undoMove:(NSArray*)object
+{
+    unsigned int nameLookup = [[object objectAtIndex:0] unsignedIntegerValue];
+    float x = [[object objectAtIndex:1] floatValue];
+    float y = [[object objectAtIndex:2] floatValue];
+    float z = [[object objectAtIndex:3] floatValue];
+    
+    unsigned int type,
+    index;
+    
+    type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+    index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+    
+    GLdouble x_coordinate;
+    GLdouble y_coordinate;
+    GLdouble z_coordinate;
+   
+    switch (type)
+    {
+        case s_scenery:
+            x_coordinate = [_scenario scen_spawns][index].coord[0];
+            y_coordinate = [_scenario scen_spawns][index].coord[1];
+            z_coordinate = [_scenario scen_spawns][index].coord[2];
+            break;
+        case s_vehicle:
+            x_coordinate = [_scenario vehi_spawns][index].coord[0];
+            y_coordinate = [_scenario vehi_spawns][index].coord[1];
+            z_coordinate = [_scenario vehi_spawns][index].coord[2];
+            break;
+        case s_playerspawn:
+            x_coordinate = [_scenario spawns][index].coord[0];
+            y_coordinate = [_scenario spawns][index].coord[1];
+            z_coordinate = [_scenario spawns][index].coord[2];
+            break;
+        case s_netgame:
+            x_coordinate = [_scenario netgame_flags][index].coord[0];
+            y_coordinate = [_scenario netgame_flags][index].coord[1];
+            z_coordinate = [_scenario netgame_flags][index].coord[2];
+            break;
+        case s_item:
+            x_coordinate = [_scenario item_spawns][index].coord[0];
+            y_coordinate = [_scenario item_spawns][index].coord[1];
+            z_coordinate = [_scenario item_spawns][index].coord[2];
+            break;
+        case s_machine:
+            x_coordinate = [_scenario mach_spawns][index].coord[0];
+            y_coordinate = [_scenario mach_spawns][index].coord[1];
+            z_coordinate = [_scenario mach_spawns][index].coord[2];
+            break;
+    }
+    
+    NSArray *undo_object = [NSArray arrayWithObjects:[object objectAtIndex:0], [NSNumber numberWithFloat:x_coordinate], [NSNumber numberWithFloat:y_coordinate], [NSNumber numberWithFloat:z_coordinate], nil];
+    
+    [[self undoManager] registerUndoWithTarget:self selector:@selector(undoMove:) object:undo_object];
+    [[self undoManager] setActionName:@"Move"];
+    
+    switch (type)
+    {
+        case s_scenery:
+            [_scenario scen_spawns][index].coord[0] = x;
+            [_scenario scen_spawns][index].coord[1] = y;
+            [_scenario scen_spawns][index].coord[2] = z;
+            break;
+        case s_vehicle:
+            [_scenario vehi_spawns][index].coord[0] = x;
+            [_scenario vehi_spawns][index].coord[1] = y;
+            [_scenario vehi_spawns][index].coord[2] = z;
+            break;
+        case s_playerspawn:
+            [_scenario spawns][index].coord[0] = x;
+            [_scenario spawns][index].coord[1] = y;
+            [_scenario spawns][index].coord[2] = z;
+            break;
+        case s_netgame:
+            [_scenario netgame_flags][index].coord[0] = x;
+            [_scenario netgame_flags][index].coord[1] = y;
+            [_scenario netgame_flags][index].coord[2] = z;
+            break;
+        case s_item:
+            [_scenario item_spawns][index].coord[0] = x;
+            [_scenario item_spawns][index].coord[1] = y;
+            [_scenario item_spawns][index].coord[2] = z;
+            break;
+        case s_machine:
+            [_scenario mach_spawns][index].coord[0] = x;
+            [_scenario mach_spawns][index].coord[1] = y;
+            [_scenario mach_spawns][index].coord[2] = z;
+            break;
+    }
+    
     
 }
+
+- (void)mouseUp:(NSEvent *)theEvent
+{
+    if (_mode == newmode)
+    {
+        if (didMoveObject)
+        {
+            NSArray *undo_object = [NSArray arrayWithObjects:moveNameLookup, [NSNumber numberWithFloat:initialObjectPosition.x], [NSNumber numberWithFloat:initialObjectPosition.y], [NSNumber numberWithFloat:initialObjectPosition.z], nil];
+            
+            [[self undoManager] registerUndoWithTarget:self selector:@selector(undoMove:) object:undo_object];
+            [[self undoManager] setActionName:@"Move"];
+        }
+        
+        if ([selections count] > 0)
+        {
+            [self showSelectionController:YES];
+        }
+    }
+}
+
+
 - (void)mouseDown:(NSEvent *)event
 {
 
-    
+    didMoveObject = NO;
     //NSLog(@"Mouse down %d %d %d %d", (([event modifierFlags] & NSControlKeyMask)!=0), (([event modifierFlags] & NSCommandKeyMask)!=0), (([event modifierFlags] & NSShiftKeyMask)!=0), (([event modifierFlags] & NSAlternateKeyMask)!=0));
     
     duplicatedAlready = NO;
@@ -5328,7 +5470,106 @@ int spaceKey = 0;
 
 		//[sel release];
 	}
-    
+    else if (_mode == newmode)
+    {
+        [self trySelection:local_point shiftDown:(([event modifierFlags] & NSShiftKeyMask) != 0) width:[NSNumber numberWithFloat:1.0] height:[NSNumber numberWithFloat:1.0]];
+        
+        //Fix the matricies
+        needsReshape=YES;
+        [self reshape];
+        
+        [_camera Look];
+        [_camera Update];
+        
+        GLdouble x_coordinate;
+        GLdouble y_coordinate;
+        GLdouble z_coordinate;
+        
+        BOOL found = NO;
+        
+        // Now lets apply the transformations.
+        unsigned int	i,
+        nameLookup,
+        type,
+        index;
+        for (i = 0; i < [selections count]; i++)
+        {
+            nameLookup = [[selections objectAtIndex:i] unsignedIntValue];
+            type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+            index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+            
+            found = YES;
+            switch (type)
+            {
+                case s_scenery:
+                    x_coordinate = [_scenario scen_spawns][index].coord[0];
+                    y_coordinate = [_scenario scen_spawns][index].coord[1];
+                    z_coordinate = [_scenario scen_spawns][index].coord[2];
+                    break;
+                case s_vehicle:
+                    x_coordinate = [_scenario vehi_spawns][index].coord[0];
+                    y_coordinate = [_scenario vehi_spawns][index].coord[1];
+                    z_coordinate = [_scenario vehi_spawns][index].coord[2];
+                    break;
+                case s_playerspawn:
+                    x_coordinate = [_scenario spawns][index].coord[0];
+                    y_coordinate = [_scenario spawns][index].coord[1];
+                    z_coordinate = [_scenario spawns][index].coord[2];
+                    break;
+                case s_netgame:
+                    x_coordinate = [_scenario netgame_flags][index].coord[0];
+                    y_coordinate = [_scenario netgame_flags][index].coord[1];
+                    z_coordinate = [_scenario netgame_flags][index].coord[2];
+                    break;
+                case s_item:
+                    x_coordinate = [_scenario item_spawns][index].coord[0];
+                    y_coordinate = [_scenario item_spawns][index].coord[1];
+                    z_coordinate = [_scenario item_spawns][index].coord[2];
+                    break;
+                case s_machine:
+                    x_coordinate = [_scenario mach_spawns][index].coord[0];
+                    y_coordinate = [_scenario mach_spawns][index].coord[1];
+                    z_coordinate = [_scenario mach_spawns][index].coord[2];
+                    break;
+            }
+        }
+        
+        
+        if ([selections count] > 0)
+        {
+            //Calculate the new location using mouse location
+            double afModelviewMatrix[16];
+            double afProjectionMatrix[16];
+            glGetDoublev(GL_MODELVIEW_MATRIX, afModelviewMatrix);
+            glGetDoublev(GL_PROJECTION_MATRIX, afProjectionMatrix);
+            
+            GLint anViewport[4];
+            glGetIntegerv(GL_VIEWPORT, anViewport);
+            
+            GLdouble winX = 0.0;
+            GLdouble winY = 0.0;
+            GLdouble winZ = 0.0;
+            gluProject(x_coordinate, y_coordinate, z_coordinate, afModelviewMatrix, afProjectionMatrix, anViewport, &winX, &winY, &winZ);
+           
+            float fMouseX, fMouseY, fMouseZ;
+            fMouseX = local_point.x;
+            fMouseY = local_point.y;
+            fMouseZ = 0.0f;
+            
+            glReadPixels(fMouseX, fMouseY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &fMouseZ);
+
+            
+            
+            initialPosition = NewCVector3(winX-fMouseX,winY-fMouseY,winZ-fMouseZ);
+            initialMouse = NewCVector3(local_point.x, local_point.y, 0);
+            initialObjectPosition = NewCVector3(x_coordinate, y_coordinate, z_coordinate);
+            moveNameLookup = [[NSNumber numberWithUnsignedInteger:nameLookup] retain];
+        }
+        else
+        {
+            //[self showSelectionController:NO];
+        }
+    }
     
 		
 }
@@ -5444,25 +5685,7 @@ int spaceKey = 0;
                 
                 long selection = [_scenario duplicateScenarioObject:type index:index];
                 
-                NSLog(@"%ld", selection);
-                //[selections addObject:[NSNumber numberWithLong:selection]];
-                //_selectFocus = [[selections objectAtIndex:0] longValue];
-                
-                
-                //[self processSelection:selection];
-                 
-                    //[selections removeAllObjects];
-                
-                    //[selections addObject:[NSNumber numberWithLong:[_scenario duplicateScenarioObject:type index:index]]];
-                    //_selectFocus = [[selections objectAtIndex:0] longValue];
-                
-                    //dup=0;
-                //}
-                //else
-                //{
-                    //dup++;
-                //}
-                
+       
                 duplicatedAlready = YES;
 
             }
@@ -5531,6 +5754,201 @@ int spaceKey = 0;
 
 #endif
 	}
+    else if (_mode == newmode)
+    {
+        NSPoint downPoint = [theEvent locationInWindow];
+        NSPoint local_point = [self convertPoint:downPoint fromView:[[self window] contentView]];
+
+        if ([theEvent modifierFlags] & NSShiftKeyMask)
+        {
+            if (!duplicatedAlready)
+            {
+                
+                unsigned int type, index, nameLookup;
+                
+                if (!selections || [selections count] == 0)
+                    return;
+                
+                nameLookup = [[selections objectAtIndex:0] unsignedIntValue];
+                type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+                index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+
+                long selection = [_scenario duplicateScenarioObject:type index:index];
+                duplicatedAlready = YES;
+                
+                switch (type)
+                {
+                    case s_scenery:
+                        [_scenario scen_spawns][[_scenario scenery_spawn_count]-1].isSelected = NO;
+                        break;
+                    case s_vehicle:
+                        [_scenario vehi_spawns][index].isSelected = NO;
+                        break;
+                    case s_playerspawn:
+                        [_scenario spawns][index].isSelected = NO;
+                        break;
+                    case s_netgame:
+                        [_scenario netgame_flags][index].isSelected = NO;
+                        break;
+                    case s_item:
+                        [_scenario item_spawns][index].isSelected = NO;
+                        break;
+                    case s_machine:
+                        [_scenario mach_spawns][index].isSelected = NO;
+                        break;
+                }
+            }
+        }
+        
+        float x_coordinate;
+        float y_coordinate;
+        float z_coordinate;
+        BOOL found = NO;
+        
+        // Now lets apply the transformations.
+        unsigned int	i,
+        nameLookup,
+        type,
+        index;
+        for (i = 0; i < [selections count]; i++)
+        {
+            nameLookup = [[selections objectAtIndex:i] unsignedIntValue];
+            type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+            index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+            
+            found = YES;
+            switch (type)
+            {
+                case s_scenery:
+                    x_coordinate = [_scenario scen_spawns][index].coord[0];
+                    y_coordinate = [_scenario scen_spawns][index].coord[1];
+                    z_coordinate = [_scenario scen_spawns][index].coord[2];
+                    break;
+                case s_vehicle:
+                    x_coordinate = [_scenario vehi_spawns][index].coord[0];
+                    y_coordinate = [_scenario vehi_spawns][index].coord[1];
+                    z_coordinate = [_scenario vehi_spawns][index].coord[2];
+                    break;
+                case s_playerspawn:
+                    x_coordinate = [_scenario spawns][index].coord[0];
+                    y_coordinate = [_scenario spawns][index].coord[1];
+                    z_coordinate = [_scenario spawns][index].coord[2];
+                    break;
+                case s_netgame:
+                    x_coordinate = [_scenario netgame_flags][index].coord[0];
+                    y_coordinate = [_scenario netgame_flags][index].coord[1];
+                    z_coordinate = [_scenario netgame_flags][index].coord[2];
+                    break;
+                case s_item:
+                    x_coordinate = [_scenario item_spawns][index].coord[0];
+                    y_coordinate = [_scenario item_spawns][index].coord[1];
+                    z_coordinate = [_scenario item_spawns][index].coord[2];
+                    break;
+                case s_machine:
+                    x_coordinate = [_scenario mach_spawns][index].coord[0];
+                    y_coordinate = [_scenario mach_spawns][index].coord[1];
+                    z_coordinate = [_scenario mach_spawns][index].coord[2];
+                    break;
+            }
+        }
+        
+        //Calculate the new location using mouse location
+        double afModelviewMatrix[16];
+        double afProjectionMatrix[16];
+        glGetDoublev(GL_MODELVIEW_MATRIX, afModelviewMatrix);
+        glGetDoublev(GL_PROJECTION_MATRIX, afProjectionMatrix);
+        
+        GLint anViewport[4];
+        glGetIntegerv(GL_VIEWPORT, anViewport);
+        
+        float fMouseX, fMouseY, fMouseZ;
+        fMouseX = downPoint.x;
+        fMouseY = downPoint.y;
+        fMouseZ = 0.0f;
+        
+        glReadPixels(fMouseX, fMouseY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &fMouseZ);
+        fMouseX+=initialPosition.x;
+        fMouseY+=initialPosition.y;
+        fMouseZ+=initialPosition.z;
+        
+        double dTempX, dTempY, dTempZ;
+        gluUnProject(fMouseX, fMouseY, fMouseZ, afModelviewMatrix, afProjectionMatrix, anViewport, &dTempX, &dTempY, &dTempZ);
+        
+        float cx = [_camera position][0];
+        float cy = [_camera position][1];
+        float cz = [_camera position][2];
+        
+        CVector3 vPosition= NewCVector3(cx,cy,cz);
+        CVector3 vFar= NewCVector3(dTempX,dTempY,dTempZ);
+        CVector3 l = SubtractTwoVectors(vFar, vPosition);
+
+        float k = (z_coordinate-cz)/l.z;
+        
+        if (([theEvent modifierFlags] & NSControlKeyMask) != 0)
+            k = (x_coordinate-cx)/l.x;
+        
+        if (found)
+        {
+            
+            float x = cx + k*l.x;// + initialPosition.x;
+            float y = cy + k*l.y;// + initialPosition.y;
+            float z = cz + k*l.z;// + initialPosition.z;
+
+            if (([theEvent modifierFlags] & NSControlKeyMask) != 0)
+            {
+                x = x_coordinate;
+                y = y_coordinate;
+            }
+            
+            // Now lets apply the transformations.
+            unsigned int	i,
+            nameLookup,
+            type,
+            index;
+            for (i = 0; i < [selections count]; i++)
+            {
+                nameLookup = [[selections objectAtIndex:i] unsignedIntValue];
+                type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+                index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+                
+                switch (type)
+                {
+                    case s_scenery:
+                        [_scenario scen_spawns][index].coord[0] = x;
+                        [_scenario scen_spawns][index].coord[1] = y;
+                        [_scenario scen_spawns][index].coord[2] = z;
+                        break;
+                    case s_vehicle:
+                        [_scenario vehi_spawns][index].coord[0] = x;
+                        [_scenario vehi_spawns][index].coord[1] = y;
+                        [_scenario vehi_spawns][index].coord[2] = z;
+                        break;
+                    case s_playerspawn:
+                        [_scenario spawns][index].coord[0] = x;
+                        [_scenario spawns][index].coord[1] = y;
+                        [_scenario spawns][index].coord[2] = z;
+                        break;
+                    case s_netgame:
+                        [_scenario netgame_flags][index].coord[0] = x;
+                        [_scenario netgame_flags][index].coord[1] = y;
+                        [_scenario netgame_flags][index].coord[2] = z;
+                        break;
+                    case s_item:
+                        [_scenario item_spawns][index].coord[0] = x;
+                        [_scenario item_spawns][index].coord[1] = y;
+                        [_scenario item_spawns][index].coord[2] = z;
+                        break;
+                    case s_machine:
+                        [_scenario mach_spawns][index].coord[0] = x;
+                        [_scenario mach_spawns][index].coord[1] = y;
+                        [_scenario mach_spawns][index].coord[2] = z;
+                        break;
+                }
+            }
+            
+            didMoveObject = YES;
+        }
+    }
     else
     {
         bool PAINT = TRUE;
@@ -6055,10 +6473,10 @@ int spaceKey = 0;
     }
     
 #ifdef MACVERSION
-	if ((([theEvent modifierFlags] & NSControlKeyMask) != 0) && _mode != translate)
+	if ((([theEvent modifierFlags] & NSControlKeyMask) != 0) && (_mode != translate && _mode != newmode))
 		[_camera HandleMouseMove:(dragPoint.x - prevDown.x) dy:(dragPoint.y - prevDown.y)];
 #else
-    if ((([theEvent modifierFlags] & NSCommandKeyMask) != 0) && _mode != translate)
+    if ((([theEvent modifierFlags] & NSCommandKeyMask) != 0) && (_mode != translate && _mode != newmode)w)
 		[_camera HandleMouseMove:(dragPoint.x - prevDown.x) dy:(dragPoint.y - prevDown.y)];
 #endif
 	prevDown = dragPoint;
@@ -6097,7 +6515,8 @@ int spaceKey = 0;
 {
 	NSPoint dragPoint = [NSEvent mouseLocation];
 	
-	[_camera HandleMouseMove:(dragPoint.x - prevDown.x) dy:(dragPoint.y - prevDown.y)];
+    if ((([theEvent modifierFlags] & NSControlKeyMask) == 0))
+        [_camera HandleMouseMove:(dragPoint.x - prevDown.x) dy:(dragPoint.y - prevDown.y)];
 	
 	prevDown = dragPoint;
 }
@@ -6731,23 +7150,28 @@ int spaceKey = 0;
     
     if ([render_flush state] )
     {
-    glLoadIdentity();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(100/100.0,90/100.0,76/100.0,1.0);          // We'll Clear To The Color Of The Fog ( Modified )
     
   
-    if (![NSApp isActive])
-    {
-        //[[self openGLContext] flushBuffer];
-        return;
+        if (![NSApp isActive])
+        {
+            //[[self openGLContext] flushBuffer];
+            return;
+        }
+        
+       /*
+            glLoadIdentity();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(100/100.0,90/100.0,76/100.0,1.0);          // We'll Clear To The Color Of The Fog ( Modified )
+        */
+        
+        glLoadIdentity();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0,0,0,1.0);          // We'll Clear To The Color Of The Fog ( Modified )
+        
+       
+        [_camera Look];
+        [_camera Update];
     }
-    
-   
-    
-   
-	[_camera Look];
-	[_camera Update];
-}
     
 	//NSLog(@"%f %f %f", [_camera position][0], [_camera position][1], [_camera position][2]);
 	//[self drawAxes];
@@ -6911,6 +7335,7 @@ int spaceKey = 0;
 	}
     else
     {
+        
     }
 
     
@@ -9712,6 +10137,12 @@ USEDEBUG NSLog(@"MP7");
 		[self unpressButtons];
 		[selectMode setState:NSOnState];
 	}
+    else if (sender == newMode )
+	{
+		_mode = newmode;
+		[self unpressButtons];
+		[newMode setState:NSOnState];
+	}
 	else if (sender == translateMode || sender == m_TranslateMode)
 	{
 		_mode = translate;
@@ -10089,6 +10520,7 @@ USEDEBUG NSLog(@"MP7");
     [grassMode setState:NSOffState];
     [eyedropperMode setState:NSOffState];
     [lightmapMode setState:NSOffState];
+    [newMode setState:NSOffState];
 }
 - (void)updateSpawnEditorInterface
 {
@@ -10619,7 +11051,7 @@ BOOL isPainting;
         float vector_y = (vy-cy);
         float vector_z = (vz-cz);
         
-        NSSize sceneBounds = [self frame].size;
+        NSSize sceneBounds = [self bounds].size;
         
         
         float ySize = 1.01*sin((22.5*M_PI)/180);
@@ -10669,15 +11101,9 @@ BOOL isPainting;
     
         double dTempX, dTempY, dTempZ;
         gluUnProject(fMouseX, fMouseY, fMouseZ, afModelviewMatrix, afProjectionMatrix, anViewport, &dTempX, &dTempY, &dTempZ);
-    //gluProject(<#GLdouble objX#>, <#GLdouble objY#>, <#GLdouble objZ#>, <#const GLdouble *model#>, <#const GLdouble *proj#>, <#const GLint *view#>, <#GLdouble *winX#>, <#GLdouble *winY#>, <#GLdouble *winZ#>)
-    
-     //ofObjX, Y and Z should be populated and returned now
-    //NSLog(@"%f %f %f %f %f %f", dTempX, dTempY, dTempZ,fMouseX,fMouseY,fMouseZ);
-   
+
         CVector3 vPosition= NewCVector3(cx,cy,cz);
         CVector3 vFar= NewCVector3(dTempX,dTempY,dTempZ);
-        
-        //Check intersection
         CVector3 l = SubtractTwoVectors(vFar, vPosition);
     
     
@@ -10905,7 +11331,7 @@ BOOL isPainting;
 									[_scenario multiplayer_flags_count] +
 									[_scenario player_spawn_count] +
 									[_scenario mach_spawn_count]+
-									[_scenario encounter_count]+bsp_point_count);
+									[_scenario encounter_count]);
     
     GLdouble some_non_genericvaluew = [aw floatValue];
     GLdouble some_non_genericvalueh = [ah floatValue];
@@ -10971,6 +11397,133 @@ BOOL isPainting;
     
    // NSLog(@"HIT: %d", hits);
     
+    
+    
+    float closestDistance = selectDistance;
+    int closestHit;
+    int closestName;
+    BOOL foundObject = NO;
+    
+    GLuint *closestPtr;
+    
+    for (i = 0; i < hits; i++)
+    {
+        names = *ptr;
+        
+        ptr++;
+        z1 = (float)*ptr/0x7fffffff;
+        ptr++;
+        z2 = (float)*ptr/0x7fffffff;
+        ptr++;
+        
+        if (z2 < closestDistance)
+        {
+            for ( j = 0; j < names; j++)
+			{
+                if (*ptr >= bufferSize)
+                    break;
+                
+                type = (unsigned int)(_lookup[*ptr] / MAX_SCENARIO_OBJECTS);
+                if (type == _selectType || _selectType == s_all)
+                {
+                    closestDistance = z2;
+                    closestHit = i;
+                    closestName = j;
+                    closestPtr = ptr;
+                    
+                    foundObject = YES;
+                }
+                ptr++;
+            }
+            
+            if (*ptr >= bufferSize)
+                break;
+        }
+        
+        /*
+        for ( j = 0; j < names; j++)
+        {
+            
+            unsigned int tableVal = (unsigned int)_lookup[*ptr];
+            type = (unsigned int)(_lookup[*ptr] / MAX_SCENARIO_OBJECTS);
+            if (type == _selectType || _selectType == s_all)
+            {
+                
+                unsigned int index;
+                long mapIndex;
+                BOOL overrideString;
+                
+                type = (long)(tableVal / MAX_SCENARIO_OBJECTS);
+                index = (tableVal % MAX_SCENARIO_OBJECTS);
+                
+                /*
+                _selectFocus = tableVal;
+                
+                [selections addObject:[NSNumber numberWithLong:tableVal]];
+                [selectText setStringValue:[[NSNumber numberWithInt:[selections count]] stringValue]];
+                
+                [selectedSwapButton removeAllItems];
+                [_spawnEditor loadFocusedItemData:_selectFocus];
+                */
+        
+        /*
+                GLdouble x_coordinate;
+                GLdouble y_coordinate;
+                GLdouble z_coordinate;
+                switch (type)
+                {
+                    case s_scenery:
+                        x_coordinate = [_scenario scen_spawns][index].coord[0];
+                        y_coordinate = [_scenario scen_spawns][index].coord[1];
+                        z_coordinate = [_scenario scen_spawns][index].coord[2];
+                        break;
+                    case s_vehicle:
+                        x_coordinate = [_scenario vehi_spawns][index].coord[0];
+                        y_coordinate = [_scenario vehi_spawns][index].coord[1];
+                        z_coordinate = [_scenario vehi_spawns][index].coord[2];
+                        break;
+                    case s_playerspawn:
+                        x_coordinate = [_scenario spawns][index].coord[0];
+                        y_coordinate = [_scenario spawns][index].coord[1];
+                        z_coordinate = [_scenario spawns][index].coord[2];
+                        break;
+                    case s_netgame:
+                        x_coordinate = [_scenario netgame_flags][index].coord[0];
+                        y_coordinate = [_scenario netgame_flags][index].coord[1];
+                        z_coordinate = [_scenario netgame_flags][index].coord[2];
+                        break;
+                    case s_item:
+                        x_coordinate = [_scenario item_spawns][index].coord[0];
+                        y_coordinate = [_scenario item_spawns][index].coord[1];
+                        z_coordinate = [_scenario item_spawns][index].coord[2];
+                        break;
+                    case s_machine:
+                        x_coordinate = [_scenario mach_spawns][index].coord[0];
+                        y_coordinate = [_scenario mach_spawns][index].coord[1];
+                        z_coordinate = [_scenario mach_spawns][index].coord[2];
+                        break;
+                }
+                
+                float x = [_camera position][0];
+                float y = [_camera position][1];
+                float z = [_camera position][2];
+                
+                foundObject = YES;
+                float distance = sqrt(pow(x_coordinate-x, 2)+pow(y_coordinate-y, 2)+pow(z_coordinate-z, 2));
+                
+               
+                
+            }
+         */
+    }
+   
+    if (foundObject)
+    {
+        //NSLog(@"Found!");
+        [self processSelection:(unsigned int)_lookup[*closestPtr]];
+    }
+    
+    /*
         ignoreCSS = 0;
 		for (i = 0; i < hits; i++)
 		{
@@ -11013,7 +11566,7 @@ BOOL isPainting;
 			}
 		}
 
-	
+	*/
 	
 	
 	_lookup = NULL;

@@ -111,7 +111,8 @@ typedef enum
     dirt,
     grass,
     lightmap,
-    eyedrop
+    eyedrop,
+    newmode
 } Mode;
 
 typedef enum 

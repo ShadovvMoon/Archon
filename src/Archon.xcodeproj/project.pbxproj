@@ -14,6 +14,9 @@
 		143B86EA12A25A0A0092D35E /* machine.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86E912A25A0A0092D35E /* machine.seo */; };
 		144893AD10FA90130026A004 /* relaunch in Resources */ = {isa = PBXBuildFile; fileRef = 144893AC10FA90130026A004 /* relaunch */; };
 		1448949510FAAAE30026A004 /* Archon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1448949410FAAAE30026A004 /* Archon.icns */; };
+		14CB95FC18487DC90084F334 /* CSGradientView.m in Sources */ = {isa = PBXBuildFile; fileRef = 14CB95FB18487DC90084F334 /* CSGradientView.m */; };
+		14CB95FF184881F90084F334 /* CSGradientHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 14CB95FE184881F90084F334 /* CSGradientHeader.m */; };
+		14CB96021848B5550084F334 /* FlippedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 14CB96011848B5550084F334 /* FlippedView.m */; };
 		5C00A8C50DD51D8100C2253D /* AboutBox.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C00A8C40DD51D8100C2253D /* AboutBox.m */; };
 		5C00A9130DD5210200C2253D /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C00A9120DD5210200C2253D /* Credits.rtf */; };
 		5C00A9200DD5215E00C2253D /* AboutBox.nib in Resources */ = {isa = PBXBuildFile; fileRef = 5C00A91E0DD5215E00C2253D /* AboutBox.nib */; };
@@ -201,6 +204,12 @@
 		143B86E912A25A0A0092D35E /* machine.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = machine.seo; sourceTree = "<group>"; };
 		144893AC10FA90130026A004 /* relaunch */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = relaunch; sourceTree = "<group>"; };
 		1448949410FAAAE30026A004 /* Archon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Archon.icns; sourceTree = "<group>"; };
+		14CB95FA18487DC90084F334 /* CSGradientView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSGradientView.h; sourceTree = "<group>"; };
+		14CB95FB18487DC90084F334 /* CSGradientView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSGradientView.m; sourceTree = "<group>"; };
+		14CB95FD184881F90084F334 /* CSGradientHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSGradientHeader.h; sourceTree = "<group>"; };
+		14CB95FE184881F90084F334 /* CSGradientHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSGradientHeader.m; sourceTree = "<group>"; };
+		14CB96001848B5550084F334 /* FlippedView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlippedView.h; sourceTree = "<group>"; };
+		14CB96011848B5550084F334 /* FlippedView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FlippedView.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -692,6 +701,12 @@
 				5CD87FE50DD1173B00DAA97D /* Map Related */,
 				5CE01A160DD7E506007AA956 /* defines.h */,
 				5CEC796E0DE2395E00C33BFB /* VectorMath.h */,
+				14CB95FA18487DC90084F334 /* CSGradientView.h */,
+				14CB95FB18487DC90084F334 /* CSGradientView.m */,
+				14CB95FD184881F90084F334 /* CSGradientHeader.h */,
+				14CB96001848B5550084F334 /* FlippedView.h */,
+				14CB96011848B5550084F334 /* FlippedView.m */,
+				14CB95FE184881F90084F334 /* CSGradientHeader.m */,
 				5CEC7B9A0DE24E8300C33BFB /* GeneralMath.h */,
 				5C61EC630E24EB5200CB35F1 /* GeneralMath.h */,
 				5C61EC640E24EB5200CB35F1 /* GeneralMath.c */,
@@ -961,6 +976,11 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0440;
+				TargetAttributes = {
+					8D1107260486CEB800E47090 = {
+						DevelopmentTeam = 9292N2XG2F;
+					};
+				};
 			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Archon" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1064,6 +1084,7 @@
 				5CD1EC350CD5131900043A25 /* BspMesh.m in Sources */,
 				5C62D22D0CDD5FD50026C296 /* Camera.m in Sources */,
 				5CD87FEB0DD117D000DAA97D /* HaloMap.m in Sources */,
+				14CB96021848B5550084F334 /* FlippedView.m in Sources */,
 				5CD87FFA0DD1180100DAA97D /* Scenario.m in Sources */,
 				5CB883580DD12E070024EB30 /* RenderView.m in Sources */,
 				5C00A8C50DD51D8100C2253D /* AboutBox.m in Sources */,
@@ -1071,9 +1092,11 @@
 				5CE019550DD7D9B1007AA956 /* Geometry.m in Sources */,
 				5C04B6040DED72F500324D89 /* Scripter.m in Sources */,
 				5CDBEB790DF3094F00BA5FB4 /* SpawnEditorController.m in Sources */,
+				14CB95FC18487DC90084F334 /* CSGradientView.m in Sources */,
 				ADF46ED2184607E700C763C9 /* StampLibrary.m in Sources */,
 				5C07BF8D0DF4A09400577EEC /* ModelView.m in Sources */,
 				5C07BFE20DF4A5B500577EEC /* BitmapView.m in Sources */,
+				14CB95FF184881F90084F334 /* CSGradientHeader.m in Sources */,
 				ADF46ED3184607E700C763C9 /* Stamps.m in Sources */,
 				5CBCEEB90E07075500AE841B /* TextureManager.m in Sources */,
 				5CDA371C0E081F9300F3F2B9 /* Vector.m in Sources */,
@@ -1275,7 +1298,8 @@
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Mac Developer: Stephen Colbran (3583F2J9DV)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1316,7 +1340,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CODE_SIGN_IDENTITY = "Mac Developer: Stephen Colbran (3583F2J9DV)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
