@@ -45,8 +45,6 @@ enum MapFileReadResult
 	TextureManager *_texManager;
     ModelTag *bipd;
     
-	bool isPPC;
-
 	int32_t _magic;
 	
 	Header mapHeader;
@@ -93,11 +91,9 @@ enum MapFileReadResult
 - (id)initWithMapfiles:(NSString *)mapfile bitmaps:(NSString *)bitmaps;
 - (void)destroy;
 - (void)dealloc;
-- (BOOL)checkIsPPC;
 - (int)loadMap;
 - (void)closeMap;
 - (FILE *)currentFile;
-- (BOOL)isPPC;
 - (void)loadShader:(senv*)shader forID:(int32_t)shaderId ;
 - (void)seekToAddress:(uint32_t)address;
 - (void)skipBytes:(int32_t)bytesToSkip;

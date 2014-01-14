@@ -58,7 +58,7 @@ int compare(const void *a, const void *b);
 	[netgameFlagIndexLookup release];
 	[machTagArray release];
 	[inactiveMachTagArray release];
-
+    
 	[mapBsp release];
 	[_mapfile release];
 	free (scnr);
@@ -85,7 +85,7 @@ int compare(const void *a, const void *b);
 {
     int i;
     _reflexCounter = 0;
-
+    
 #ifdef MODZY_REFLEXIVES
     [self readScenario:&header.unk_str1 size:0x10];
     [self readScenario:&header.unk_str2 size:0x10];
@@ -173,7 +173,7 @@ int compare(const void *a, const void *b);
     // More reflexives again!
     // There seem to be several unknowns here...
     for (i = 0; i < 7; i++)
-        [self readScenarioReflexive:&header.Unknown1[i]]; //22-28
+    [self readScenarioReflexive:&header.Unknown1[i]]; //22-28
     //positionInScenario += 84;
     
     [self readScenarioReflexive:&header.PlayerStartingProfile]; //29 33
@@ -196,7 +196,7 @@ int compare(const void *a, const void *b);
     [self readScenarioReflexive:&header.DetailObjCollRef]; //39 43
     
     for (i = 0; i < 7; i++)
-        [self readScenarioReflexive:&header.Unknown3[i]]; //40-46 44
+    [self readScenarioReflexive:&header.Unknown3[i]]; //40-46 44
     //positionInScenario += 84;
     
     [self readScenarioReflexive:&header.ActorVariantRef]; //47 51
@@ -309,7 +309,7 @@ int compare(const void *a, const void *b);
     // More reflexives again!
     // There seem to be several unknowns here...
     for (i = 0; i < 7; i++)
-        [self readScenarioReflexive:&header.Unknown1[i]];
+    [self readScenarioReflexive:&header.Unknown1[i]];
     //positionInScenario += 84;
     
     [self readScenarioReflexive:&header.PlayerStartingProfile];
@@ -332,7 +332,7 @@ int compare(const void *a, const void *b);
     [self readScenarioReflexive:&header.DetailObjCollRef];
     
     for (i = 0; i < 7; i++)
-        [self readScenarioReflexive:&header.Unknown3[i]];
+    [self readScenarioReflexive:&header.Unknown3[i]];
     //positionInScenario += 84;
     
     [self readScenarioReflexive:&header.ActorVariantRef];
@@ -371,7 +371,7 @@ int compare(const void *a, const void *b);
     
     // Seems to be 8 more unknown reflexives. Damn there are a lot of these!
     for (i = 0; i < 8; i++)
-        [self readScenarioReflexive:&header.Unknown6[i]];
+    [self readScenarioReflexive:&header.Unknown6[i]];
     //positionInScenario += 96;
     
     [self readScenario:&header.Unknown7 size:4];
@@ -414,160 +414,160 @@ int compare(const void *a, const void *b);
 	int i;
 	
 	// Allocate the memory we need for the scenario
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	CSLog(@"Scenario length: 0x%X and Scenario Start: 0x%x", [self tagLength], [self tagLocation]);
-	#endif
+#endif
 	scnr = (char *)malloc([self tagLength]);
 	[_mapfile readBlockOfDataAtAddress:scnr size_of_buffer:[self tagLength] address:[self tagLocation]];
 	
 	_reflexCounter = 0;
-
+    
     
     BOOL oldLoader = FALSE;
     if (oldLoader)
     {
-    
-	[self readScenario:&header.unk_str1 size:0x10]; //0
-	[self readScenario:&header.unk_str2 size:0x10]; //0x10
-	[self readScenario:&header.unk_str3 size:0x10]; //0x20
-    
-	[self readScenarioReflexive:&header.SkyBox]; //0x30
-	
-	[self readScenario:&header.unk1 size:0x4]; //0x3C
-	
-	[self readScenarioReflexive:&header.ChildScenarios]; //0x40
-    
-	[self readScenario:&header.unneeded1 size:(0xB8)]; //0x4C
-	
-	[self readScenario:&header.EditorScenarioSize size:0x4]; //0x104
-	[self readScenario:&header.unk2 size:0x4]; //0x108
-	[self readScenario:&header.unk3 size:0x4]; //0x10C
-	[self readScenario:&header.pointertoindex size:4]; //0x110
-	
-	[self readScenario:&header.unneeded2 size:(0x8)]; //0x114
-	
-	[self readScenario:&header.pointertoendofindex size:0x4]; //0x11C
-	
-	[self readScenario:&header.zero1 size:(0xE4)]; //0x120
-	
-	// Now we can continue on to read the reflexives pointing to the interesting stuff
-	
-	// Lots 'O Reflexives
-	[self readScenarioReflexive:&header.ObjectNames]; //0x204
-	
-	// Scenery Spawns
-	[self readScenarioReflexive:&header.Scenery]; //0x210
-	[self readScenarioReflexive:&header.SceneryRef]; //0x21C
-	
-	// Biped Spawns
-	[self readScenarioReflexive:&header.Biped]; //0x228
-	[self readScenarioReflexive:&header.BipedRef]; //0x234
-	
-	// Vehicle Spawns
-	[self readScenarioReflexive:&header.Vehicle]; //0x240
-	[self readScenarioReflexive:&header.VehicleRef];
-	
-	// Equipment Spawns
-	[self readScenarioReflexive:&header.Equip];
-	[self readScenarioReflexive:&header.EquipRef];
-	
-	// Weapon Spawns?
-	[self readScenarioReflexive:&header.Weap];
-	[self readScenarioReflexive:&header.WeapRef];
-	
-	// Device groups, whatever the hell those are
-	[self readScenarioReflexive:&header.DeviceGroups];
-	
-	// Machines
-	[self readScenarioReflexive:&header.Machine];
-	[self readScenarioReflexive:&header.MachineRef];
-	
-	// Control?
-	[self readScenarioReflexive:&header.Control];
-	[self readScenarioReflexive:&header.ControlRef];
+        
+        [self readScenario:&header.unk_str1 size:0x10]; //0
+        [self readScenario:&header.unk_str2 size:0x10]; //0x10
+        [self readScenario:&header.unk_str3 size:0x10]; //0x20
+        
+        [self readScenarioReflexive:&header.SkyBox]; //0x30
+        
+        [self readScenario:&header.unk1 size:0x4]; //0x3C
+        
+        [self readScenarioReflexive:&header.ChildScenarios]; //0x40
+        
+        [self readScenario:&header.unneeded1 size:(0xB8)]; //0x4C
+        
+        [self readScenario:&header.EditorScenarioSize size:0x4]; //0x104
+        [self readScenario:&header.unk2 size:0x4]; //0x108
+        [self readScenario:&header.unk3 size:0x4]; //0x10C
+        [self readScenario:&header.pointertoindex size:4]; //0x110
+        
+        [self readScenario:&header.unneeded2 size:(0x8)]; //0x114
+        
+        [self readScenario:&header.pointertoendofindex size:0x4]; //0x11C
+        
+        [self readScenario:&header.zero1 size:(0xE4)]; //0x120
+        
+        // Now we can continue on to read the reflexives pointing to the interesting stuff
+        
+        // Lots 'O Reflexives
+        [self readScenarioReflexive:&header.ObjectNames]; //0x204
+        
+        // Scenery Spawns
+        [self readScenarioReflexive:&header.Scenery]; //0x210
+        [self readScenarioReflexive:&header.SceneryRef]; //0x21C
+        
+        // Biped Spawns
+        [self readScenarioReflexive:&header.Biped]; //0x228
+        [self readScenarioReflexive:&header.BipedRef]; //0x234
+        
+        // Vehicle Spawns
+        [self readScenarioReflexive:&header.Vehicle]; //0x240
+        [self readScenarioReflexive:&header.VehicleRef];
+        
+        // Equipment Spawns
+        [self readScenarioReflexive:&header.Equip];
+        [self readScenarioReflexive:&header.EquipRef];
+        
+        // Weapon Spawns?
+        [self readScenarioReflexive:&header.Weap];
+        [self readScenarioReflexive:&header.WeapRef];
+        
+        // Device groups, whatever the hell those are
+        [self readScenarioReflexive:&header.DeviceGroups];
+        
+        // Machines
+        [self readScenarioReflexive:&header.Machine];
+        [self readScenarioReflexive:&header.MachineRef];
+        
+        // Control?
+        [self readScenarioReflexive:&header.Control];
+        [self readScenarioReflexive:&header.ControlRef];
 		
-	// Light Fixtures!
-	[self readScenarioReflexive:&header.LightFixture];
-	[self readScenarioReflexive:&header.LightFixtureRef];
-	
-	// Sound Scenery
-	[self readScenarioReflexive:&header.SoundScenery];
-	[self readScenarioReflexive:&header.SoundSceneryRef];
-	
-	// More reflexives again!
-	// There seem to be several unknowns here...
-	for (i = 0; i < 7; i++)
+        // Light Fixtures!
+        [self readScenarioReflexive:&header.LightFixture];
+        [self readScenarioReflexive:&header.LightFixtureRef];
+        
+        // Sound Scenery
+        [self readScenarioReflexive:&header.SoundScenery];
+        [self readScenarioReflexive:&header.SoundSceneryRef];
+        
+        // More reflexives again!
+        // There seem to be several unknowns here...
+        for (i = 0; i < 7; i++)
 		[self readScenarioReflexive:&header.Unknown1[i]];
-	//positionInScenario += 84;
-	
-	[self readScenarioReflexive:&header.PlayerStartingProfile];
-	
-	// Player spawn
-	[self readScenarioReflexive:&header.PlayerSpawn];
-	[self readScenarioReflexive:&header.TriggerVolumes];
-	[self readScenarioReflexive:&header.Animations];
-	
-	// CTF Flag location, ctf vehicles, race track, hill, ball, teleporters, all the good stuff
-	//[self readScenarioReflexive:&header.MultiplayerFlags];
-	[self readScenarioReflexive:&header.MultiplayerFlags];
-
-	// MP Equipment, aka weapon spawns
-	[self readScenarioReflexive:&header.MpEquip];
-	[self readScenarioReflexive:&header.StartingEquip];
-	[self readScenarioReflexive:&header.BspSwitchTrigger];
-	[self readScenarioReflexive:&header.Decals];
-	[self readScenarioReflexive:&header.DecalsRef];
-	[self readScenarioReflexive:&header.DetailObjCollRef];
-	
-	for (i = 0; i < 7; i++)
+        //positionInScenario += 84;
+        
+        [self readScenarioReflexive:&header.PlayerStartingProfile];
+        
+        // Player spawn
+        [self readScenarioReflexive:&header.PlayerSpawn];
+        [self readScenarioReflexive:&header.TriggerVolumes];
+        [self readScenarioReflexive:&header.Animations];
+        
+        // CTF Flag location, ctf vehicles, race track, hill, ball, teleporters, all the good stuff
+        //[self readScenarioReflexive:&header.MultiplayerFlags];
+        [self readScenarioReflexive:&header.MultiplayerFlags];
+        
+        // MP Equipment, aka weapon spawns
+        [self readScenarioReflexive:&header.MpEquip];
+        [self readScenarioReflexive:&header.StartingEquip];
+        [self readScenarioReflexive:&header.BspSwitchTrigger];
+        [self readScenarioReflexive:&header.Decals];
+        [self readScenarioReflexive:&header.DecalsRef];
+        [self readScenarioReflexive:&header.DetailObjCollRef];
+        
+        for (i = 0; i < 7; i++)
 		[self readScenarioReflexive:&header.Unknown3[i]];
-	//positionInScenario += 84;
-	
-	[self readScenarioReflexive:&header.ActorVariantRef];
-	[self readScenarioReflexive:&header.Encounters];
-    
-	[self readScenarioReflexive:&header.CommandLists]; //Confirm
-	[self readScenarioReflexive:&header.Unknown2]; //Ai animation refs
-	[self readScenarioReflexive:&header.StartingLocations]; //Ai script refs
-	[self readScenarioReflexive:&header.Platoons]; //Ai recording refs
-	[self readScenarioReflexive:&header.AiConversations]; //Ai conversations
-
-	/* NEED TO WORK ON THIS, KK? */
-	//CSLog(@"header.ScriptDataSize position: 0x%x", positionInScenario);
-	[self readScenario:&header.ScriptDataSize size:4];
-	[self readScenario:&header.Unknown4 size:4];
-	[self readScenarioReflexive:&header.ScriptCrap];
-	[self readScenarioReflexive:&header.Commands];
-	[self readScenarioReflexive:&header.Points];
-	[self readScenarioReflexive:&header.AiAnimationRefs];
-	[self readScenarioReflexive:&header.GlobalsVerified];
-	[self readScenarioReflexive:&header.AiRecordingRefs];
-	[self readScenarioReflexive:&header.Unknown5];
-	[self readScenarioReflexive:&header.Participants];
-	[self readScenarioReflexive:&header.Lines];
-	[self readScenarioReflexive:&header.ScriptTriggers];
-	[self readScenarioReflexive:&header.VerifyCutscenes];
-	[self readScenarioReflexive:&header.VerifyCutsceneTitle];
-	[self readScenarioReflexive:&header.SourceFiles];
-	[self readScenarioReflexive:&header.CutsceneFlags];
-	[self readScenarioReflexive:&header.CutsceneCameraPoi];
-	[self readScenarioReflexive:&header.CutsceneTitles];
-	
-	// Seems to be 8 more unknown reflexives. Damn there are a lot of these!
-	for (i = 0; i < 8; i++)
+        //positionInScenario += 84;
+        
+        [self readScenarioReflexive:&header.ActorVariantRef];
+        [self readScenarioReflexive:&header.Encounters];
+        
+        [self readScenarioReflexive:&header.CommandLists]; //Confirm
+        [self readScenarioReflexive:&header.Unknown2]; //Ai animation refs
+        [self readScenarioReflexive:&header.StartingLocations]; //Ai script refs
+        [self readScenarioReflexive:&header.Platoons]; //Ai recording refs
+        [self readScenarioReflexive:&header.AiConversations]; //Ai conversations
+        
+        /* NEED TO WORK ON THIS, KK? */
+        //CSLog(@"header.ScriptDataSize position: 0x%x", positionInScenario);
+        [self readScenario:&header.ScriptDataSize size:4];
+        [self readScenario:&header.Unknown4 size:4];
+        [self readScenarioReflexive:&header.ScriptCrap];
+        [self readScenarioReflexive:&header.Commands];
+        [self readScenarioReflexive:&header.Points];
+        [self readScenarioReflexive:&header.AiAnimationRefs];
+        [self readScenarioReflexive:&header.GlobalsVerified];
+        [self readScenarioReflexive:&header.AiRecordingRefs];
+        [self readScenarioReflexive:&header.Unknown5];
+        [self readScenarioReflexive:&header.Participants];
+        [self readScenarioReflexive:&header.Lines];
+        [self readScenarioReflexive:&header.ScriptTriggers];
+        [self readScenarioReflexive:&header.VerifyCutscenes];
+        [self readScenarioReflexive:&header.VerifyCutsceneTitle];
+        [self readScenarioReflexive:&header.SourceFiles];
+        [self readScenarioReflexive:&header.CutsceneFlags];
+        [self readScenarioReflexive:&header.CutsceneCameraPoi];
+        [self readScenarioReflexive:&header.CutsceneTitles];
+        
+        // Seems to be 8 more unknown reflexives. Damn there are a lot of these!
+        for (i = 0; i < 8; i++)
 		[self readScenarioReflexive:&header.Unknown6[i]];
-	//positionInScenario += 96;
-	
-	[self readScenario:&header.Unknown7 size:(8)];
+        //positionInScenario += 96;
+        
+        [self readScenario:&header.Unknown7 size:(8)];
 	}
     else
     {
         [self readReflexives];
     }
-
+    
     
 	
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	CSLog(@"Position of BSP Reflexive in mapfile => 0x%x", (header.StructBsp.location_in_mapfile + resolvedOffset));
 	CSLog(@"Position of BSP Reflexive in mapfile => 0x%x", (header.StructBsp.offset));
 #endif
@@ -605,50 +605,50 @@ int compare(const void *a, const void *b);
 	memset(encounters, 0, sizeof(encounter) * header.Encounters.chunkcount);
 	
 	//CSLog(@"BIPD PALETTE SIZE %d", header.BipedRef.chunkcount);
-  
+    
     
 	int x;
 	/* BEGIN VEHICLE SPAWNS */
 	positionInScenario = header.VehicleRef.offset;
 	for (x = 0; x < header.VehicleRef.chunkcount; x++)
-		vehi_references[x] = [self readVehicleReference];
+    vehi_references[x] = [self readVehicleReference];
 	vehi_ref_count = header.VehicleRef.chunkcount;
 	positionInScenario = header.Vehicle.offset;
 	for (x = 0; x < header.Vehicle.chunkcount; x++)
-		vehi_spawns[x] = [self readVehicleSpawn];
+    vehi_spawns[x] = [self readVehicleSpawn];
 	vehicle_spawn_count = header.Vehicle.chunkcount;
 	/* END VEHICLE SPAWNS */
     
     /* BEGIN BIPD SPAWNS */
 	positionInScenario = header.BipedRef.offset;
 	for (x = 0; x < header.BipedRef.chunkcount; x++)
-		bipd_references[x] = (bipd_reference)[self readBipdReference];
+    bipd_references[x] = (bipd_reference)[self readBipdReference];
 	bipd_ref_count = header.BipedRef.chunkcount;
-
+    
 	/* END VEHICLE SPAWNS */
 	
 	/* BEGIN SCENERY SPAWNS */
 	positionInScenario = header.SceneryRef.offset;
 	for (x = 0; x < header.SceneryRef.chunkcount; x++)
-		scen_references[x] = [self readSceneryReference];
+    scen_references[x] = [self readSceneryReference];
 	scen_ref_count = header.SceneryRef.chunkcount;
 	positionInScenario = header.Scenery.offset;
 	for (x = 0; x < header.Scenery.chunkcount; x++)
-		scen_spawns[x] = [self readScenerySpawn];
+    scen_spawns[x] = [self readScenerySpawn];
 	scenery_spawn_count = header.Scenery.chunkcount;
 	/* END SCENERY SPAWNS */
 	
 	/* BEGIN MP EQUIPMENT */
 	positionInScenario = header.MpEquip.offset;
 	for (x = 0; x < header.MpEquip.chunkcount; x++)
-		item_spawns[x] = [self readMPEquip];
+    item_spawns[x] = [self readMPEquip];
 	item_spawn_count = header.MpEquip.chunkcount;
 	/* END MP EQUIPMENT */
 	
 	/* BEGIN PLAYER SPAWNS */
 	positionInScenario = header.PlayerSpawn.offset;
 	for (x = 0; x < header.PlayerSpawn.chunkcount; x++)
-		spawns[x] = [self readPlayerSpawn];
+    spawns[x] = [self readPlayerSpawn];
 	player_spawn_count = header.PlayerSpawn.chunkcount;
 	/* END PLAYER SPAWNS */
 	
@@ -663,13 +663,13 @@ int compare(const void *a, const void *b);
     //CSLog(@"Machine size %lu %lu", sizeof(machine_ref), sizeof(machine_ref) * header.MachineRef.chunkcount);
 	positionInScenario = header.MachineRef.offset;
 	for (x = 0; x < header.MachineRef.chunkcount; x++)
-		mach_references[x] = [self readMachineReference];
+    mach_references[x] = [self readMachineReference];
 	mach_ref_count = header.MachineRef.chunkcount;
 	
     //CSLog(@"Reading spawns");
 	positionInScenario = header.Machine.offset;
 	for (x = 0; x < header.Machine.chunkcount; x++)
-		mach_spawns[x] = [self readMachineSpawn];
+    mach_spawns[x] = [self readMachineSpawn];
 	mach_spawn_count = header.Machine.chunkcount;
 	/* END MACHINES */
 	
@@ -679,7 +679,7 @@ int compare(const void *a, const void *b);
 	//CSLog(@"Device group spawn pos in map: 0x%x", (header.DeviceGroups.offset + [self offsetInMap]));
 	positionInScenario = header.DeviceGroups.offset;
 	for (x = 0; x < header.DeviceGroups.chunkcount; x++)
-		device_groups[x] = [self readDeviceGroup];
+    device_groups[x] = [self readDeviceGroup];
 	device_group_count = header.DeviceGroups.chunkcount;
 	
 	/* END DEVICE GROUPS */
@@ -689,7 +689,7 @@ int compare(const void *a, const void *b);
 	//CSLog(@"Device group spawn pos in map: 0x%x", (header.Encounters.offset + [self offsetInMap]));
 	positionInScenario = header.Encounters.offset;
 	for (x = 0; x < header.Encounters.chunkcount; x++)
-		encounters[x] = [self readEncounter];
+    encounters[x] = [self readEncounter];
 	encounters_count = header.Encounters.chunkcount;
 	
 	/* END ENCOUNTERS */
@@ -697,7 +697,7 @@ int compare(const void *a, const void *b);
 	positionInScenario = header.SkyBox.offset;
 	skybox_count = header.SkyBox.chunkcount;
 	for (x = 0; x < header.SkyBox.chunkcount; x++)
-		skies[x] = [self readSkyBox];
+    skies[x] = [self readSkyBox];
 	skybox_count = header.SkyBox.chunkcount;
 	
 	// Lets now construct our list of all used reflexives
@@ -705,7 +705,7 @@ int compare(const void *a, const void *b);
 	
 	// Now lets build our chunk sizes
 	[self buildChunkSizes];
-
+    
 	// Now lets find the size and location of the last bit of the scenario
 	// (This never changes unless we increase the size of the scenario)
 	[self findLastBitOfScenario];
@@ -715,9 +715,9 @@ int compare(const void *a, const void *b);
 	
 	[self buildAllTagArrays];
 	
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	printf("\n");
-	#endif
+#endif
 	
 	// Our scenario's data has been loaded! Woo Woo!
 	// Now lets process this data
@@ -764,7 +764,7 @@ int compare(const void *a, const void *b);
 	[self readScenario:&reflex->chunkcount size:0x4];
 	[self readScenario:&reflex->offset size:0x4];
 	[self readScenario:&reflex->zero size:0x4];
-		
+    
 	reflex->offset -= ([_mapfile magic] + resolvedOffset);
 }
 - (void)readScenarioReflexiveAtAddress:(reflexive *)reflex addr:(int)addr
@@ -812,7 +812,7 @@ int compare(const void *a, const void *b);
 	[self readScenario:&equip.unknown size:48];
 	int i;
 	for (i = 0; i < 3; i++)
-		[self readScenario:&equip.coord[i] size:4];
+    [self readScenario:&equip.coord[i] size:4];
 	[self readScenario:&equip.yaw size:4];
 	[self readScenarioTagReference:&equip.itmc];
 	[self readScenario:&equip.unknown2 size:48];
@@ -826,26 +826,16 @@ int compare(const void *a, const void *b);
 	player_spawn spawn;
 	int i;
 	for (i = 0; i < 3; i++)
-		[self readScenario:&spawn.coord[i] size:4];
+    [self readScenario:&spawn.coord[i] size:4];
 	[self readScenario:&spawn.rotation size:4];
-	if ([_mapfile isPPC])
-	{
-		[self readScenario:&spawn.bsp_index size:2];
-		[self readScenario:&spawn.team_index size:2];
-		[self readScenario:&spawn.type2 size:2];
-		[self readScenario:&spawn.type1 size:2];
-		[self readScenario:&spawn.type4 size:2];
-		[self readScenario:&spawn.type3 size:2];
-	}
-	else
-	{	
-		[self readScenario:&spawn.team_index size:2];
-		[self readScenario:&spawn.bsp_index size:2];
-		[self readScenario:&spawn.type1 size:2];
-		[self readScenario:&spawn.type2 size:2];
-		[self readScenario:&spawn.type3 size:2];
-		[self readScenario:&spawn.type4 size:2];
-	}
+	
+    [self readScenario:&spawn.team_index size:2];
+    [self readScenario:&spawn.bsp_index size:2];
+    [self readScenario:&spawn.type1 size:2];
+    [self readScenario:&spawn.type2 size:2];
+    [self readScenario:&spawn.type3 size:2];
+    [self readScenario:&spawn.type4 size:2];
+    
 	[self readScenario:&spawn.unknown size:24];
 	//[self readScenario:&spawn.team size:4];
 	//[self readScenario:spawn.unknown size:32];
@@ -867,25 +857,14 @@ int compare(const void *a, const void *b);
 	scenery_spawn scen;
 	int i;
 	
-	if ([_mapfile isPPC])
-	{
-		// Byte order shit
-		[self readScenario:&scen.flag size:2];
-		[self readScenario:&scen.numid size:2];
-		[self readScenario:&scen.desired_permutation size:2];
-		[self readScenario:&scen.not_placed size:2];
-	}
-	else
-	{
-		[self readScenario:&scen.numid size:2];
-		[self readScenario:&scen.flag size:2];
-		[self readScenario:&scen.not_placed size:2];
-		[self readScenario:&scen.desired_permutation size:2];
-	}
+    [self readScenario:&scen.numid size:2];
+    [self readScenario:&scen.flag size:2];
+    [self readScenario:&scen.not_placed size:2];
+    [self readScenario:&scen.desired_permutation size:2];
 	for (i = 0; i < 3; i++)
-		[self readScenario:&scen.coord[i] size:4];
+    [self readScenario:&scen.coord[i] size:4];
 	for (i = 0; i < 3; i++)
-		[self readScenario:&scen.rotation[i] size:4];
+    [self readScenario:&scen.rotation[i] size:4];
 	
 	[self readScenario:&scen.unknown size:40];
 	
@@ -946,65 +925,54 @@ int compare(const void *a, const void *b);
      [self readScenario:vehi.unknown2 size:22];*/
     
     /*
-	vehicle_spawn vehi;
-	int i;
-	
-	if ([_mapfile isPPC])
-	{
-        CSLog(@"PPC Vehicle");
-		[self readScenario:&vehi.flag size:2];
-		[self readScenario:&vehi.numid size:2];
-		[self readScenario:&vehi.desired_permutation size:2];
-		[self readScenario:&vehi.not_placed size:2];
-	}
-	else
-	{
-		[self readScenario:&vehi.numid size:2];
-		[self readScenario:&vehi.flag size:2];
-		[self readScenario:&vehi.not_placed size:2];
-		[self readScenario:&vehi.desired_permutation size:2];
-	}
-	for (i = 0; i < 3; i++)
-		[self readScenario:&vehi.coord[i] size:4];
-	for (i = 0; i < 3; i++)
-		[self readScenario:&vehi.rotation[i] size:4];
-    
-    [self readScenario:&vehi.unknown1 size:40]; //32
-    [self readScenario:&vehi.body_vitality size:4]; //72
-    [self readScenario:&vehi.flags size:2]; //76
-    [self readScenario:&vehi.unknown3 size:10]; //78
-    [self readScenario:&vehi.mpTeamIndex size:2]; //88
-    [self readScenario:&vehi.mpSpawnFlags size:2]; //90
-	[self readScenario:&vehi.unknown2 size:28];*/
+     vehicle_spawn vehi;
+     int i;
+     
+     if ([_mapfile isPPC])
+     {
+     CSLog(@"PPC Vehicle");
+     [self readScenario:&vehi.flag size:2];
+     [self readScenario:&vehi.numid size:2];
+     [self readScenario:&vehi.desired_permutation size:2];
+     [self readScenario:&vehi.not_placed size:2];
+     }
+     else
+     {
+     [self readScenario:&vehi.numid size:2];
+     [self readScenario:&vehi.flag size:2];
+     [self readScenario:&vehi.not_placed size:2];
+     [self readScenario:&vehi.desired_permutation size:2];
+     }
+     for (i = 0; i < 3; i++)
+     [self readScenario:&vehi.coord[i] size:4];
+     for (i = 0; i < 3; i++)
+     [self readScenario:&vehi.rotation[i] size:4];
+     
+     [self readScenario:&vehi.unknown1 size:40]; //32
+     [self readScenario:&vehi.body_vitality size:4]; //72
+     [self readScenario:&vehi.flags size:2]; //76
+     [self readScenario:&vehi.unknown3 size:10]; //78
+     [self readScenario:&vehi.mpTeamIndex size:2]; //88
+     [self readScenario:&vehi.mpSpawnFlags size:2]; //90
+     [self readScenario:&vehi.unknown2 size:28];*/
     
     vehicle_spawn vehi;
 	int i;
 	
-	if ([_mapfile isPPC])
-	{
-        CSLog(@"PPC Vehicle");
-		[self readScenario:&vehi.flag size:2];
-		[self readScenario:&vehi.numid size:2];
-		[self readScenario:&vehi.desired_permutation size:2];
-		[self readScenario:&vehi.not_placed size:2];
-	}
-	else
-	{
-		[self readScenario:&vehi.numid size:2];
-		[self readScenario:&vehi.flag size:2];
-		[self readScenario:&vehi.not_placed size:2];
-		[self readScenario:&vehi.desired_permutation size:2];
-	}
+    [self readScenario:&vehi.numid size:2];
+    [self readScenario:&vehi.flag size:2];
+    [self readScenario:&vehi.not_placed size:2];
+    [self readScenario:&vehi.desired_permutation size:2];
 	for (i = 0; i < 3; i++)
-		[self readScenario:&vehi.coord[i] size:4];
+    [self readScenario:&vehi.coord[i] size:4];
 	for (i = 0; i < 3; i++)
-		[self readScenario:&vehi.rotation[i] size:4];
+    [self readScenario:&vehi.rotation[i] size:4];
     
 	[self readScenario:&vehi.unknown2 size:88];
     
 	vehi.isSelected = NO;
 	vehi.isMoving = NO;
-		
+    
 	return vehi;
 }
 - (SkyBox)readSkyBox
@@ -1092,17 +1060,17 @@ int compare(const void *a, const void *b);
 	//[self readScenario:&mach.numid size:0x40];
 	
 	mach.isSelected = NO;
-
+    
     [self readScenario:&mach.numid size:2];
     [self readScenario:&mach.someflag size:2];
     [self readScenario:&mach.not_placed size:2];
     [self readScenario:&mach.desired_permutation size:2];
 	
 	for (i = 0; i < 3; i++)
-		[self readScenario:&mach.coord[i] size:4];
+    [self readScenario:&mach.coord[i] size:4];
 	for (i = 0; i < 3; i++)
-		[self readScenario:&mach.rotation[i] size:4];
-		
+    [self readScenario:&mach.rotation[i] size:4];
+    
     [self readScenario:&mach.unknown1 size:8];
     [self readScenario:&mach.powerGroup size:2];
     [self readScenario:&mach.positionGroup size:2];
@@ -1116,18 +1084,18 @@ int compare(const void *a, const void *b);
 {
 	int i;
 	/*if (netgameFlagIDLookup)
-	{
-		[netgameFlagIDLookup removeAllObjects]; 
-		[netgameFlagIDLookup release];
-	}
-	if (netgameFlagIndexLookup)
-	{
-		[netgameFlagIndexLookup removeAllObjects];
-		[netgameFlagIndexLookup release];
-	}
-	
-	netgameFlagIDLookup = [[NSMutableDictionary alloc] initWithCapacity:header.MultiplayerFlags.chunkcount];
-	netgameFlagIndexLookup = [[NSMutableDictionary alloc] initWithCapacity:header.MultiplayerFlags.chunkcount];*/
+     {
+     [netgameFlagIDLookup removeAllObjects];
+     [netgameFlagIDLookup release];
+     }
+     if (netgameFlagIndexLookup)
+     {
+     [netgameFlagIndexLookup removeAllObjects];
+     [netgameFlagIndexLookup release];
+     }
+     
+     netgameFlagIDLookup = [[NSMutableDictionary alloc] initWithCapacity:header.MultiplayerFlags.chunkcount];
+     netgameFlagIndexLookup = [[NSMutableDictionary alloc] initWithCapacity:header.MultiplayerFlags.chunkcount];*/
 	
 	for (i = 0; i < header.MultiplayerFlags.chunkcount; i++)
 	{
@@ -1136,21 +1104,15 @@ int compare(const void *a, const void *b);
 		[self readScenario:&mp_flags[i].coord[1] size:4];
 		[self readScenario:&mp_flags[i].coord[2] size:4];
 		[self readScenario:&mp_flags[i].rotation size:4];
-		if ([_mapfile isPPC])
-		{
-			[self readScenario:&mp_flags[i].team_index size:2];
-			[self readScenario:&mp_flags[i].type size:2];
-		}
-		else
-		{
-			[self readScenario:&mp_flags[i].type size:2];
-			[self readScenario:&mp_flags[i].team_index size:2];
-		}
+		
+        [self readScenario:&mp_flags[i].type size:2];
+        [self readScenario:&mp_flags[i].team_index size:2];
+        
 		[self readScenarioTagReference:&mp_flags[i].item_used];
 		if (mp_flags[i].type == teleporter_exit)
 		{
 			if (mp_flags[i].team_index > teleporter_pair_count)
-				teleporter_pair_count = (mp_flags[i].team_index + 1);
+            teleporter_pair_count = (mp_flags[i].team_index + 1);
 			
 			//CSLog(@"Teleporter exit! Team index: %d", mp_flags[i].team_index);
 		}
@@ -1188,32 +1150,32 @@ int compare(const void *a, const void *b);
 	for (x = 0; x < vehicle_spawn_count; x++)
 	{
 		if (vehi_references[vehi_spawns[x].numid].vehi_ref.TagId == 0xFFFFFFFF)
-			vehi_spawns[x].modelIdent = 0xFFFFFFFF;
+        vehi_spawns[x].modelIdent = 0xFFFFFFFF;
 		else
-			vehi_spawns[x].modelIdent = [self baseModelIdent:vehi_references[vehi_spawns[x].numid].vehi_ref.TagId];
+        vehi_spawns[x].modelIdent = [self baseModelIdent:vehi_references[vehi_spawns[x].numid].vehi_ref.TagId];
         
         if (vehi_references[vehi_spawns[x].numid].vehi_ref.TagId == 0xFFFFFFFF)
-			vehi_spawns[x].collisionIdent = 0xFFFFFFFF;
+        vehi_spawns[x].collisionIdent = 0xFFFFFFFF;
 		else
-			vehi_spawns[x].collisionIdent = [self baseCollisionIdent:vehi_references[vehi_spawns[x].numid].vehi_ref.TagId];
+        vehi_spawns[x].collisionIdent = [self baseCollisionIdent:vehi_references[vehi_spawns[x].numid].vehi_ref.TagId];
 	}
 	for (x = 0; x < scenery_spawn_count; x++)
 	{
 		if (scen_references[scen_spawns[x].numid].scen_ref.TagId == 0xFFFFFFFF)
-			scen_spawns[x].modelIdent = 0xFFFFFFFF;
+        scen_spawns[x].modelIdent = 0xFFFFFFFF;
 		else
-			scen_spawns[x].modelIdent = [self baseModelIdent:scen_references[scen_spawns[x].numid].scen_ref.TagId];
+        scen_spawns[x].modelIdent = [self baseModelIdent:scen_references[scen_spawns[x].numid].scen_ref.TagId];
         
         if (scen_references[scen_spawns[x].numid].scen_ref.TagId == 0xFFFFFFFF)
-			scen_spawns[x].collisionIdent = 0xFFFFFFFF;
+        scen_spawns[x].collisionIdent = 0xFFFFFFFF;
 		else
-			scen_spawns[x].collisionIdent = [self baseCollisionIdent:scen_references[scen_spawns[x].numid].scen_ref.TagId];
+        scen_spawns[x].collisionIdent = [self baseCollisionIdent:scen_references[scen_spawns[x].numid].scen_ref.TagId];
 	}
 	for (x = 0; x < item_spawn_count; x++)
 	{
 		int32_t tempIdent;
 		if (item_spawns[x].itmc.TagId == 0xFFFFFFFF)
-			item_spawns[x].modelIdent = 0xFFFFFFFF;
+        item_spawns[x].modelIdent = 0xFFFFFFFF;
 		[_mapfile seekToAddress:([[_mapfile tagForId:item_spawns[x].itmc.TagId] offsetInMap] + 0x8C)];
 		[_mapfile readint32_t:&tempIdent];
         
@@ -1230,21 +1192,21 @@ int compare(const void *a, const void *b);
 	for (x = 0; x < mach_ref_count; x++)
 	{
 		if (mach_references[x].machTag.TagId == 0xFFFFFFFF)
-			mach_references[x].modelIdent = 0xFFFFFFFF;
+        mach_references[x].modelIdent = 0xFFFFFFFF;
 		else
-			mach_references[x].modelIdent = [self baseModelIdent:mach_references[x].machTag.TagId];
+        mach_references[x].modelIdent = [self baseModelIdent:mach_references[x].machTag.TagId];
         
         if (mach_references[x].machTag.TagId == 0xFFFFFFFF)
-			mach_references[x].collisionIdent = 0xFFFFFFFF;
+        mach_references[x].collisionIdent = 0xFFFFFFFF;
 		else
-			mach_references[x].collisionIdent = [self baseCollisionIdent:mach_references[x].machTag.TagId];
+        mach_references[x].collisionIdent = [self baseCollisionIdent:mach_references[x].machTag.TagId];
 	}
 }
 - (int32_t)itmcModelForId:(int32_t)ident
 {
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	CSLog(@"Model ident: %x", [[itmcTagArray objectAtIndex:[[itmcModelLookup objectForKey:[NSNumber numberWithLong:ident]] intValue]] longValue]);
-	#endif
+#endif
 	return [[itmcTagArray objectAtIndex:[[itmcModelLookup objectForKey:[NSNumber numberWithLong:ident]] intValue]] longValue];
 }
 
@@ -1280,11 +1242,11 @@ int compare(const void *a, const void *b);
 	return 1;
 }
 
-/* 
-
-Accessor Methods
-
-*/
+/*
+ 
+ Accessor Methods
+ 
+ */
 - (SCNR_HEADER)header
 {
 	return header;
@@ -1386,28 +1348,28 @@ Accessor Methods
 	return encounters_count;
 }
 
-/* 
-
-End Accessor Methods 
-
-*/
+/*
+ 
+ End Accessor Methods
+ 
+ */
 
 
 /*
-
-Begin Duplication Methods
-
-*/
+ 
+ Begin Duplication Methods
+ 
+ */
 
 - (unsigned int)duplicateScenarioObjectLocation:(int)type index:(int)index coord:(int)coo
 {
 	int retVal = 0;
 	switch (type)
 	{
-		case s_scenery:
+            case s_scenery:
 			retVal = ((s_scenery * MAX_SCENARIO_OBJECTS) + [self duplicateScenery:index coord:coo] );
 			break;
-		case s_machine:
+            case s_machine:
 			retVal = ((s_machine * MAX_SCENARIO_OBJECTS) + [self duplicateMachine:index coord:coo] );
 			break;
 	}
@@ -1419,27 +1381,27 @@ Begin Duplication Methods
 	int retVal = 0;
 	switch (type)
 	{
-		case s_playerspawn:
+            case s_playerspawn:
 			retVal = ((s_playerspawn * MAX_SCENARIO_OBJECTS) + [self duplicatePlayerSpawn:index coord:1] );
 			break;
-        case s_netgame:
+            case s_netgame:
 			retVal = ((s_netgame * MAX_SCENARIO_OBJECTS) + [self duplicateNetgame:index coord:1] );
 			break;
-        case s_scenery:
+            case s_scenery:
 			retVal = ((s_scenery * MAX_SCENARIO_OBJECTS) + [self duplicateScenery:index coord:1] );
 			break;
-		case s_item:
+            case s_item:
         {
 			retVal = ((s_item * MAX_SCENARIO_OBJECTS) + [self duplicateMpEquipment:index]);
 			break;
         }
-		case s_machine:
+            case s_machine:
         {
-       
+            
 			retVal = ((s_machine * MAX_SCENARIO_OBJECTS) + [self duplicateMachine:index coord:1]);
 			break;
         }
-		case s_vehicle:
+            case s_vehicle:
         {
             //FILE *tmpFile = fopen("/Users/colbrans/Desktop/vehicle.seo","w+");
             //fwrite(&vehi_spawns[index],sizeof(vehicle_spawn),1,tmpFile);
@@ -1458,7 +1420,7 @@ Begin Duplication Methods
 	int i;
 	
 	if (index < 0 || index > multiplayer_flags_count)
-		return 0;
+    return 0;
     
     if (mp_flags[index].type == race_track)
     {
@@ -1495,7 +1457,7 @@ Begin Duplication Methods
     {
 		mp_flags[index].isSelected = NO;
 		for (i = 0; i < 2; i++)
-			tmpSpawn.coord[i] -= 0.3;
+        tmpSpawn.coord[i] -= 0.3;
     }
     
     
@@ -1522,7 +1484,7 @@ Begin Duplication Methods
 	int i;
 	
 	if (index < 0 || index > player_spawn_count)
-		return 0;
+    return 0;
     
 	// Lets copy the data
 	memcpy(&tmpSpawn,&spawns[index],sizeof(player_spawn));
@@ -1535,7 +1497,7 @@ Begin Duplication Methods
     {
 		spawns[index].isSelected = NO;
 		for (i = 0; i < 2; i++)
-			tmpSpawn.coord[i] -= 0.3;
+        tmpSpawn.coord[i] -= 0.3;
     }
     
     
@@ -1563,8 +1525,8 @@ Begin Duplication Methods
 	int i;
 	
 	if (index < 0 || index > scenery_spawn_count)
-		return 0;
-
+    return 0;
+    
 	// Lets copy the data
 	memcpy(&tmpSpawn,&scen_spawns[index],sizeof(scenery_spawn));
 	
@@ -1604,14 +1566,14 @@ Begin Duplication Methods
 - (void)createSceneryReference:(TAG_REFERENCE)tag
 {
 	scenery_reference	*tmpRefPointer,
-						tmpRef;
-
+    tmpRef;
+    
 	if (![_mapfile isTag:tag.TagId])
-		return;
-
+    return;
+    
 	// Lets create our scenery spawn
 	tmpRef.scen_ref = tag;
-
+    
 	scen_ref_count++;
 	header.SceneryRef.newChunkCount = scen_ref_count;
 	tmpRefPointer = (scenery_reference *)malloc(sizeof(scenery_reference) * scen_ref_count);
@@ -1698,7 +1660,7 @@ Begin Duplication Methods
 	int i;
 	
 	if (index < 0 || index > vehicle_spawn_count)
-		return 0;
+    return 0;
 	
 	vehi_spawns[index].isSelected = NO;
 	
@@ -1706,7 +1668,7 @@ Begin Duplication Methods
 	memcpy(&tmpSpawn, &vehi_spawns[index], sizeof(vehicle_spawn));
 	
 	//for (i = 0; i < 2; i++)
-		//tmpSpawn.coord[i] -= 0.5f;
+    //tmpSpawn.coord[i] -= 0.5f;
 	tmpSpawn.isSelected = YES;
 	
 	// Now lets redo the counters
@@ -1728,8 +1690,8 @@ Begin Duplication Methods
 	int i;
 	
 	if (index < 0 || index > item_spawn_count)
-		return 0;
-		
+    return 0;
+    
 	item_spawns[index].isSelected = NO;
 	
 	// Lets copy the data
@@ -1759,7 +1721,7 @@ Begin Duplication Methods
 	int i;
 	
 	if (index < 0 || index > mach_spawn_count)
-		return 0;
+    return 0;
 	
 	mach_spawns[index].isSelected = NO;
 	
@@ -1797,9 +1759,9 @@ Begin Duplication Methods
 - (void)createPlayerSpawn:(player_spawn)p_Spawn
 {
 	player_spawn *tmpSpawnPointer;
-					
+    
 	if (p_Spawn.coord == NULL)
-		return;
+    return;
 	
 	p_Spawn.isSelected = YES;
 	
@@ -1816,22 +1778,22 @@ Begin Duplication Methods
 	spawns = (player_spawn *)tmpSpawnPointer;
 }
 /*
-	The coord for this should be the camera view coord or something BSP-specific
-*/
+ The coord for this should be the camera view coord or something BSP-specific
+ */
 - (unsigned int)createTeleporterPair:(float *)coord
 {
 	multiplayer_flags t_entrance, t_exit, *tmpSpawnPointer;
 	int i;
 	
 	if (!coord[0] || !coord[1] || !coord[2])
-		return 0;
+    return 0;
 	
 	// Were good to go! Lets get a crackin.
 	teleporter_pair_count++;
 	
 	// Lets create the teleporter entrance
 	for (i = 0; i < 3; i++)
-		t_entrance.coord[i] = coord[i];
+    t_entrance.coord[i] = coord[i];
 	t_entrance.rotation = 0.0f;
 	t_entrance.type = teleporter_entrance;
 	t_entrance.team_index = teleporter_pair_count;
@@ -1858,7 +1820,7 @@ Begin Duplication Methods
 	memcpy(&tmpSpawnPointer[multiplayer_flags_count-1], &t_exit, sizeof(multiplayer_flags));
 	free(mp_flags);
 	mp_flags = tmpSpawnPointer;
-
+    
 	return ((s_netgame * MAX_SCENARIO_OBJECTS) + (multiplayer_flags_count - 2));
 }
 
@@ -1875,7 +1837,7 @@ Begin Duplication Methods
 	
 	// Lets copy the data
 	if (!coord[0] || !coord[1] || !coord[2])
-		return 0;
+    return 0;
 	
 	tmpSpawn.coord[0] = coord[0];
 	tmpSpawn.coord[1] = (coord[1]);
@@ -1916,7 +1878,7 @@ Begin Duplication Methods
 	
 	// Lets copy the data
 	if (!coord[0] || !coord[1] || !coord[2])
-		return 0;
+    return 0;
 	
 	tmpSpawn.coord[0] = coord[0];
 	tmpSpawn.coord[1] = (coord[1]);
@@ -1958,7 +1920,7 @@ Begin Duplication Methods
 	
 	// Lets copy the data
 	if (!coord[0] || !coord[1] || !coord[2])
-		return 0;
+    return 0;
 	
 	tmpSpawn.coord[0] = coord[0];
 	tmpSpawn.coord[1] = (coord[1]);
@@ -1999,7 +1961,7 @@ Begin Duplication Methods
 	
 	// Lets copy the data
 	if (!coord[0] || !coord[1] || !coord[2])
-		return 0;
+    return 0;
 	
 	tmpSpawn.coord[0] = coord[0];
 	tmpSpawn.coord[1] = (coord[1]);
@@ -2043,7 +2005,7 @@ Begin Duplication Methods
     CSLog(@"Copy data");
 	// Lets copy the data
 	if (!coord[0] || !coord[1] || !coord[2])
-		return 0;
+    return 0;
 	
 	tmpSpawn.coord[0] = coord[0];
 	tmpSpawn.coord[1] = (coord[1]);
@@ -2089,7 +2051,7 @@ Begin Duplication Methods
     
 	// Lets copy the data
 	if (!coord[0] || !coord[1] || !coord[2])
-		return 0;
+    return 0;
 	
 	// Lets create the teleporter entrance
 	tmpSpawn.coord[0] = coord[0];
@@ -2124,37 +2086,37 @@ Begin Duplication Methods
 
 
 /*
-
-End Duplication Methods
-
-*/
+ 
+ End Duplication Methods
+ 
+ */
 
 /*
-
-Scenario object destruction
-
-*/
+ 
+ Scenario object destruction
+ 
+ */
 
 - (void)deleteScenarioObject:(int)type index:(int)index
 {
 	switch (type)
 	{
-		case s_scenery:
+            case s_scenery:
 			[self deleteScenery:index];
 			break;
-        case s_vehicle:
+            case s_vehicle:
 			[self deleteVehicle:index];
 			break;
-		case s_item:
+            case s_item:
 			[self deleteMPEquipment:index];
 			break;
-		case s_netgame:
+            case s_netgame:
 			[self deleteNetgameFlag:index];
 			break;
-        case s_playerspawn:
+            case s_playerspawn:
 			[self deletePlayerSpawn:index];
 			break;
-		case s_machine:
+            case s_machine:
 			[self deleteMachine:index];
 			break;
 	}
@@ -2165,13 +2127,13 @@ Scenario object destruction
 	int i, x;
 	
 	if (index < 0 || index > item_spawn_count)
-		return;
+    return;
 	
 	// Lets create our buffer
 	tmpSpawnPointer = (mp_equipment *)malloc(sizeof(mp_equipment) * (item_spawn_count - 1));
 	
 	for (i = 0; i < index; i++)
-		memcpy(&tmpSpawnPointer[i], &item_spawns[i], sizeof(mp_equipment));
+    memcpy(&tmpSpawnPointer[i], &item_spawns[i], sizeof(mp_equipment));
 	x = i;
 	for (i = (index + 1); i < item_spawn_count; i++)
 	{
@@ -2192,12 +2154,12 @@ Scenario object destruction
 	int i, x;
 	
 	if (index < 0 || index > vehicle_spawn_count)
-		return;
+    return;
     
 	tmpSpawnPointer = (vehicle_spawn *)malloc(sizeof(vehicle_spawn) * (vehicle_spawn_count - 1));
     
 	for (i = 0; i < index; i++)
-		memcpy(&tmpSpawnPointer[i], &vehi_spawns[i], sizeof(vehicle_spawn));
+    memcpy(&tmpSpawnPointer[i], &vehi_spawns[i], sizeof(vehicle_spawn));
 	x = i;
 	for (i = (index + 1); i < vehicle_spawn_count; i++)
 	{
@@ -2217,12 +2179,12 @@ Scenario object destruction
 	int i, x;
 	
 	if (index < 0 || index > scenery_spawn_count)
-		return;
-		
-	tmpSpawnPointer = (scenery_spawn *)malloc(sizeof(scenery_spawn) * (scenery_spawn_count - 1));	
-		
+    return;
+    
+	tmpSpawnPointer = (scenery_spawn *)malloc(sizeof(scenery_spawn) * (scenery_spawn_count - 1));
+    
 	for (i = 0; i < index; i++)
-		memcpy(&tmpSpawnPointer[i], &scen_spawns[i], sizeof(scenery_spawn));
+    memcpy(&tmpSpawnPointer[i], &scen_spawns[i], sizeof(scenery_spawn));
 	x = i;
 	for (i = (index + 1); i < scenery_spawn_count; i++)
 	{
@@ -2243,12 +2205,12 @@ Scenario object destruction
 	int i, x;
 	
 	if (index < 0 || index > mach_spawn_count)
-		return;
+    return;
 	
-	tmpSpawnPointer = (machine_spawn *)malloc(sizeof(machine_spawn) * (mach_spawn_count - 1));	
+	tmpSpawnPointer = (machine_spawn *)malloc(sizeof(machine_spawn) * (mach_spawn_count - 1));
 	
 	for (i = 0; i < index; i++)
-		memcpy(&tmpSpawnPointer[i], &mach_spawns[i], sizeof(machine_spawn));
+    memcpy(&tmpSpawnPointer[i], &mach_spawns[i], sizeof(machine_spawn));
 	x = i;
 	for (i = (index + 1); i < mach_spawn_count; i++)
 	{
@@ -2269,12 +2231,12 @@ Scenario object destruction
 	int i, x;
 	
 	if (index < 0 || index > player_spawn_count)
-		return;
+    return;
     
 	tmpSpawnPointer = (player_spawn *)malloc(sizeof(player_spawn) * (player_spawn_count - 1));
     
 	for (i = 0; i < index; i++)
-		memcpy(&tmpSpawnPointer[i], &spawns[i], sizeof(player_spawn));
+    memcpy(&tmpSpawnPointer[i], &spawns[i], sizeof(player_spawn));
 	x = i;
 	for (i = (index + 1); i < player_spawn_count; i++)
 	{
@@ -2295,28 +2257,28 @@ Scenario object destruction
 	//int i, x
 	
 	if (index < 0 || index > scen_ref_count)
-		return;
+    return;
 	/*tmpRefPointer = (scenery_reference *)malloc(sizeof(scenery_reference) * (scen_ref_count -1));
-	
-	for (i = 0; i < index; i++)
-		memcpy(&tmpRefPointer[i], &scen_references[i], sizeof(scenery_reference));
-	x = i;
-	for (i = (index + 1); i < scen_ref_count; i++)
-	{
-		memcpy(&tmpRefPointer[x], &scen_references[i], sizeof(scenery_reference));
-		x++;
-	}
-	scen_ref_count--;
-	header.SceneryRef.newChunkCount = scen_ref_count;
-	header.SceneryRef.chunkSize = SCENERY_REF_CHUNK;
-	
-	for (i = 0; i < scenery_spawn_count; i++)
-	{
-		if (scen_spawns[i].numid == index)
-		{
-			
-		}
-	}*/
+     
+     for (i = 0; i < index; i++)
+     memcpy(&tmpRefPointer[i], &scen_references[i], sizeof(scenery_reference));
+     x = i;
+     for (i = (index + 1); i < scen_ref_count; i++)
+     {
+     memcpy(&tmpRefPointer[x], &scen_references[i], sizeof(scenery_reference));
+     x++;
+     }
+     scen_ref_count--;
+     header.SceneryRef.newChunkCount = scen_ref_count;
+     header.SceneryRef.chunkSize = SCENERY_REF_CHUNK;
+     
+     for (i = 0; i < scenery_spawn_count; i++)
+     {
+     if (scen_spawns[i].numid == index)
+     {
+     
+     }
+     }*/
 	
 	
 	// EEP!
@@ -2332,7 +2294,7 @@ Scenario object destruction
 	int i, x, type;
 	
 	if (index < 0 || index > multiplayer_flags_count)
-		return;
+    return;
 	
 	type = mp_flags[index].type;
 	
@@ -2347,34 +2309,34 @@ Scenario object destruction
 	//netgameIndexArray = [[netgameFlagIndexLookup objectsForKeys:[NSArray arrayWithObject:[NSNumber numberWithShort:mp_flags[index].team_index]] notFoundMarker:nil] retain];
 	
 	/*if (type == teleporter_exit || type == teleporter_entrance)
-	{
-		i = 0;
-		for (x = 0; x < [netgameIndexArray count]; x++)
-		{
-			CSLog(@"HAI");
-			for (; i < [[netgameIndexArray objectAtIndex:x] intValue]; i++)
-			{
-				memcpy(&tmpNetgameFlags[i], &mp_flags[i], sizeof(multiplayer_flags));
-			}
-			i++;
-		}
-		x = i;
-		for (i = ([[netgameIndexArray objectAtIndex:x] intValue] + 1); i < multiplayer_flags_count; i++)
-		{
-			memcpy(&tmpNetgameFlags[x], &mp_flags[i], sizeof(multiplayer_flags));
-			x++;
-		}
-	}
-	else
-	{*/
-		for (i = 0; i < index; i++)
-			memcpy(&tmpNetgameFlags[i], &mp_flags[i], sizeof(multiplayer_flags));
-		x = i;
-		for (i = (index + 1); i < multiplayer_flags_count; i++)
-		{
-			memcpy(&tmpNetgameFlags[x], &mp_flags[i], sizeof(multiplayer_flags));
-			x++;
-		}
+     {
+     i = 0;
+     for (x = 0; x < [netgameIndexArray count]; x++)
+     {
+     CSLog(@"HAI");
+     for (; i < [[netgameIndexArray objectAtIndex:x] intValue]; i++)
+     {
+     memcpy(&tmpNetgameFlags[i], &mp_flags[i], sizeof(multiplayer_flags));
+     }
+     i++;
+     }
+     x = i;
+     for (i = ([[netgameIndexArray objectAtIndex:x] intValue] + 1); i < multiplayer_flags_count; i++)
+     {
+     memcpy(&tmpNetgameFlags[x], &mp_flags[i], sizeof(multiplayer_flags));
+     x++;
+     }
+     }
+     else
+     {*/
+    for (i = 0; i < index; i++)
+    memcpy(&tmpNetgameFlags[i], &mp_flags[i], sizeof(multiplayer_flags));
+    x = i;
+    for (i = (index + 1); i < multiplayer_flags_count; i++)
+    {
+        memcpy(&tmpNetgameFlags[x], &mp_flags[i], sizeof(multiplayer_flags));
+        x++;
+    }
 	//}
 	
 	//x = i;
@@ -2387,7 +2349,7 @@ Scenario object destruction
 	//	multiplayer_flags_count -= 2;
 	//else
 	multiplayer_flags_count--;
-		
+    
 	header.MultiplayerFlags.newChunkCount = multiplayer_flags_count;
 	
 	free(mp_flags);
@@ -2395,10 +2357,10 @@ Scenario object destruction
 	mp_flags = (multiplayer_flags *)tmpNetgameFlags;
 }
 /*
-
-Item swapping 
-
-*/
+ 
+ Item swapping
+ 
+ */
 - (void)buildAllTagArrays
 {
 	[self buildArrayOfSceneryTags];
@@ -2424,13 +2386,13 @@ Item swapping
 	for (i = 0; i < scen_ref_count; i++)
 	{
 		if ([_mapfile isTag:scen_references[i].scen_ref.TagId])
-			[scenTagArray addObject:[[_mapfile tagForId:scen_references[i].scen_ref.TagId] tagName]];
+        [scenTagArray addObject:[[_mapfile tagForId:scen_references[i].scen_ref.TagId] tagName]];
 		else
-			[scenTagArray addObject:@"Dead scenery reference!"];
+        [scenTagArray addObject:@"Dead scenery reference!"];
 	}
 }
 - (void)buildArrayOfInactiveSceneryTags
-{	
+{
 	if (inactiveScenTagArray)
 	{
 		[inactiveScenTagArray removeAllObjects];
@@ -2455,9 +2417,9 @@ Item swapping
 	for (i = 0; i < mach_ref_count; i++)
 	{
 		if ([_mapfile isTag:mach_references[i].machTag.TagId])
-			[machTagArray addObject:[NSString stringWithFormat:@"%@%d", [[_mapfile tagForId:mach_references[i].machTag.TagId] tagName], i]];
+        [machTagArray addObject:[NSString stringWithFormat:@"%@%d", [[_mapfile tagForId:mach_references[i].machTag.TagId] tagName], i]];
 		else
-			[machTagArray addObject:@"Dead Machinery Reference!"];
+        [machTagArray addObject:@"Dead Machinery Reference!"];
 	}
 }
 - (void)buildArrayOfInactiveMachineTags
@@ -2472,7 +2434,7 @@ Item swapping
 	
 	//CSLog(@"hur?");
 	//[_mapfile constructArrayAndLookupForTagType:([_mapfile isPPC] ? "mach" : "hcam") array:tmpArray dictionary:tmpDict];
-	tmpArray = [_mapfile constructArrayForTagType:([_mapfile isPPC] ? "mach" : "hcam")];
+	tmpArray = [_mapfile constructArrayForTagType:"hcam"];
 	
 	
 	if ([tmpArray count] > 0)
@@ -2506,7 +2468,7 @@ Item swapping
 			[vehiTagArray addObject:[[_mapfile tagForId:vehi_references[i].vehi_ref.TagId] tagName]];
         }
 		else
-			[vehiTagArray addObject:@"Dead vehicle reference!"];
+        [vehiTagArray addObject:@"Dead vehicle reference!"];
 	}
 }
 - (void)setItmcArray:(NSMutableArray *)tagArray lookup:(int *)lookup
@@ -2535,25 +2497,25 @@ Item swapping
 	return inactiveMachTagArray;
 }
 /*
-	Begin Scenario Rebuilding
-*/
+ Begin Scenario Rebuilding
+ */
 int compare(const void *a, const void *b)
 {
 	return (*(int *)a - (*(int *)b));
 }
 
 /*
-	@method findActiveReflexives:
-		This method finds all of the reflexives that are currently active in the mapfile,
-		then constructs an ordered lookup table of said reflexives.
-		The lookup table is ordered by the offset pointed to by the reflexive in ascending order.
-*/
+ @method findActiveReflexives:
+ This method finds all of the reflexives that are currently active in the mapfile,
+ then constructs an ordered lookup table of said reflexives.
+ The lookup table is ordered by the offset pointed to by the reflexive in ascending order.
+ */
 - (void)findActiveReflexives
 {
     CSLog(@"Find active reflexives");
     
 	int i = 0,
-		x = 0;
+    x = 0;
 	reflexive *tmpReflex;
 	int32_t negativeOffset;
 	negativeOffset = (0 - ([_mapfile magic] + [self offsetInMap]));
@@ -2561,14 +2523,14 @@ int compare(const void *a, const void *b)
 	_activeReflexCounter = 0;
 	
 	if (_activeReflexives)
-		free(_activeReflexives);
+    free(_activeReflexives);
 	
 	// First we find the number of active reflexives
 	for (i = 0; i < REFLEXIVE_COUNT; i++)
 	{
 		tmpReflex = (reflexive *)_reflexLookup[i];
 		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset) && (tmpReflex->chunkcount > 0))
-			_activeReflexCounter++;
+        _activeReflexCounter++;
 	}
 	
 	// Then we create a lookup table of the active reflexives
@@ -2589,14 +2551,14 @@ int compare(const void *a, const void *b)
 	qsort(_activeReflexives, x, sizeof(int), compare);
 }
 /*
-	@method buildChunkSizes:
-		This method builds the dynamic chunk size of the active reflexives.
-*/
+ @method buildChunkSizes:
+ This method builds the dynamic chunk size of the active reflexives.
+ */
 - (void)buildChunkSizes
 {
 	int i;
 	reflexive	*tmpReflex,
-				*nextReflex;
+    *nextReflex;
 	
 	for (i = 0; i < _activeReflexCounter; i++)
 	{
@@ -2613,7 +2575,7 @@ int compare(const void *a, const void *b)
 		
 		// Quick hack until I learn more about scripts
 		if ((_activeReflexives[i] % 100) == 54)
-			tmpReflex->chunkSize = 0x20;
+        tmpReflex->chunkSize = 0x20;
 	}
 }
 
@@ -2621,7 +2583,7 @@ int compare(const void *a, const void *b)
 - (void)updateReflexiveOffsets
 {
 	int i,
-		sizeChange = 0;
+    sizeChange = 0;
 	reflexive	*tmpReflex;
 	
     
@@ -2666,7 +2628,7 @@ int compare(const void *a, const void *b)
 		tmpReflex = (reflexive *)_reflexLookup[ _activeReflexives[i] % 100 ];
 		
 		if (tmpReflex->chunkcount != tmpReflex->newChunkCount)
-			_totalSizeChange += ((tmpReflex->newChunkCount - tmpReflex->chunkcount) * tmpReflex->chunkSize);
+        _totalSizeChange += ((tmpReflex->newChunkCount - tmpReflex->chunkcount) * tmpReflex->chunkSize);
 	}
 }
 
@@ -2686,7 +2648,7 @@ int compare(const void *a, const void *b)
 		}
 		[self readScenario:&inData size:4];
 		if (inData == 0xCACA || inData == 0xCACACACA)
-			break;
+        break;
 		i++;
 	} while (1);
 	
@@ -2696,8 +2658,8 @@ int compare(const void *a, const void *b)
 }
 
 /*
-	This function is to be run when first opening the scenario or after expanding the scenario I suppose
-*/
+ This function is to be run when first opening the scenario or after expanding the scenario I suppose
+ */
 - (void)findLastBitOfScenario
 {
 	//CSLog(@"guessed length: 0x%x", (header.ScriptCrap.offset + header.ScriptDataSize));
@@ -2714,44 +2676,44 @@ int compare(const void *a, const void *b)
 	reflexive *tmpReflex;
 	
 	for (i = 0; i < _activeReflexCounter; i++)
-	{	
+	{
 		tmpReflex = (reflexive *)_reflexLookup[ _activeReflexives[i] % 100 ];
 		//CSLog(@"Temp reflex num: %d, offset in scenario:[0x%x], offset: 0x%x, chunkcount: [%d], chunksize:[0x%x]", ((unsigned int)_activeReflexives[i] % 100) + 1, tmpReflex->location_in_mapfile, tmpReflex->offset, tmpReflex->chunkcount, tmpReflex->chunkSize);
 	}
 }
 
 /*- (void)writeScenerySpawn:(scenery_spawn *)spawn
-{
-	/*
-		bufIndex = (n * SCENERY_SPAWN_CHUNK);
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&scen_spawns[n];
-						*hack = EndianSwap32(*hack);
-						scen_spawns[n].flag = EndianSwap16(scen_spawns[n].flag);
-						scen_spawns[n].numid = EndianSwap16(scen_spawns[n].numid);
-					}
-					memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_spawns[n],SCENERY_SPAWN_CHUNK);
-					if ([_mapfile isPPC])
-					{
-						scen_spawns[n].flag = EndianSwap16(scen_spawns[n].flag);
-						scen_spawns[n].numid = EndianSwap16(scen_spawns[n].numid);
-						*hack = EndianSwap32(*hack);
-					}
-	//[self write
-	if ([_mapfile isPPC])
-	{
-		hack = (int32_t *)spawn;
-		*hack = EndianSwap32(*hack);
-		spawn.flag = EndianSwap16(spawn.flag);
-		spawn.numid = EndianSwap16(spawn.numid);
-	}
-	//memcpy(&newScnr[tmpReflex->offset]
-}
-- (void)writeSceneryReference:(scenery_reference *)ref
-{	
-	
-}*/
+ {
+ /*
+ bufIndex = (n * SCENERY_SPAWN_CHUNK);
+ if ([_mapfile isPPC])
+ {
+ hack = (int32_t *)&scen_spawns[n];
+ *hack = EndianSwap32(*hack);
+ scen_spawns[n].flag = EndianSwap16(scen_spawns[n].flag);
+ scen_spawns[n].numid = EndianSwap16(scen_spawns[n].numid);
+ }
+ memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_spawns[n],SCENERY_SPAWN_CHUNK);
+ if ([_mapfile isPPC])
+ {
+ scen_spawns[n].flag = EndianSwap16(scen_spawns[n].flag);
+ scen_spawns[n].numid = EndianSwap16(scen_spawns[n].numid);
+ *hack = EndianSwap32(*hack);
+ }
+ //[self write
+ if ([_mapfile isPPC])
+ {
+ hack = (int32_t *)spawn;
+ *hack = EndianSwap32(*hack);
+ spawn.flag = EndianSwap16(spawn.flag);
+ spawn.numid = EndianSwap16(spawn.numid);
+ }
+ //memcpy(&newScnr[tmpReflex->offset]
+ }
+ - (void)writeSceneryReference:(scenery_reference *)ref
+ {
+ 
+ }*/
 
 
 #ifdef MODZY_REFLEXIVES
@@ -2804,15 +2766,15 @@ int compare(const void *a, const void *b)
 	{
 		tmpReflex = (reflexive *)_reflexLookup[i];
 		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset))
-			realReflexives++;
+        realReflexives++;
         
         /*
-		else if (tmpReflex->refNumber==15 && mach_ref_count)
-			realReflexives++;
-		else if (tmpReflex->refNumber==14 && mach_spawn_count )
-			realReflexives++;
-		else if (tmpReflex->refNumber==13 && device_group_count)
-			realReflexives++;
+         else if (tmpReflex->refNumber==15 && mach_ref_count)
+         realReflexives++;
+         else if (tmpReflex->refNumber==14 && mach_spawn_count )
+         realReflexives++;
+         else if (tmpReflex->refNumber==13 && device_group_count)
+         realReflexives++;
          */
 	}
 	
@@ -2831,6 +2793,746 @@ int compare(const void *a, const void *b)
 		}
         
         /*
+         else if (tmpReflex->refNumber==15 && mach_ref_count)
+         {
+         if (!singlePlayer)
+         {
+         //Find the last offset
+         int largest_offset = 0;
+         int largest_index = 0;
+         int a;
+         for (a=0;a<15;a++)
+         {
+         areflex = (reflexive *)_reflexLookup[a];
+         if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+         {
+         if (areflex->offset > largest_offset)
+         {
+         largest_offset = areflex->offset;
+         largest_index = a;
+         }
+         }
+         }
+         tmpReflex->newChunkCount=mach_ref_count;
+         tmpReflex->chunkSize=MACHINE_REF_CHUNK;
+         
+         reflexive *scenery = (reflexive *)_reflexLookup[largest_index];
+         
+         int increment_offset = scenery->newChunkCount * scenery->chunkSize;
+         if (mach_ref_count)
+         increment_offset+=mach_ref_count*MACHINE_REF_CHUNK;
+         
+         int increment_offset2 = mach_ref_count*MACHINE_REF_CHUNK;
+         tmpReflex->offset= scenery->offset + increment_offset;
+         
+         tmpReflex->chunkcount=0;
+         tmpReflex->newChunkCount=mach_ref_count;
+         
+         for (a=16;a<REFLEXIVE_COUNT;a++)
+         {
+         areflex = (reflexive *)_reflexLookup[a];
+         if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+         {
+         areflex->offset+=increment_offset2;
+         _reflexLookup[a] = (reflexive *)areflex;
+         }
+         }
+         _reflexLookup[15]=(reflexive *)tmpReflex;
+         
+         OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
+         x++;
+         }
+         }
+         else if (tmpReflex->refNumber==14 && mach_spawn_count)
+         {
+         if (!singlePlayer)
+         {
+         //Find the last offset
+         int largest_offset = 0;
+         int largest_index = 0;
+         int a;
+         for (a=0;a<14;a++)
+         {
+         areflex = (reflexive *)_reflexLookup[a];
+         if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+         {
+         if (areflex->offset > largest_offset)
+         {
+         largest_offset = areflex->offset;
+         largest_index = a;
+         }
+         }
+         }
+         tmpReflex->newChunkCount=mach_spawn_count;
+         tmpReflex->chunkSize=MACHINE_CHUNK;
+         
+         reflexive *scenery = (reflexive *)_reflexLookup[largest_index];
+         int increment_offset = scenery->newChunkCount*scenery->chunkSize;
+         int increment_offset2 = mach_spawn_count*MACHINE_CHUNK;
+         tmpReflex->offset=scenery->offset+increment_offset;
+         
+         tmpReflex->chunkcount=0;
+         
+         for (a=15;a<REFLEXIVE_COUNT;a++)
+         {
+         areflex = (reflexive *)_reflexLookup[a];
+         if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+         {
+         areflex->offset+=increment_offset2;
+         _reflexLookup[a] = (reflexive *)areflex;
+         }
+         }
+         _reflexLookup[14]=(reflexive *)tmpReflex;
+         
+         OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
+         x++;
+         }
+         }
+         else if (tmpReflex->refNumber==13 && device_group_count)
+         {
+         if (!singlePlayer)
+         {
+         //continue; //Lets not.
+         
+         //Lets add a device group for fun!
+         int largest_offset = 0;
+         int largest_index = 0;
+         int a;
+         for (a=0;a<13;a++)
+         {
+         areflex = (reflexive *)_reflexLookup[a];
+         if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+         {
+         if (areflex->offset > largest_offset)
+         {
+         largest_offset = areflex->offset;
+         largest_index = a;
+         }
+         }
+         }
+         
+         tmpReflex->newChunkCount=device_group_count;
+         tmpReflex->chunkSize=DEVICE_CHUNK;
+         
+         
+         reflexive *scenery = (reflexive *)_reflexLookup[largest_index];
+         int increment_offset = scenery->newChunkCount*scenery->chunkSize;
+         int increment_offset2 = tmpReflex->newChunkCount*DEVICE_CHUNK;
+         tmpReflex->offset=scenery->offset+increment_offset;
+         tmpReflex->chunkcount=0;
+         
+         for (a=14;a<REFLEXIVE_COUNT;a++)
+         {
+         areflex = (reflexive *)_reflexLookup[a];
+         if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
+         {
+         areflex->offset+=increment_offset2;
+         _reflexLookup[a] = (reflexive *)areflex;
+         }
+         }
+         _reflexLookup[13]=(reflexive *)tmpReflex;
+         
+         OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
+         x++;
+         }
+         }
+         */
+	}
+	if (debug) CSLog(@"END");
+	
+	/* Ok, we have all of the working reflexives, lets sort shit */
+	qsort(OffsetTable, x, sizeof(int), compare);
+	
+	if (debug) CSLog(@"1");
+	/* Now that this is done, lets update our reflexive offsets */
+	for (i = 0; i < x; i++)
+	{
+		if (debug) CSLog(@"BLAH %d", i);
+        int number = OffsetTable[i] % 1000;
+		tmpReflex = (reflexive *)_reflexLookup[number];
+		index = (int)(OffsetTable[i] % 1000);
+		if (debug) CSLog(@"Saving %d", index);
+		//if (i == (x - 1))
+		//	break; // Last reflexive - leave it alone. We need this for the BSP data.
+		if (debug) CSLog(@"NEXT1");
+        
+        
+        tmpReflex->offset += sizeChange;
+        if (debug) CSLog(@"NEXT2");
+        if (tmpReflex->chunkcount != tmpReflex->newChunkCount)
+        {
+            if (debug) CSLog(@"NEXT3 %d", tmpReflex->chunkSize);
+            sizeChange += ((tmpReflex->newChunkCount - tmpReflex->chunkcount) * tmpReflex->chunkSize);
+            if (debug) CSLog(@"NEXT4");
+            tmpReflex->chunkcount = tmpReflex->newChunkCount;
+        }
+        
+    }
+    
+    for (i = 0; i < x; i++)
+    {
+        if (debug) CSLog(@"BLAH %d", i);
+        int number = OffsetTable[i] % 1000;
+		tmpReflex = (reflexive *)_reflexLookup[number];
+		index = (int)(OffsetTable[i] % 1000);
+        
+        //Is this ACTUALLY a reflexive?
+        if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
+        {
+            //Update the encounters
+            if (number == 52)
+            {
+                int a;
+                for (a=0; a < encounters_count; a++)
+                {
+                    int32_t oldOffset;
+                    int32_t reflexiveCount;
+                    int32_t zeroes;
+                    
+                    uint32_t position = tmpReflex->oldOffset + a*176 + 0x80 + 4;
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    memcpy(&oldOffset, &scnr[position], 4);
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        //Squad stuff
+                        uint32_t squad_position = position;
+                        uint32_t squad_offset = oldOffset;
+                        uint32_t squad_numbercount = reflexiveCount;
+                        
+                        int g;
+                        for (g=0; g < squad_numbercount; g++)
+                        {
+                            position = squad_offset-[_mapfile magic] + g*232 + 0xC4 + 4;
+                            
+                            CSLog(@"READING POSITION 0x%x", position);
+                            memcpy(&reflexiveCount, &scnr[position-4], 4);
+                            if (reflexiveCount > 0)
+                            {
+                                memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                                memcpy(&scnr[position], &oldOffset, 4);
+                            }
+                            
+                            position = squad_offset-[_mapfile magic] + g*232 + 0xD0 + 4;
+                            memcpy(&reflexiveCount, &scnr[position-4], 4);
+                            if (reflexiveCount > 0)
+                            {
+                                memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                                memcpy(&scnr[position], &oldOffset, 4);
+                            }
+                        }
+                        
+                        squad_offset+=sizeChange;
+                        memcpy(&scnr[squad_position], &squad_offset, 4);
+                    }
+                    
+                    position = tmpReflex->oldOffset + a*176 + 0x8C + 4;
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                        memcpy(&scnr[position], &oldOffset, 4);
+                    }
+                    
+                    position = tmpReflex->oldOffset + a*176 + 0x98 + 4;
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                        memcpy(&scnr[position], &oldOffset, 4);
+                    }
+                    
+                    position = tmpReflex->oldOffset + a*176 + 0xA4 + 4;
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                        memcpy(&scnr[position], &oldOffset, 4);
+                    }
+                }
+            }
+            else if (number == 5) //Comments
+            {
+                int a;
+                for (a=0; a < tmpReflex->chunkcount; a++)
+                {
+                    int32_t oldOffset;
+                    int32_t reflexiveCount;
+                    int32_t zeroes;
+                    
+                    uint32_t position = tmpReflex->oldOffset + a*48 + 0x24 + 4;
+                    
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    memcpy(&oldOffset, &scnr[position], 4);
+                    
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                        memcpy(&scnr[position], &oldOffset, 4);
+                    }
+                }
+            }
+            
+            else if (number == 36) //Recorded animations
+            {
+                int a;
+                for (a=0; a < tmpReflex->chunkcount; a++)
+                {
+                    int32_t oldOffset;
+                    int32_t reflexiveCount;
+                    int32_t zeroes;
+                    
+                    uint32_t position = tmpReflex->oldOffset + a*40 + 0x34 + 4;
+                    
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    memcpy(&oldOffset, &scnr[position], 4);
+                    
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                        memcpy(&scnr[position], &oldOffset, 4);
+                    }
+                }
+            }
+            
+            else if (number == 53) //Command list
+            {
+                int a;
+                for (a=0; a < tmpReflex->chunkcount; a++)
+                {
+                    int32_t oldOffset;
+                    int32_t reflexiveCount;
+                    int32_t zeroes;
+                    
+                    uint32_t position = tmpReflex->oldOffset + a*96 + 0x30 + 4;
+                    
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    memcpy(&oldOffset, &scnr[position], 4);
+                    
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                        memcpy(&scnr[position], &oldOffset, 4);
+                    }
+                    
+                    position = tmpReflex->oldOffset + a*96 + 0x3C + 4;
+                    
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    memcpy(&oldOffset, &scnr[position], 4);
+                    
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                        memcpy(&scnr[position], &oldOffset, 4);
+                    }
+                }
+            }
+            
+            else if (number == 57) //Ai conversations
+            {
+                int a;
+                for (a=0; a < tmpReflex->chunkcount; a++)
+                {
+                    int32_t oldOffset;
+                    int32_t reflexiveCount;
+                    int32_t zeroes;
+                    
+                    uint32_t position = tmpReflex->oldOffset + a*116 + 0x50 + 4;
+                    
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    memcpy(&oldOffset, &scnr[position], 4);
+                    
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                        memcpy(&scnr[position], &oldOffset, 4);
+                    }
+                    
+                    position = tmpReflex->oldOffset + a*116 + 0x5C + 4;
+                    
+                    memcpy(&zeroes, &scnr[position+4], 4);
+                    memcpy(&reflexiveCount, &scnr[position-4], 4);
+                    memcpy(&oldOffset, &scnr[position], 4);
+                    
+                    if (reflexiveCount > 0 && zeroes == 0)
+                    {
+                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
+                        memcpy(&scnr[position], &oldOffset, 4);
+                    }
+                }
+            }
+            
+            
+            
+        }
+	}
+	if (debug) CSLog(@"1EE");
+	/* Ok, thats all sorted out. Now lets copy everything into our new scenario buffer */
+	int offset_buff=0;
+	for (i = 0; i < x; i++)
+	{
+		if (debug) CSLog(@"Searching %d", i);
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
+		if (!tmpReflex)
+		{
+			continue;
+		}
+		
+		nextReflex = (reflexive *)_reflexLookup[OffsetTable[i+1] % 1000];
+		index = (int)(OffsetTable[i] % 1000);
+		if (debug) CSLog(@"Saving %d", index);
+		switch (index)
+		{
+                case 7: // Scenery spawns
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+            {
+                bufIndex = (n * SCENERY_SPAWN_CHUNK);
+                
+                if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
+                memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_spawns[n],SCENERY_SPAWN_CHUNK);
+            }
+				break;
+                case 8: // Scenery ref
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+            {
+                bufIndex = (n * SCENERY_REF_CHUNK);
+                
+                if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
+                memcpy(&newScnr[tmpReflex->offset +  bufIndex],&scen_references[n],SCENERY_REF_CHUNK);
+                //insertMemory([RenderView ID], [_mapfile magic] + &newScnr[tmpReflex->offset + bufIndex], &scen_references[n], SCENERY_REF_CHUNK);
+            }
+				break;
+                case 11: // vehicle spawns
+                if (debug) CSLog(@"Vehicle spawns  %x", tmpReflex->offset);
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+            {
+                bufIndex = (n * VEHICLE_SPAWN_CHUNK);
+                
+                if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
+                memcpy(&newScnr[tmpReflex->offset + bufIndex], &vehi_spawns[n], VEHICLE_SPAWN_CHUNK);
+            }
+				break;
+                case 12: // Vehicle ref
+                if (debug) CSLog(@"Vehicle refs  %x", tmpReflex->offset);
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+            {
+                bufIndex = (n * VEHICLE_REF_CHUNK);
+                
+                if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
+                memcpy(&newScnr[tmpReflex->offset +  bufIndex],&vehi_references[n],VEHICLE_REF_CHUNK);
+            }
+				break;
+                /*
+                 case 13: // Device groups
+                 if (debug) CSLog(@"device group! %d", header.DeviceGroups.chunkcount);
+                 if (debug) CSLog(@"Number of groups is %d", tmpReflex->chunkcount);
+                 for (n = 0; n < device_group_count; n++)
+                 {
+                 if (debug) CSLog(@"Creating device group numbered %d", n);
+                 
+                 bufIndex = (n * DEVICE_CHUNK);
+                 device_groups[n].initial_value = 1;
+                 memcpy(&newScnr[tmpReflex->offset + bufIndex], &device_groups[n], DEVICE_CHUNK);
+                 }
+                 break;
+                 case 14: // Machines
+                 if (debug) CSLog(@"MACHINE!");
+                 for (n = 0; n < tmpReflex->chunkcount; n++)
+                 {
+                 if (debug) CSLog(@"Creating machine numbered %d %d", n, mach_spawns[n].positionGroup);
+                 
+                 bufIndex = (n * MACHINE_CHUNK);
+                 memcpy(&newScnr[tmpReflex->offset + bufIndex], &mach_spawns[n], MACHINE_CHUNK);
+                 }
+                 break;
+                 case 15: // Machine ref
+                 
+                 for (n = 0; n < mach_ref_count; n++)
+                 {
+                 if (debug) CSLog(@"Saving machine ref  %d", n);
+                 
+                 bufIndex = (n * MACHINE_REF_CHUNK);
+                 memcpy(&newScnr[tmpReflex->offset +  bufIndex], &mach_references[n],MACHINE_REF_CHUNK);
+                 
+                 if (debug) CSLog(@"Machine ref created!");
+                 }
+                 break;
+                 */
+                case 34: // spawns
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+            {
+                bufIndex = (n * PLAYER_SPAWN_CHUNK);
+                
+                if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
+                memcpy(&newScnr[tmpReflex->offset + bufIndex], &spawns[n], PLAYER_SPAWN_CHUNK);
+                
+            }
+				break;
+                case 37: // Netgame Flags
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+            {
+                bufIndex = (n * MP_FLAGS_CHUNK);
+                
+                if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
+                memcpy(&newScnr[tmpReflex->offset + bufIndex], &mp_flags[n], MP_FLAGS_CHUNK);
+                
+            }
+				break;
+                case 38: // MpEquip
+				for (n = 0; n < tmpReflex->chunkcount; n++)
+            {
+                bufIndex = (n * MP_EQUIP_CHUNK);
+                
+                memcpy(&newScnr[tmpReflex->offset + bufIndex], &item_spawns[n], MP_EQUIP_CHUNK);
+            }
+				break;
+			default:
+				if (i < (x - 1))
+            {
+                if (debug) CSLog(@"Moar patching  %x %x %d", tmpReflex->offset, tmpReflex->oldOffset, (nextReflex->offset - tmpReflex->offset));
+                if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
+                memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
+            }
+                else
+            {
+                //memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
+                
+                /*
+                 if (singlePlayer)
+                 {
+                 if (debug) CSLog(@"BREAKING THE MAP HERE %x %x", tmpReflex->offset, tmpReflex->oldOffset);
+                 // Copy the rest foo
+                 do
+                 {
+                 
+                 
+                 // Copy 4 bytes at a time
+                 memcpy(&cacashit, &scnr[tmpReflex->oldOffset + (4 * posCounter)], 4);
+                 if (cacashit != 0xCACACACA || cacashit != 0x0000CACA)
+                 memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter)], 4);
+                 else
+                 {
+                 CSLog(@"Hit CACA");
+                 break;
+                 }
+                 
+                 posCounter += 1;
+                 
+                 
+                 } while ((posCounter * 4) < ([self tagLength] - tmpReflex->offset));
+                 
+                 CSLog(@"Expired at %x %x", (tmpReflex->offset + (4 * posCounter)), (tmpReflex->oldOffset + (4 * posCounter)));
+                 
+                 //Maybe this is the script stuff
+                 memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter) + sizeChange], ([self tagLength] - ( (4 * posCounter) + tmpReflex->offset)));
+                 
+                 }
+                 */
+                
+            }
+				break;
+		}
+	}
+    
+    //Insert the random data between reflexives
+    //header.ScriptDataSize
+    //header.Unknown4
+    //header.Unk1
+    //header.Unk2
+    //header.Unk3
+    
+    /*
+     reflexive *scriptcrap = (reflexive *)_reflexLookup[54];
+     memcpy(&newScnr[(scriptcrap->offset - 8)], &header.ScriptDataSize, 4);
+     memcpy(&newScnr[(scriptcrap->offset - 4)], &header.Unknown4, 4);
+     
+     reflexive *commands = (reflexive *)_reflexLookup[55];
+     memcpy(&newScnr[(scriptcrap->offset - 8)], &header.Unk1, 8);
+     
+     reflexive *AiRecordingRefs = (reflexive *)_reflexLookup[59];
+     memcpy(&newScnr[(AiRecordingRefs->offset - 0x24)], &header.Unk2, 0x24);
+     */
+    
+    //reflexive *Lines = (reflexive *)_reflexLookup[62];
+    //memcpy(&newScnr[(Lines->offset - 0x24)], &header.Unk3, 0x24);
+    
+    
+    
+    /*
+     if (_largerScenario)
+     {
+     
+     }
+     else
+     {
+     // The size of the scenario does not need to be enlarged.
+     
+     // Copy all of the script data first
+     memcpy(newScnr[header.ScriptCrap.offset], scnr[header.ScriptCrap.oldOffset], header.ScriptDataSize);
+     
+     // Now copy over all of the rest
+     // This is in EXACTLY the same place, so were using the old offset when copying data.
+     memcpy(newScnr[_endOfScriptDataOffset], scnr[_endOfScriptDataOffset], _endOfScriptDataLength);
+     }
+     */
+    
+	if (debug) CSLog(@"Mid-map contstruction complete. Create the header");
+	/* Construct the scenario header */
+	memcpy(newScnr,scnr,0x5B0);
+	if (debug) CSLog(@"Header copied.");
+	
+	/* Update all the scenario header reflexives */
+	for (i = 0; i < x; i++)
+	{
+		if (debug)CSLog(@"Updating reflexive %d", i);
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
+		if (debug)CSLog(@"1");
+		tmpReflex->offset += ([self offsetInMap] + [_mapfile magic]);
+		if (debug)CSLog(@"2");
+		memcpy(&newScnr[tmpReflex->location_in_mapfile], &tmpReflex->chunkcount, 4);
+		if (debug)CSLog(@"3");
+		memcpy(&newScnr[tmpReflex->location_in_mapfile+4], &tmpReflex->offset, 4);
+		if (debug)CSLog(@"4");
+		memcpy(&newScnr[tmpReflex->location_in_mapfile+8], &tmpReflex->zero, 4);
+		if (debug)CSLog(@"5");
+		tmpReflex->offset -= ([self offsetInMap] + [_mapfile magic]);
+	}
+	if (debug) CSLog(@"Reflexives completed");
+	
+	
+#ifdef __DEBUG__
+	CSLog(@"Address of bsp offset: 0x%x", (header.StructBsp.offset - resolvedOffset));
+#endif
+	
+    if (debug) 	CSLog(@"Writing data...");
+	/* Consistency write! */
+	// This writes the last few hundred bytes, whatever it is, thats beyond the 0xCACACACA crap. This also ensures that the bsp data won't be corrupted.
+	
+    //Don't write this.
+    tmpReflex = (reflexive *)_reflexLookup[OffsetTable[x-1] % 1000];
+	memcpy(&newScnr[tmpReflex->offset],&scnr[tmpReflex->oldOffset],(([self tagLength] - tmpReflex->offset) - (header.StructBsp.chunkcount * 0x20)));
+	
+#ifdef __DEBUG__
+	CSLog(@"Final reflexive data: [offset][0x%x] :: [chunkcount][%d]", tmpReflex->offset, tmpReflex->chunkcount);
+#endif
+	
+    if (debug) CSLog(@"Writing bsp...");
+	memcpy(&newScnr[header.StructBsp.offset - resolvedOffset],&scnr[header.StructBsp.offset - resolvedOffset],(0x20 * header.StructBsp.chunkcount));
+	/* End consistency write! */
+	
+    /*
+     if (debug) CSLog(@"Adjusting offsets...");
+     for (i = 0; i < x; i++)
+     {
+     tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
+     tmpReflex->offset = tmpReflex->oldOffset;
+     }
+     */
+	
+	if (debug) CSLog(@"Destroying old scenaro...");
+	/* Destroy the old scenario */
+	free(scnr);
+	
+	if (debug) CSLog(@"Creating new scenario...");
+	/* Set the scenario pointer to the new scenario */
+    
+    tagLength+=ADDITIONAL_SCENARIO_SPACE;
+	scnr = (char *)newScnr;
+    
+    //Update the old offsets
+    /* Update all the scenario header reflexives */
+	for (i = 0; i < x; i++)
+	{
+		if (debug) CSLog(@"Updating reflexive again %d", i);
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
+		tmpReflex->oldOffset = tmpReflex->offset;
+	}
+	if (debug) CSLog(@"Reflexives completed");
+	
+	mapMagic = [_mapfile getMagic];
+    
+}
+
+#else
+- (void)rebuildScenario
+{
+    int itemtagLength = 32;
+    int newTags = 10;
+    int dataLength = newTags*itemtagLength;
+    
+    
+	int debug = 0;
+	int i, x, n,
+	sizeChange = 0,
+	index,
+	realReflexives = 0,
+	bufIndex,
+	posCounter = 0;
+	char	*newScnr;
+    int32_t	negativeOffset;
+    uint32_t cacashit;
+	
+    bool singlePlayer = false;
+    
+	reflexive *tmpReflex, *nextReflex, *areflex;
+	
+	newScnr = (char *)malloc([self tagLength]);
+	memset(newScnr,0,[self tagLength]);
+	
+	negativeOffset = (0 - ([_mapfile magic] + [self offsetInMap]));
+	
+	if (device_group_count < 50)
+	{
+		//Add two device groups for the hell of it
+        //for(i=0; i <50; i++)
+        //    [self createDeviceGroup];
+	}
+	
+    //Fix the reflexive offset
+    
+    CSLog(@"UPDATING REFLEXIVE OFFSETS");
+    CSLog(@"ADDING %ld to OFFSETS", (mapMagic-[_mapfile magic]));
+    for (i = 0; i < REFLEXIVE_COUNT; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[i];
+        tmpReflex->offset+=(mapMagic-[_mapfile magic]);
+    }
+    
+	/* See how many reflexives are actually in use here */
+	for (i = 0; i < REFLEXIVE_COUNT; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[i];
+		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset))
+        realReflexives++;
+		else if (tmpReflex->refNumber==15 && mach_ref_count)
+        realReflexives++;
+		else if (tmpReflex->refNumber==14 && mach_spawn_count )
+        realReflexives++;
+		else if (tmpReflex->refNumber==13 && device_group_count)
+        realReflexives++;
+	}
+	
+	int OffsetTable[realReflexives];
+	x = 0;
+	
+	for (i = 0; i < REFLEXIVE_COUNT; i++)
+	{
+		tmpReflex = (reflexive *)_reflexLookup[i];
+		if (debug) CSLog(@"REF %d", tmpReflex->refNumber);
+        
+		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset))
+		{
+			OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
+			x++;
+		}
 		else if (tmpReflex->refNumber==15 && mach_ref_count)
 		{
             if (!singlePlayer)
@@ -2858,7 +3560,7 @@ int compare(const void *a, const void *b)
                 
                 int increment_offset = scenery->newChunkCount * scenery->chunkSize;
                 if (mach_ref_count)
-                    increment_offset+=mach_ref_count*MACHINE_REF_CHUNK;
+				increment_offset+=mach_ref_count*MACHINE_REF_CHUNK;
                 
                 int increment_offset2 = mach_ref_count*MACHINE_REF_CHUNK;
                 tmpReflex->offset= scenery->offset + increment_offset;
@@ -2974,7 +3676,6 @@ int compare(const void *a, const void *b)
                 x++;
             }
 		}
-        */
 	}
 	if (debug) CSLog(@"END");
 	
@@ -2986,231 +3687,23 @@ int compare(const void *a, const void *b)
 	for (i = 0; i < x; i++)
 	{
 		if (debug) CSLog(@"BLAH %d", i);
-        int number = OffsetTable[i] % 1000;
-		tmpReflex = (reflexive *)_reflexLookup[number];
+		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
 		index = (int)(OffsetTable[i] % 1000);
 		if (debug) CSLog(@"Saving %d", index);
 		//if (i == (x - 1))
 		//	break; // Last reflexive - leave it alone. We need this for the BSP data.
 		if (debug) CSLog(@"NEXT1");
-        
-        
-        tmpReflex->offset += sizeChange;
-        if (debug) CSLog(@"NEXT2");
-        if (tmpReflex->chunkcount != tmpReflex->newChunkCount)
-        {
-            if (debug) CSLog(@"NEXT3 %d", tmpReflex->chunkSize);
-            sizeChange += ((tmpReflex->newChunkCount - tmpReflex->chunkcount) * tmpReflex->chunkSize);
-            if (debug) CSLog(@"NEXT4");
-            tmpReflex->chunkcount = tmpReflex->newChunkCount;
-        }
-        
-    }
-    
-    for (i = 0; i < x; i++)
-    {
-        if (debug) CSLog(@"BLAH %d", i);
-        int number = OffsetTable[i] % 1000;
-		tmpReflex = (reflexive *)_reflexLookup[number];
-		index = (int)(OffsetTable[i] % 1000);
-        
-        //Is this ACTUALLY a reflexive?
-        if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
-        {
-            //Update the encounters
-            if (number == 52)
-            {
-                int a;
-                for (a=0; a < encounters_count; a++)
-                {
-                    int32_t oldOffset;
-                    int32_t reflexiveCount;
-                    int32_t zeroes;
-                    
-                    uint32_t position = tmpReflex->oldOffset + a*176 + 0x80 + 4;
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    memcpy(&oldOffset, &scnr[position], 4);
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        //Squad stuff
-                        uint32_t squad_position = position;
-                        uint32_t squad_offset = oldOffset;
-                        uint32_t squad_numbercount = reflexiveCount;
-                        
-                        int g;
-                        for (g=0; g < squad_numbercount; g++)
-                        {
-                            position = squad_offset-[_mapfile magic] + g*232 + 0xC4 + 4;
-                            
-                            CSLog(@"READING POSITION 0x%x", position);
-                            memcpy(&reflexiveCount, &scnr[position-4], 4);
-                            if (reflexiveCount > 0)
-                            {
-                                memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                                memcpy(&scnr[position], &oldOffset, 4);
-                            }
-                            
-                            position = squad_offset-[_mapfile magic] + g*232 + 0xD0 + 4;
-                            memcpy(&reflexiveCount, &scnr[position-4], 4);
-                            if (reflexiveCount > 0)
-                            {
-                                memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                                memcpy(&scnr[position], &oldOffset, 4);
-                            }
-                        }
-                        
-                        squad_offset+=sizeChange;
-                        memcpy(&scnr[squad_position], &squad_offset, 4);
-                    }
-
-                    position = tmpReflex->oldOffset + a*176 + 0x8C + 4;
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                        memcpy(&scnr[position], &oldOffset, 4);
-                    }
-                    
-                    position = tmpReflex->oldOffset + a*176 + 0x98 + 4;
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                        memcpy(&scnr[position], &oldOffset, 4);
-                    }
-                    
-                    position = tmpReflex->oldOffset + a*176 + 0xA4 + 4;
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                        memcpy(&scnr[position], &oldOffset, 4);
-                    }
-                }
-            }
-            else if (number == 5) //Comments
-            {
-                int a;
-                for (a=0; a < tmpReflex->chunkcount; a++)
-                {
-                    int32_t oldOffset;
-                    int32_t reflexiveCount;
-                    int32_t zeroes;
-                    
-                    uint32_t position = tmpReflex->oldOffset + a*48 + 0x24 + 4;
-
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    memcpy(&oldOffset, &scnr[position], 4);
-                    
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                        memcpy(&scnr[position], &oldOffset, 4);
-                    }
-                }
-            }
-            
-            else if (number == 36) //Recorded animations
-            {
-                int a;
-                for (a=0; a < tmpReflex->chunkcount; a++)
-                {
-                    int32_t oldOffset;
-                    int32_t reflexiveCount;
-                    int32_t zeroes;
-                    
-                    uint32_t position = tmpReflex->oldOffset + a*40 + 0x34 + 4;
-                    
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    memcpy(&oldOffset, &scnr[position], 4);
-                    
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                        memcpy(&scnr[position], &oldOffset, 4);
-                    }
-                }
-            }
-            
-            else if (number == 53) //Command list
-            {
-                int a;
-                for (a=0; a < tmpReflex->chunkcount; a++)
-                {
-                    int32_t oldOffset;
-                    int32_t reflexiveCount;
-                    int32_t zeroes;
-                    
-                    uint32_t position = tmpReflex->oldOffset + a*96 + 0x30 + 4;
-                    
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    memcpy(&oldOffset, &scnr[position], 4);
-                    
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                        memcpy(&scnr[position], &oldOffset, 4);
-                    }
-                    
-                    position = tmpReflex->oldOffset + a*96 + 0x3C + 4;
-                    
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    memcpy(&oldOffset, &scnr[position], 4);
-                    
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                        memcpy(&scnr[position], &oldOffset, 4);
-                    }
-                }
-            }
-
-            else if (number == 57) //Ai conversations
-            {
-                int a;
-                for (a=0; a < tmpReflex->chunkcount; a++)
-                {
-                    int32_t oldOffset;
-                    int32_t reflexiveCount;
-                    int32_t zeroes;
-                    
-                    uint32_t position = tmpReflex->oldOffset + a*116 + 0x50 + 4;
-                    
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    memcpy(&oldOffset, &scnr[position], 4);
-                    
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                        memcpy(&scnr[position], &oldOffset, 4);
-                    }
-                    
-                    position = tmpReflex->oldOffset + a*116 + 0x5C + 4;
-                    
-                    memcpy(&zeroes, &scnr[position+4], 4);
-                    memcpy(&reflexiveCount, &scnr[position-4], 4);
-                    memcpy(&oldOffset, &scnr[position], 4);
-                    
-                    if (reflexiveCount > 0 && zeroes == 0)
-                    {
-                        memcpy(&oldOffset, &scnr[position], 4); oldOffset+=sizeChange;
-                        memcpy(&scnr[position], &oldOffset, 4);
-                    }
-                }
-            }
-
-            
-            
-        }
+		
+		tmpReflex->offset += sizeChange;
+		if (debug) CSLog(@"NEXT2");
+		if (tmpReflex->chunkcount != tmpReflex->newChunkCount)
+		{
+			if (debug) CSLog(@"NEXT3 %d", tmpReflex->chunkSize);
+			sizeChange += ((tmpReflex->newChunkCount - tmpReflex->chunkcount) * tmpReflex->chunkSize);
+			if (debug) CSLog(@"NEXT4");
+			tmpReflex->chunkcount = tmpReflex->newChunkCount;
+		}
+		
 	}
 	if (debug) CSLog(@"1EE");
 	/* Ok, thats all sorted out. Now lets copy everything into our new scenario buffer */
@@ -3229,44 +3722,36 @@ int compare(const void *a, const void *b)
 		if (debug) CSLog(@"Saving %d", index);
 		switch (index)
 		{
-			case 7: // Scenery spawns
+                case 3: // Scenery spawns
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * SCENERY_SPAWN_CHUNK);
-                    
-                    if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
-					memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_spawns[n],SCENERY_SPAWN_CHUNK);
-				}
+            {
+                bufIndex = (n * SCENERY_SPAWN_CHUNK);
+                memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_spawns[n],SCENERY_SPAWN_CHUNK);
+            }
 				break;
-			case 8: // Scenery ref
+                case 4: // Scenery ref
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * SCENERY_REF_CHUNK);
-                    
-                    if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
-					memcpy(&newScnr[tmpReflex->offset +  bufIndex],&scen_references[n],SCENERY_REF_CHUNK);
-					//insertMemory([RenderView ID], [_mapfile magic] + &newScnr[tmpReflex->offset + bufIndex], &scen_references[n], SCENERY_REF_CHUNK);
-				}
+            {
+                bufIndex = (n * SCENERY_REF_CHUNK);
+                memcpy(&newScnr[tmpReflex->offset +  bufIndex],&scen_references[n],SCENERY_REF_CHUNK);
+                //insertMemory([RenderView ID], [_mapfile magic] + &newScnr[tmpReflex->offset + bufIndex], &scen_references[n], SCENERY_REF_CHUNK);
+            }
 				break;
-			case 11: // vehicle spawns
+                case 7: // vehicle spawns
                 if (debug) CSLog(@"Vehicle spawns  %x", tmpReflex->offset);
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * VEHICLE_SPAWN_CHUNK);
-                    
-                    if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
-					memcpy(&newScnr[tmpReflex->offset + bufIndex], &vehi_spawns[n], VEHICLE_SPAWN_CHUNK);
-				}
+            {
+                bufIndex = (n * VEHICLE_SPAWN_CHUNK);
+                memcpy(&newScnr[tmpReflex->offset + bufIndex], &vehi_spawns[n], VEHICLE_SPAWN_CHUNK);
+            }
 				break;
-			case 12: // Vehicle ref
+                case 8: // Vehicle ref
                 if (debug) CSLog(@"Vehicle refs  %x", tmpReflex->offset);
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * VEHICLE_REF_CHUNK);
-                    
-                    if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
-					memcpy(&newScnr[tmpReflex->offset +  bufIndex],&vehi_references[n],VEHICLE_REF_CHUNK);
-				}
+            {
+                bufIndex = (n * VEHICLE_REF_CHUNK);
+                memcpy(&newScnr[tmpReflex->offset +  bufIndex],&vehi_references[n],VEHICLE_REF_CHUNK);
+            }
 				break;
                 /*
                  case 13: // Device groups
@@ -3304,148 +3789,87 @@ int compare(const void *a, const void *b)
                  }
                  break;
                  */
-			case 34: // spawns
+                case 30: // spawns
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * PLAYER_SPAWN_CHUNK);
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&spawns[n].team_index;
-						*hack = EndianSwap32(*hack);
-						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
-						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
-						hack = (int32_t *)&spawns[n].type1;
-						*hack = EndianSwap32(*hack);
-						spawns[n].type1 = EndianSwap16(spawns[n].type1);
-						spawns[n].type2 = EndianSwap16(spawns[n].type2);
-						hack = (int32_t *)&spawns[n].type3;
-						spawns[n].type3 = EndianSwap16(spawns[n].type3);
-						spawns[n].type4 = EndianSwap16(spawns[n].type4);
-					}
-                    
-                    if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
-                        memcpy(&newScnr[tmpReflex->offset + bufIndex], &spawns[n], PLAYER_SPAWN_CHUNK);
-                    
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&spawns[n].team_index;
-						*hack = EndianSwap32(*hack);
-						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
-						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
-						hack = (int32_t *)&spawns[n].type1;
-						*hack = EndianSwap32(*hack);
-						spawns[n].type1 = EndianSwap16(spawns[n].type1);
-						spawns[n].type2 = EndianSwap16(spawns[n].type2);
-						hack = (int32_t *)&spawns[n].type3;
-						spawns[n].type3 = EndianSwap16(spawns[n].type3);
-						spawns[n].type4 = EndianSwap16(spawns[n].type4);
-					}
-				}
+            {
+                bufIndex = (n * PLAYER_SPAWN_CHUNK);
+                
+                memcpy(&newScnr[tmpReflex->offset + bufIndex], &spawns[n], PLAYER_SPAWN_CHUNK);
+                
+            }
 				break;
-			case 37: // Netgame Flags
+                case 33: // Netgame Flags
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * MP_FLAGS_CHUNK);
-					
-					if ([_mapfile isPPC])
-					{
-						// Flip the byte order
-						hack = (int32_t *)&mp_flags[n].type;
-						*hack = EndianSwap32(*hack);
-						mp_flags[n].type = EndianSwap16(mp_flags[n].type);
-						mp_flags[n].team_index = EndianSwap16(mp_flags[n].team_index);
-					}
-					
-                    if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
-                        memcpy(&newScnr[tmpReflex->offset + bufIndex], &mp_flags[n], MP_FLAGS_CHUNK);
-					
-					if ([_mapfile isPPC])
-					{
-						mp_flags[n].type = EndianSwap16(mp_flags[n].type);
-						mp_flags[n].team_index = EndianSwap16(mp_flags[n].team_index);
-						*hack = EndianSwap32(*hack);
-					}
-				}
+            {
+                bufIndex = (n * MP_FLAGS_CHUNK);
+                
+                
+                
+                memcpy(&newScnr[tmpReflex->offset + bufIndex], &mp_flags[n], MP_FLAGS_CHUNK);
+                
+            }
 				break;
-			case 38: // MpEquip
+                case 34: // MpEquip
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * MP_EQUIP_CHUNK);
-                    
-					memcpy(&newScnr[tmpReflex->offset + bufIndex], &item_spawns[n], MP_EQUIP_CHUNK);
-				}
+            {
+                bufIndex = (n * MP_EQUIP_CHUNK);
+                
+                memcpy(&newScnr[tmpReflex->offset + bufIndex], &item_spawns[n], MP_EQUIP_CHUNK);
+            }
 				break;
+                /*case 48: // encounters
+                 for (n = 0; n < tmpReflex->chunkcount; n++)
+                 {
+                 //Fix up our starting locations reference
+                 bufIndex = (n * ENCOUNTER_CHUNK);
+                 memcpy(&newScnr[tmpReflex->offset + bufIndex], &encounters[n], ENCOUNTER_CHUNK);
+                 }
+                 break;*/
 			default:
 				if (i < (x - 1))
-                {
-                    if (debug) CSLog(@"Moar patching  %x %x %d", tmpReflex->offset, tmpReflex->oldOffset, (nextReflex->offset - tmpReflex->offset));
-                    if (tmpReflex->chunkcount > 0 && tmpReflex->zero == 0)
-                        memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
-                }
+            {
+                if (debug) CSLog(@"Moar patching  %x %x %d", tmpReflex->offset, tmpReflex->oldOffset, (nextReflex->offset - tmpReflex->offset));
+                memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
+                
+            }
                 else
-				{
-                    //memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
-                    
-                    /*
-                    if (singlePlayer)
+            {
+                //memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
+                
+                if (singlePlayer)
+                {
+                    if (debug) CSLog(@"BREAKING THE MAP HERE %x %x", tmpReflex->offset, tmpReflex->oldOffset);
+                    // Copy the rest foo
+					do
                     {
-                        if (debug) CSLog(@"BREAKING THE MAP HERE %x %x", tmpReflex->offset, tmpReflex->oldOffset);
-                        // Copy the rest foo
-                        do
+                        
+                        
+                        // Copy 4 bytes at a time
+                        memcpy(&cacashit, &scnr[tmpReflex->oldOffset + (4 * posCounter)], 4);
+                        if (cacashit != 0xCACACACA || cacashit != 0x0000CACA)
+                        memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter)], 4);
+                        else
                         {
-                            
-                            
-                            // Copy 4 bytes at a time
-                            memcpy(&cacashit, &scnr[tmpReflex->oldOffset + (4 * posCounter)], 4);
-                            if (cacashit != 0xCACACACA || cacashit != 0x0000CACA)
-                                memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter)], 4);
-                            else
-                            {
-                                CSLog(@"Hit CACA");
-                                break;
-                            }
-                            
-                            posCounter += 1;
-                            
-                            
-                        } while ((posCounter * 4) < ([self tagLength] - tmpReflex->offset));
+                            CSLog(@"Hit CACA");
+                            break;
+                        }
                         
-                        CSLog(@"Expired at %x %x", (tmpReflex->offset + (4 * posCounter)), (tmpReflex->oldOffset + (4 * posCounter)));
+                        posCounter += 1;
                         
-                        //Maybe this is the script stuff
-                        memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter) + sizeChange], ([self tagLength] - ( (4 * posCounter) + tmpReflex->offset)));
                         
-                    }
-                     */
-					
-				}
+                    } while ((posCounter * 4) < ([self tagLength] - tmpReflex->offset));
+                    
+                    CSLog(@"Expired at %x %x", (tmpReflex->offset + (4 * posCounter)), (tmpReflex->oldOffset + (4 * posCounter)));
+                    
+                    //Maybe this is the script stuff
+                    memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter) + sizeChange], ([self tagLength] - ( (4 * posCounter) + tmpReflex->offset)));
+                    
+                }
+                
+            }
 				break;
 		}
 	}
-    
-    //Insert the random data between reflexives
-    //header.ScriptDataSize
-    //header.Unknown4
-    //header.Unk1
-    //header.Unk2
-    //header.Unk3
-
-    /*
-    reflexive *scriptcrap = (reflexive *)_reflexLookup[54];
-    memcpy(&newScnr[(scriptcrap->offset - 8)], &header.ScriptDataSize, 4);
-    memcpy(&newScnr[(scriptcrap->offset - 4)], &header.Unknown4, 4);
-    
-    reflexive *commands = (reflexive *)_reflexLookup[55];
-    memcpy(&newScnr[(scriptcrap->offset - 8)], &header.Unk1, 8);
-    
-    reflexive *AiRecordingRefs = (reflexive *)_reflexLookup[59];
-    memcpy(&newScnr[(AiRecordingRefs->offset - 0x24)], &header.Unk2, 0x24);
-    */
-    
-    //reflexive *Lines = (reflexive *)_reflexLookup[62];
-    //memcpy(&newScnr[(Lines->offset - 0x24)], &header.Unk3, 0x24);
-    
-    
     
     /*
      if (_largerScenario)
@@ -3496,9 +3920,7 @@ int compare(const void *a, const void *b)
     if (debug) 	CSLog(@"Writing data...");
 	/* Consistency write! */
 	// This writes the last few hundred bytes, whatever it is, thats beyond the 0xCACACACA crap. This also ensures that the bsp data won't be corrupted.
-	
-    //Don't write this.
-    tmpReflex = (reflexive *)_reflexLookup[OffsetTable[x-1] % 1000];
+	tmpReflex = (reflexive *)_reflexLookup[OffsetTable[x-1] % 1000];
 	memcpy(&newScnr[tmpReflex->offset],&scnr[tmpReflex->oldOffset],(([self tagLength] - tmpReflex->offset) - (header.StructBsp.chunkcount * 0x20)));
 	
 #ifdef __DEBUG__
@@ -3517,549 +3939,6 @@ int compare(const void *a, const void *b)
      tmpReflex->offset = tmpReflex->oldOffset;
      }
      */
-	
-	if (debug) CSLog(@"Destroying old scenaro...");
-	/* Destroy the old scenario */
-	free(scnr);
-	
-	if (debug) CSLog(@"Creating new scenario...");
-	/* Set the scenario pointer to the new scenario */
-    
-    tagLength+=ADDITIONAL_SCENARIO_SPACE;
-	scnr = (char *)newScnr;
-    
-    //Update the old offsets
-    /* Update all the scenario header reflexives */
-	for (i = 0; i < x; i++)
-	{
-		if (debug) CSLog(@"Updating reflexive again %d", i);
-		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
-		tmpReflex->oldOffset = tmpReflex->offset;
-	}
-	if (debug) CSLog(@"Reflexives completed");
-	
-	mapMagic = [_mapfile getMagic];
-    
-}
-
-#else
-- (void)rebuildScenario
-{
-    int itemtagLength = 32;
-    int newTags = 10;
-    int dataLength = newTags*itemtagLength;
-    
-    
-	int debug = 0;
-	int i, x, n,
-	sizeChange = 0,
-	index, 
-	realReflexives = 0,
-	bufIndex,
-	posCounter = 0;
-	char	*newScnr;
-    int32_t	negativeOffset;
-    uint32_t cacashit,
-	*hack;
-	
-    bool singlePlayer = false;
-    
-	reflexive *tmpReflex, *nextReflex, *areflex;
-	
-	newScnr = (char *)malloc([self tagLength]);
-	memset(newScnr,0,[self tagLength]);
-	
-	negativeOffset = (0 - ([_mapfile magic] + [self offsetInMap]));
-	
-	if (device_group_count < 50)
-	{
-		//Add two device groups for the hell of it
-        //for(i=0; i <50; i++)
-        //    [self createDeviceGroup];
-	}
-	
-    //Fix the reflexive offset
-    
-    CSLog(@"UPDATING REFLEXIVE OFFSETS");
-    CSLog(@"ADDING %ld to OFFSETS", (mapMagic-[_mapfile magic]));
-    for (i = 0; i < REFLEXIVE_COUNT; i++)
-	{
-		tmpReflex = (reflexive *)_reflexLookup[i];
-        tmpReflex->offset+=(mapMagic-[_mapfile magic]);
-    }
-    
-	/* See how many reflexives are actually in use here */
-	for (i = 0; i < REFLEXIVE_COUNT; i++)
-	{
-		tmpReflex = (reflexive *)_reflexLookup[i];
-		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset))
-			realReflexives++;
-		else if (tmpReflex->refNumber==15 && mach_ref_count)
-			realReflexives++;
-		else if (tmpReflex->refNumber==14 && mach_spawn_count )
-			realReflexives++;
-		else if (tmpReflex->refNumber==13 && device_group_count)
-			realReflexives++;
-	} 
-	
-	int OffsetTable[realReflexives];
-	x = 0;
-	
-	for (i = 0; i < REFLEXIVE_COUNT; i++)
-	{
-		tmpReflex = (reflexive *)_reflexLookup[i];
-		if (debug) CSLog(@"REF %d", tmpReflex->refNumber);
-
-		if ((tmpReflex->offset > 0) && (tmpReflex->offset < [self tagLength]) && (tmpReflex->offset != negativeOffset))
-		{
-			OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
-			x++;
-		}
-		else if (tmpReflex->refNumber==15 && mach_ref_count)
-		{
-            if (!singlePlayer)
-            {
-			//Find the last offset
-			int largest_offset = 0;
-			int largest_index = 0;
-			int a;
-			for (a=0;a<15;a++)
-			{
-				areflex = (reflexive *)_reflexLookup[a];
-				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
-				{
-					if (areflex->offset > largest_offset)
-					{
-						largest_offset = areflex->offset;
-						largest_index = a;
-					}
-				}
-			}
-            tmpReflex->newChunkCount=mach_ref_count;
-            tmpReflex->chunkSize=MACHINE_REF_CHUNK;
-            
-			reflexive *scenery = (reflexive *)_reflexLookup[largest_index];
-			
-			int increment_offset = scenery->newChunkCount * scenery->chunkSize;
-			if (mach_ref_count)
-				increment_offset+=mach_ref_count*MACHINE_REF_CHUNK;
-			
-			int increment_offset2 = mach_ref_count*MACHINE_REF_CHUNK;
-			tmpReflex->offset= scenery->offset + increment_offset;
-			
-			tmpReflex->chunkcount=0;
-			tmpReflex->newChunkCount=mach_ref_count;
-			
-			for (a=16;a<REFLEXIVE_COUNT;a++)
-			{
-				areflex = (reflexive *)_reflexLookup[a];
-				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
-				{
-					areflex->offset+=increment_offset2;
-					_reflexLookup[a] = (reflexive *)areflex;
-				}
-			}
-			_reflexLookup[15]=(reflexive *)tmpReflex;
-			
-			OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
-			x++;
-            }
-		}
-		else if (tmpReflex->refNumber==14 && mach_spawn_count)
-		{
-			if (!singlePlayer)
-            {
-			//Find the last offset
-			int largest_offset = 0;
-			int largest_index = 0;
-			int a;
-			for (a=0;a<14;a++)
-			{
-				areflex = (reflexive *)_reflexLookup[a];
-				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
-				{
-					if (areflex->offset > largest_offset)
-					{
-						largest_offset = areflex->offset;
-						largest_index = a;
-					}
-				}
-			}
-            tmpReflex->newChunkCount=mach_spawn_count;
-            tmpReflex->chunkSize=MACHINE_CHUNK;
-            
-			reflexive *scenery = (reflexive *)_reflexLookup[largest_index];
-			int increment_offset = scenery->newChunkCount*scenery->chunkSize;
-			int increment_offset2 = mach_spawn_count*MACHINE_CHUNK;
-			tmpReflex->offset=scenery->offset+increment_offset;
-			
-			tmpReflex->chunkcount=0;
-			
-			for (a=15;a<REFLEXIVE_COUNT;a++)
-			{
-				areflex = (reflexive *)_reflexLookup[a];
-				if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
-				{
-					areflex->offset+=increment_offset2;
-					_reflexLookup[a] = (reflexive *)areflex;
-				}
-			}
-			_reflexLookup[14]=(reflexive *)tmpReflex;
-			
-			OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
-			x++;
-            }
-		}
-		else if (tmpReflex->refNumber==13 && device_group_count)
-		{
-            if (!singlePlayer)
-            {
-                //continue; //Lets not.
-                
-                //Lets add a device group for fun!
-                int largest_offset = 0;
-                int largest_index = 0;
-                int a;
-                for (a=0;a<13;a++)
-                {
-                    areflex = (reflexive *)_reflexLookup[a];
-                    if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
-                    {
-                        if (areflex->offset > largest_offset)
-                        {
-                            largest_offset = areflex->offset;
-                            largest_index = a;
-                        }
-                    }
-                }
-                
-                tmpReflex->newChunkCount=device_group_count;
-                tmpReflex->chunkSize=DEVICE_CHUNK;
-                
-                
-                reflexive *scenery = (reflexive *)_reflexLookup[largest_index];
-                int increment_offset = scenery->newChunkCount*scenery->chunkSize;
-                int increment_offset2 = tmpReflex->newChunkCount*DEVICE_CHUNK;
-                tmpReflex->offset=scenery->offset+increment_offset;
-                tmpReflex->chunkcount=0;
-                
-                for (a=14;a<REFLEXIVE_COUNT;a++)
-                {
-                    areflex = (reflexive *)_reflexLookup[a];
-                    if ((areflex->offset > 0) && (areflex->offset < [self tagLength]) && (areflex->offset != negativeOffset))
-                    {
-                        areflex->offset+=increment_offset2;
-                        _reflexLookup[a] = (reflexive *)areflex;
-                    }
-                }
-                _reflexLookup[13]=(reflexive *)tmpReflex;
-                
-                OffsetTable[x] = ((tmpReflex->offset * 1000) + i);
-                x++;
-            }
-		}
-	}
-	if (debug) CSLog(@"END");
-	
-	/* Ok, we have all of the working reflexives, lets sort shit */
-	qsort(OffsetTable, x, sizeof(int), compare);
-	
-	if (debug) CSLog(@"1");
-	/* Now that this is done, lets update our reflexive offsets */
-	for (i = 0; i < x; i++)
-	{
-		if (debug) CSLog(@"BLAH %d", i);
-		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
-		index = (int)(OffsetTable[i] % 1000);
-		if (debug) CSLog(@"Saving %d", index);
-		//if (i == (x - 1))
-		//	break; // Last reflexive - leave it alone. We need this for the BSP data.
-		if (debug) CSLog(@"NEXT1");
-		
-		tmpReflex->offset += sizeChange;
-		if (debug) CSLog(@"NEXT2");
-		if (tmpReflex->chunkcount != tmpReflex->newChunkCount)
-		{
-			if (debug) CSLog(@"NEXT3 %d", tmpReflex->chunkSize);
-			sizeChange += ((tmpReflex->newChunkCount - tmpReflex->chunkcount) * tmpReflex->chunkSize);
-			if (debug) CSLog(@"NEXT4");
-			tmpReflex->chunkcount = tmpReflex->newChunkCount;
-		}
-		
-	}
-	if (debug) CSLog(@"1EE");
-	/* Ok, thats all sorted out. Now lets copy everything into our new scenario buffer */
-	int offset_buff=0;
-	for (i = 0; i < x; i++)
-	{
-		if (debug) CSLog(@"Searching %d", i);
-		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
-		if (!tmpReflex)
-		{
-			continue;
-		}
-		
-		nextReflex = (reflexive *)_reflexLookup[OffsetTable[i+1] % 1000];
-		index = (int)(OffsetTable[i] % 1000);
-		if (debug) CSLog(@"Saving %d", index);
-		switch (index)
-		{
-			case 3: // Scenery spawns
-				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * SCENERY_SPAWN_CHUNK);
-					memcpy(&newScnr[tmpReflex->offset + bufIndex],&scen_spawns[n],SCENERY_SPAWN_CHUNK);
-				}
-				break;
-			case 4: // Scenery ref
-				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * SCENERY_REF_CHUNK);
-					memcpy(&newScnr[tmpReflex->offset +  bufIndex],&scen_references[n],SCENERY_REF_CHUNK);
-					//insertMemory([RenderView ID], [_mapfile magic] + &newScnr[tmpReflex->offset + bufIndex], &scen_references[n], SCENERY_REF_CHUNK);
-				}
-				break;
-			case 7: // vehicle spawns
-                if (debug) CSLog(@"Vehicle spawns  %x", tmpReflex->offset);
-				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * VEHICLE_SPAWN_CHUNK);
-					memcpy(&newScnr[tmpReflex->offset + bufIndex], &vehi_spawns[n], VEHICLE_SPAWN_CHUNK);
-				}
-				break;
-			case 8: // Vehicle ref
-                if (debug) CSLog(@"Vehicle refs  %x", tmpReflex->offset);
-				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * VEHICLE_REF_CHUNK);
-					memcpy(&newScnr[tmpReflex->offset +  bufIndex],&vehi_references[n],VEHICLE_REF_CHUNK);
-				}
-				break;
-        /*
-			case 13: // Device groups
-                    if (debug) CSLog(@"device group! %d", header.DeviceGroups.chunkcount);
-                    if (debug) CSLog(@"Number of groups is %d", tmpReflex->chunkcount);
-                    for (n = 0; n < device_group_count; n++)
-                    {
-                        if (debug) CSLog(@"Creating device group numbered %d", n);
-                        
-                        bufIndex = (n * DEVICE_CHUNK);
-                        device_groups[n].initial_value = 1;
-                        memcpy(&newScnr[tmpReflex->offset + bufIndex], &device_groups[n], DEVICE_CHUNK);
-                    }
-                    break;
-			case 14: // Machines
-                    if (debug) CSLog(@"MACHINE!");
-                    for (n = 0; n < tmpReflex->chunkcount; n++)
-                    {
-                        if (debug) CSLog(@"Creating machine numbered %d %d", n, mach_spawns[n].positionGroup);
-                        
-                        bufIndex = (n * MACHINE_CHUNK);
-                        memcpy(&newScnr[tmpReflex->offset + bufIndex], &mach_spawns[n], MACHINE_CHUNK);
-                    }
-                    break;
-                case 15: // Machine ref
-                    
-                        for (n = 0; n < mach_ref_count; n++)
-                        {
-                            if (debug) CSLog(@"Saving machine ref  %d", n);
-                            
-                            bufIndex = (n * MACHINE_REF_CHUNK);
-                            memcpy(&newScnr[tmpReflex->offset +  bufIndex], &mach_references[n],MACHINE_REF_CHUNK);
-                            
-                            if (debug) CSLog(@"Machine ref created!");
-                        }
-                        break;
-            */
-			case 30: // spawns
-				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * PLAYER_SPAWN_CHUNK);
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&spawns[n].team_index;
-						*hack = EndianSwap32(*hack);
-						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
-						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
-						hack = (int32_t *)&spawns[n].type1;
-						*hack = EndianSwap32(*hack);
-						spawns[n].type1 = EndianSwap16(spawns[n].type1);
-						spawns[n].type2 = EndianSwap16(spawns[n].type2);
-						hack = (int32_t *)&spawns[n].type3;
-						spawns[n].type3 = EndianSwap16(spawns[n].type3);
-						spawns[n].type4 = EndianSwap16(spawns[n].type4);
-					}
-					memcpy(&newScnr[tmpReflex->offset + bufIndex], &spawns[n], PLAYER_SPAWN_CHUNK);
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&spawns[n].team_index;
-						*hack = EndianSwap32(*hack);
-						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
-						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
-						hack = (int32_t *)&spawns[n].type1;
-						*hack = EndianSwap32(*hack);
-						spawns[n].type1 = EndianSwap16(spawns[n].type1);
-						spawns[n].type2 = EndianSwap16(spawns[n].type2);
-						hack = (int32_t *)&spawns[n].type3;
-						spawns[n].type3 = EndianSwap16(spawns[n].type3);
-						spawns[n].type4 = EndianSwap16(spawns[n].type4);
-					}
-				}
-				break;
-			case 33: // Netgame Flags
-				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * MP_FLAGS_CHUNK);
-					
-					if ([_mapfile isPPC])
-					{
-						// Flip the byte order
-						hack = (int32_t *)&mp_flags[n].type;
-						*hack = EndianSwap32(*hack);
-						mp_flags[n].type = EndianSwap16(mp_flags[n].type);
-						mp_flags[n].team_index = EndianSwap16(mp_flags[n].team_index);
-					}
-					
-					memcpy(&newScnr[tmpReflex->offset + bufIndex], &mp_flags[n], MP_FLAGS_CHUNK);
-					
-					if ([_mapfile isPPC])
-					{
-						mp_flags[n].type = EndianSwap16(mp_flags[n].type);
-						mp_flags[n].team_index = EndianSwap16(mp_flags[n].team_index);
-						*hack = EndianSwap32(*hack);
-					}
-				}
-				break;
-			case 34: // MpEquip
-				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * MP_EQUIP_CHUNK);
-		
-					memcpy(&newScnr[tmpReflex->offset + bufIndex], &item_spawns[n], MP_EQUIP_CHUNK);
-				}
-				break;
-			/*case 48: // encounters
-				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					//Fix up our starting locations reference
-					bufIndex = (n * ENCOUNTER_CHUNK);
-					memcpy(&newScnr[tmpReflex->offset + bufIndex], &encounters[n], ENCOUNTER_CHUNK);
-				}
-				break;*/
-			default:
-				if (i < (x - 1))
-                {
-                    if (debug) CSLog(@"Moar patching  %x %x %d", tmpReflex->offset, tmpReflex->oldOffset, (nextReflex->offset - tmpReflex->offset));
-					memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
-                    
-                }
-                else
-				{
-                    //memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
-                    
-                   if (singlePlayer)
-                   {
-                     if (debug) CSLog(@"BREAKING THE MAP HERE %x %x", tmpReflex->offset, tmpReflex->oldOffset);
-                    // Copy the rest foo
-					do
-                    {
-                         
-  
-                         // Copy 4 bytes at a time
-                         memcpy(&cacashit, &scnr[tmpReflex->oldOffset + (4 * posCounter)], 4);
-                         if (cacashit != 0xCACACACA || cacashit != 0x0000CACA)
-                             memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter)], 4);
-                         else
-                         {
-                             CSLog(@"Hit CACA");
-                             break;
-                         }
-                        
-                         posCounter += 1;
-                        
-                         
-                    } while ((posCounter * 4) < ([self tagLength] - tmpReflex->offset));
-                    
-                    CSLog(@"Expired at %x %x", (tmpReflex->offset + (4 * posCounter)), (tmpReflex->oldOffset + (4 * posCounter)));
-                    
-                    //Maybe this is the script stuff
-					 memcpy(&newScnr[tmpReflex->offset + (4 * posCounter)], &scnr[tmpReflex->oldOffset + (4 * posCounter) + sizeChange], ([self tagLength] - ( (4 * posCounter) + tmpReflex->offset)));
-                     
-                   }
-					
-				}
-				break;	
-		}
-	}
-    
-    /*
-    if (_largerScenario)
-	{
-		
-	}
-	else
-	{
-		// The size of the scenario does not need to be enlarged.
-		
-		// Copy all of the script data first
-		memcpy(newScnr[header.ScriptCrap.offset], scnr[header.ScriptCrap.oldOffset], header.ScriptDataSize);
-		
-		// Now copy over all of the rest
-		// This is in EXACTLY the same place, so were using the old offset when copying data.
-		memcpy(newScnr[_endOfScriptDataOffset], scnr[_endOfScriptDataOffset], _endOfScriptDataLength);
-	}
-	*/
-    
-	if (debug) CSLog(@"Mid-map contstruction complete. Create the header");
-	/* Construct the scenario header */
-	memcpy(newScnr,scnr,0x5B0);
-	if (debug) CSLog(@"Header copied.");
-	
-	/* Update all the scenario header reflexives */
-	for (i = 0; i < x; i++)
-	{
-		if (debug)CSLog(@"Updating reflexive %d", i);
-		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
-		if (debug)CSLog(@"1");
-		tmpReflex->offset += ([self offsetInMap] + [_mapfile magic]);
-		if (debug)CSLog(@"2");
-		memcpy(&newScnr[tmpReflex->location_in_mapfile], &tmpReflex->chunkcount, 4);
-		if (debug)CSLog(@"3");
-		memcpy(&newScnr[tmpReflex->location_in_mapfile+4], &tmpReflex->offset, 4);
-		if (debug)CSLog(@"4");
-		memcpy(&newScnr[tmpReflex->location_in_mapfile+8], &tmpReflex->zero, 4);
-		if (debug)CSLog(@"5");
-		tmpReflex->offset -= ([self offsetInMap] + [_mapfile magic]);
-	}
-	if (debug) CSLog(@"Reflexives completed");
-	
-	
-#ifdef __DEBUG__
-	CSLog(@"Address of bsp offset: 0x%x", (header.StructBsp.offset - resolvedOffset));
-#endif
-	
-if (debug) 	CSLog(@"Writing data...");
-	/* Consistency write! */
-	// This writes the last few hundred bytes, whatever it is, thats beyond the 0xCACACACA crap. This also ensures that the bsp data won't be corrupted.
-	tmpReflex = (reflexive *)_reflexLookup[OffsetTable[x-1] % 1000];
-	memcpy(&newScnr[tmpReflex->offset],&scnr[tmpReflex->oldOffset],(([self tagLength] - tmpReflex->offset) - (header.StructBsp.chunkcount * 0x20)));
-	
-#ifdef __DEBUG__
-	CSLog(@"Final reflexive data: [offset][0x%x] :: [chunkcount][%d]", tmpReflex->offset, tmpReflex->chunkcount);
-#endif
-	
-if (debug) CSLog(@"Writing bsp...");
-	memcpy(&newScnr[header.StructBsp.offset - resolvedOffset],&scnr[header.StructBsp.offset - resolvedOffset],(0x20 * header.StructBsp.chunkcount));
-	/* End consistency write! */
-	
-    /*
-	if (debug) CSLog(@"Adjusting offsets...");
-	for (i = 0; i < x; i++)
-	{
-		tmpReflex = (reflexive *)_reflexLookup[OffsetTable[i] % 1000];
-		tmpReflex->offset = tmpReflex->oldOffset;
-	}
-    */
 	
 	if (debug) CSLog(@"Destroying old scenaro...");
 	/* Destroy the old scenario */
@@ -4088,62 +3967,61 @@ if (debug) CSLog(@"Writing bsp...");
 {
 	int x, n, index, bufIndex;
 	reflexive	*tmpReflex,
-				*nextReflex;
-	int32_t *hack;
+    *nextReflex;
 	char *oldScenario;
 	
 	/*
-		To begin with, we already have a sorted array of all of the reflexives that are in use.
-		How do we construct the scenario with this I ask?
-	*/
+     To begin with, we already have a sorted array of all of the reflexives that are in use.
+     How do we construct the scenario with this I ask?
+     */
 	[self findActiveReflexives];
 	[self calculateRawBufferLength];
 	[self calculateSizeChange];
 	[self buildChunkSizes];
 	[self updateReflexiveOffsets];
 	
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	[self dumpReflexiveOffsets];
-	#endif
+#endif
 	
 	/*
-		Lets create our new scenario
-	*/
+     Lets create our new scenario
+     */
 	oldScenario = (char *)scnr;
 	scnr = NULL;
 	
 	if ((_bufferSize - _totalSizeChange) < 0)
 	{
-		#ifdef __DEBUG__
+#ifdef __DEBUG__
 		CSLog(@"_totalSizeChange::[0x%x]", _totalSizeChange);
 		CSLog(@"_bufferSize::[0x%x]", _bufferSize);
 		CSLog(@"_activeScriptSize::[0x%x]", _activeScriptSize);
-		#endif
+#endif
 		// We've run out of buffer.
 		// Lets create a larger urrrrverything
-		#ifdef __DEBUG__
+#ifdef __DEBUG__
 		CSLog(@"We've run out of bufferssssszzz!!11");
-		#endif
+#endif
 		tagLength = ([self tagLength] + _totalSizeChange);
 		_largerScenario = TRUE;
 	}
 	
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	if (_largerScenario)
-		CSLog(@"Larger scenario!");
-	#endif
+    CSLog(@"Larger scenario!");
+#endif
 	
 	scnr = (char *)malloc([self tagLength]);
 	memset(scnr,0,[self tagLength]);
 	
 	/*
-		Before I can do more with scripts, I've got to talk with conure about how they're structured.
-	*/
+     Before I can do more with scripts, I've got to talk with conure about how they're structured.
+     */
 	
 	
 	/*
-		Now we copy all of the spawn object data over to the new scenario
-	*/
+     Now we copy all of the spawn object data over to the new scenario
+     */
 	for (x = 0; x < _activeReflexCounter; x++)
 	{
 		tmpReflex = (reflexive *)_reflexLookup[ _activeReflexives[x] % 1000 ];
@@ -4152,156 +4030,81 @@ if (debug) CSLog(@"Writing bsp...");
 		
 		switch (index)
 		{
-			case 3: // Scenery spawns
+                case 3: // Scenery spawns
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * tmpReflex->chunkSize);
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&scen_spawns[n];
-						*hack = EndianSwap32(*hack);
-						scen_spawns[n].flag = EndianSwap16(scen_spawns[n].flag);
-						scen_spawns[n].numid = EndianSwap16(scen_spawns[n].numid);
-						hack = (int32_t *)&scen_spawns[n].not_placed;
-						*hack = EndianSwap32(*hack);
-						scen_spawns[n].not_placed = EndianSwap16(scen_spawns[n].not_placed);
-						scen_spawns[n].desired_permutation = EndianSwap16(scen_spawns[n].desired_permutation);
-					}
-					memcpy(&scnr[tmpReflex->offset + bufIndex],&scen_spawns[n],tmpReflex->chunkSize);
-					if ([_mapfile isPPC])
-					{
-						*hack = EndianSwap32(*hack);
-						scen_spawns[n].not_placed = EndianSwap16(scen_spawns[n].not_placed);
-						scen_spawns[n].desired_permutation = EndianSwap16(scen_spawns[n].desired_permutation);
-						hack = (int32_t *)&scen_spawns[n];
-						*hack = EndianSwap32(*hack);
-						scen_spawns[n].flag = EndianSwap16(scen_spawns[n].flag);
-						scen_spawns[n].numid = EndianSwap16(scen_spawns[n].numid);
-					}
-				}
+            {
+                bufIndex = (n * tmpReflex->chunkSize);
+                
+                memcpy(&scnr[tmpReflex->offset + bufIndex],&scen_spawns[n],tmpReflex->chunkSize);
+                
+            }
 				break;
-			case 4:	// Scenery ref
+                case 4:	// Scenery ref
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * tmpReflex->chunkSize);
-					memcpy(&scnr[tmpReflex->offset + bufIndex],&scen_references[n],tmpReflex->chunkSize);
-				}
+            {
+                bufIndex = (n * tmpReflex->chunkSize);
+                memcpy(&scnr[tmpReflex->offset + bufIndex],&scen_references[n],tmpReflex->chunkSize);
+            }
 				break;
-			case 7:	// Vehicle spawns
+                case 7:	// Vehicle spawns
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * tmpReflex->chunkSize);
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&vehi_spawns[n];
-						*hack = EndianSwap32(*hack);
-						vehi_spawns[n].flag = EndianSwap16(vehi_spawns[n].flag);
-						vehi_spawns[n].numid = EndianSwap16(vehi_spawns[n].numid);
-						hack = (int32_t *)&vehi_spawns[n].not_placed;
-						*hack = EndianSwap32(*hack);
-						vehi_spawns[n].not_placed = EndianSwap16(vehi_spawns[n].not_placed);
-						vehi_spawns[n].desired_permutation = EndianSwap16(vehi_spawns[n].desired_permutation);
-					}
-					memcpy(&scnr[tmpReflex->offset + bufIndex], &vehi_spawns[n], tmpReflex->chunkSize);
-					if ([_mapfile isPPC])
-					{
-						*hack = EndianSwap32(*hack);
-						scen_spawns[n].not_placed = EndianSwap16(scen_spawns[n].not_placed);
-						scen_spawns[n].desired_permutation = EndianSwap16(scen_spawns[n].desired_permutation);
-						hack = (int32_t *)&vehi_spawns[n];
-						*hack = EndianSwap32(*hack);
-						vehi_spawns[n].flag = EndianSwap16(vehi_spawns[n].flag);
-						vehi_spawns[n].numid = EndianSwap16(vehi_spawns[n].numid);
-					}
-				}
+            {
+                bufIndex = (n * tmpReflex->chunkSize);
+                
+                memcpy(&scnr[tmpReflex->offset + bufIndex], &vehi_spawns[n], tmpReflex->chunkSize);
+                
+            }
 				break;
-			case 30: // Spawns
+                case 30: // Spawns
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * tmpReflex->chunkSize);
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&spawns[n].team_index;
-						*hack = EndianSwap32(*hack);
-						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
-						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
-						hack = (int32_t *)&spawns[n].type1;
-						*hack = EndianSwap32(*hack);
-						spawns[n].type1 = EndianSwap16(spawns[n].type1);
-						spawns[n].type2 = EndianSwap16(spawns[n].type2);
-						hack = (int32_t *)&spawns[n].type3;
-						spawns[n].type3 = EndianSwap16(spawns[n].type3);
-						spawns[n].type4 = EndianSwap16(spawns[n].type4);
-					}
-					memcpy(&scnr[tmpReflex->offset + bufIndex], &spawns[n], tmpReflex->chunkSize);
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&spawns[n].team_index;
-						*hack = EndianSwap32(*hack);
-						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
-						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
-						hack = (int32_t *)&spawns[n].type1;
-						*hack = EndianSwap32(*hack);
-						spawns[n].type1 = EndianSwap16(spawns[n].type1);
-						spawns[n].type2 = EndianSwap16(spawns[n].type2);
-						hack = (int32_t *)&spawns[n].type3;
-						spawns[n].type3 = EndianSwap16(spawns[n].type3);
-						spawns[n].type4 = EndianSwap16(spawns[n].type4);
-					}
-				}
+            {
+                bufIndex = (n * tmpReflex->chunkSize);
+                
+                memcpy(&scnr[tmpReflex->offset + bufIndex], &spawns[n], tmpReflex->chunkSize);
+                
+            }
 				break;
-			case 33: // Netgame flags
+                case 33: // Netgame flags
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * tmpReflex->chunkSize);
-					if ([_mapfile isPPC])
-					{
-						hack = (int32_t *)&mp_flags[n].type;
-						*hack = EndianSwap32(*hack);
-						mp_flags[n].type = EndianSwap16(mp_flags[n].type);
-						mp_flags[n].team_index = EndianSwap16(mp_flags[n].team_index);
-					}
-					
-					memcpy(&scnr[tmpReflex->offset + bufIndex], &mp_flags[n], tmpReflex->chunkSize);
-					
-					if ([_mapfile isPPC])
-					{
-						mp_flags[n].type = EndianSwap16(mp_flags[n].type);
-						mp_flags[n].team_index = EndianSwap16(mp_flags[n].type);
-						*hack = EndianSwap32(*hack);
-					}
-				}
+            {
+                bufIndex = (n * tmpReflex->chunkSize);
+                
+                
+                memcpy(&scnr[tmpReflex->offset + bufIndex], &mp_flags[n], tmpReflex->chunkSize);
+                
+                
+            }
 				break;
-			case 34: // MpEquip
+                case 34: // MpEquip
 				for (n = 0; n < tmpReflex->chunkcount; n++)
-				{
-					bufIndex = (n * tmpReflex->chunkSize);
-					memcpy(&scnr[tmpReflex->offset + bufIndex], &item_spawns[n], tmpReflex->chunkSize);
-				}
+            {
+                bufIndex = (n * tmpReflex->chunkSize);
+                memcpy(&scnr[tmpReflex->offset + bufIndex], &item_spawns[n], tmpReflex->chunkSize);
+            }
 				break;
 			default:
 				if (x < (_activeReflexCounter - 1))
-				{
-					// Need to be sure were not copying scripts, thats up next. We shouldn't be, but hey.
-					memcpy(&scnr[tmpReflex->offset], &oldScenario[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
-				}
+            {
+                // Need to be sure were not copying scripts, thats up next. We shouldn't be, but hey.
+                memcpy(&scnr[tmpReflex->offset], &oldScenario[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
+            }
 				else
-				{
-					// Need to be sure were not copying scripts, thats up next. We shouldn't be, but hey.
-					// This thar be scripts?
-					#ifdef __DEBUG__
-					CSLog(@"Index of last active reflexive: %d", index);
-					#endif
-				}
+            {
+                // Need to be sure were not copying scripts, thats up next. We shouldn't be, but hey.
+                // This thar be scripts?
+#ifdef __DEBUG__
+                CSLog(@"Index of last active reflexive: %d", index);
+#endif
+            }
 				break;
 		}
 	}
 	
 	/*
-		Ok, so our active reflexive data EXCEPT for script data has been copied.
-		
-		Lets copy over all of our script data.
-	*/
+     Ok, so our active reflexive data EXCEPT for script data has been copied.
+     
+     Lets copy over all of our script data.
+     */
 	if (_largerScenario)
 	{
 		
@@ -4319,24 +4122,24 @@ if (debug) CSLog(@"Writing bsp...");
 	}
 	
 	/*
-		So our scenario changes are too large to be offset by the script buffer.
-		
-		Now we are going to make sure the changes necessary for a larger scenario are made.
-	*/
+     So our scenario changes are too large to be offset by the script buffer.
+     
+     Now we are going to make sure the changes necessary for a larger scenario are made.
+     */
 	
 	//if (_largerScenario)
 	//{
-		// I don't think this will work. Soo.... yeah....
+    // I don't think this will work. Soo.... yeah....
 	//	memcpy(&scnr[(header.ScriptCrap.offset + _activeScriptSize + _bufferSize)], &oldScnr[(header.ScriptCrap.oldOffset + _activeScriptSize + _bufferSize)], ([self tagLength] - (header.ScriptCrap.oldOffset + _activeScriptSize + _bufferSize));
 	//}
 	
 	/*
-		Now lets create the scenario header
-	*/
+     Now lets create the scenario header
+     */
 	memcpy(&scnr[0], &oldScenario[0], 0x5B0);
 	/*
-		Finally, lets update the scenario header
-	*/
+     Finally, lets update the scenario header
+     */
 	
 	for (x = 0; x < _activeReflexCounter; x++)
 	{
@@ -4349,24 +4152,24 @@ if (debug) CSLog(@"Writing bsp...");
 	}
 	
 	/*
-		Update the script size to account for the amount of buffer we have used.
-	*/
+     Update the script size to account for the amount of buffer we have used.
+     */
 	[self calculateRawBufferLength];
 	memcpy(&scnr[0x474], &header.ScriptDataSize, 4);
 	
 	/*
-		Now we destroy the old scenario.
-	*/
+     Now we destroy the old scenario.
+     */
 	free(oldScenario);
 	
 	/* TEST WRITE */
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	FILE *tmpFile = fopen("test.scnr","wb+");
 	
 	fwrite(scnr,[self tagLength],1,tmpFile);
 	
 	fclose(tmpFile);
-	#endif
+#endif
 }
 
 -(BOOL)saveScenarioToFile:(NSString*)filename
@@ -4382,13 +4185,13 @@ if (debug) CSLog(@"Writing bsp...");
 
 
 /*
-
-	// Lets write these changes so we can check this
-	FILE *tmpFile = fopen("test.scnr","wb+");
-	
-	fwrite(scnr,[self tagLength],1,tmpFile);
-	
-	fclose(tmpFile);
-	
-*/
+ 
+ // Lets write these changes so we can check this
+ FILE *tmpFile = fopen("test.scnr","wb+");
+ 
+ fwrite(scnr,[self tagLength],1,tmpFile);
+ 
+ fclose(tmpFile);
+ 
+ */
 @end
