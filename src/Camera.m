@@ -4,8 +4,7 @@
 @implementation Camera
 - (id)init
 {
-    NSLog(@"Init camera");
-    
+
 	if (self = [super init])
 	{
 	CVector3 vZero = NewCVector3(0.0, 0.0, 0.0);		// Init a vVector to 0 0 0 for our position
@@ -51,7 +50,7 @@
 		// camera's view vector and up vector.  This will be the axis.
 		CVector3 vAxis = Cross(SubtractTwoVectors(m_vView , m_vPosition), m_vUpVector);
 		vAxis = Normalize(vAxis);
-		// Rotate around our perpendicular axis and along the y-axis
+		// Rotate around our perpendicular axis and aint32_t the y-axis
 		[self RotateView:angleZ x:vAxis.x y:vAxis.y z:vAxis.z];
 		[self RotateView:-1*angleY x:0 y:0 z:1];
 
@@ -103,7 +102,7 @@
 		CVector3 vAxis = Cross(SubtractTwoVectors(m_vView , m_vPosition), m_vUpVector);
 		vAxis = Normalize(vAxis);
 
-		// Rotate around our perpendicular axis and along the y-axis
+		// Rotate around our perpendicular axis and aint32_t the y-axis
 		//RotateView(angleZ, vAxis.x, vAxis.y, vAxis.z);
 		//RotateView(angleY, 0, 1, 0);
 		[self RotateView:angleZ x:vAxis.x y:vAxis.y z:vAxis.z];

@@ -20,7 +20,7 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along
+ *  You should have received a copy of the GNU General Public License aint32_t
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
@@ -28,7 +28,7 @@
 #define POLARSSL_MD5_H
 
 #include <string.h>
-
+#include <stdint.h>
 #define POLARSSL_ERR_MD5_FILE_IO_ERROR                 -0x0074  /**< Read/write error in file. */
 
 /**
@@ -36,8 +36,8 @@
  */
 typedef struct
 {
-    unsigned long total[2];     /*!< number of bytes processed  */
-    unsigned long state[4];     /*!< intermediate digest state  */
+    uint32_t total[2];     /*!< number of bytes processed  */
+    uint32_t state[4];     /*!< intermediate digest state  */
     unsigned char buffer[64];   /*!< data block being processed */
 
     unsigned char ipad[64];     /*!< HMAC: inner padding        */

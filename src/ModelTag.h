@@ -11,6 +11,7 @@
 
 #import "HaloMap.h"
 #import "MapTag.h"
+#import "CollisionTag.h"
 
 @class TextureManager;
 
@@ -36,7 +37,10 @@
 	
 	BOOL moving;
 	BOOL selected;
+    
+    BOOL disableOcclusion;
 }
+- (id)initWithMapFile:(HaloMap *)map texManager:(TextureManager *)texManager usingData:(NSData*)data;
 - (id)initWithMapFile:(HaloMap *)map texManager:(TextureManager *)texManager;
 - (void)dealloc;
 - (void)releaseGeometryObjects;
@@ -45,16 +49,14 @@
 - (float)u_scale;
 - (float)v_scale;
 - (int)numRegions;
-- (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas;
-- (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas distance:(float)dist;
+- (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas withCollision:(CollisionTag*)tag;
 - (void)loadAllBitmaps;
-- (long)shaderIdentForIndex:(int)index;
+- (int32_t)shaderIdentForIndex:(int)index;
 - (void)drawBoundingBox;
 - (void)drawAxes:(BOOL)withPointerArrow;
 - (TextureManager *)_texManager;
 - (void)renderPartyTriangle;
 @property (retain) HaloMap *_mapfile;
-@property (retain,getter=_texManager) TextureManager *_texManager;
 @property (retain) NSMutableArray *subModels;
 @property (retain) NSMutableArray *shaders;
 @property (getter=u_scale) float u_scale;

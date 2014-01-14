@@ -43,7 +43,7 @@ typedef enum
 @implementation SpawnEditorController
 - (void)awakeFromNib
 {
-    NSLog(@"Checking mac spawn editor");
+    CSLog(@"Checking mac spawn editor");
 #ifndef MACVERSION
     return;
 #endif
@@ -194,7 +194,7 @@ typedef enum
 	}
 	else if (currentView == machineRefView)
 	{
-		NSLog(@"Machine ref view!");
+		CSLog(@"Machine ref view!");
 	}
 	return nil;
 }
@@ -488,7 +488,7 @@ typedef enum
 {
 	int i;
 	
-	NSLog(@"Spawn index: %d", p_spawnIndex);
+	CSLog(@"Spawn index: %d", p_spawnIndex);
 	
 	@try {
 		for (i = 0; i < [_scenario header].StructBsp.chunkcount; i++)
@@ -501,7 +501,7 @@ typedef enum
 		[p_spawnZCoord setFloatValue:[_scenario spawns][p_spawnIndex].coord[2]];
 		[p_spawnRot setFloatValue:piradToDeg([_scenario spawns][p_spawnIndex].rotation)];
 		
-		NSLog(@"Complete!");
+		CSLog(@"Complete!");
 	}
 	@catch (NSException * e) {
 		
@@ -535,7 +535,7 @@ typedef enum
 	[s_spawnNormal setState:NSOffState];
 	[s_spawnHard setState:NSOffState];
 	
-	//NSLog(@"PLaced on: %d", [_scenario scen_spawns][s_spawnIndex].not_placed);
+	//CSLog(@"PLaced on: %d", [_scenario scen_spawns][s_spawnIndex].not_placed);
 	switch ([_scenario scen_spawns][s_spawnIndex].not_placed)
 	{
 		case 0:
@@ -587,7 +587,7 @@ typedef enum
 			break;
 	}
 	
-	//NSLog(@"Lets see... %x", [_scenario mach_spawns][m_spawnIndex].flags2);
+	//CSLog(@"Lets see... %x", [_scenario mach_spawns][m_spawnIndex].flags2);
 }
 - (void)loadVehicleSpawnData:(int)v_spawnIndex
 {
@@ -607,7 +607,7 @@ typedef enum
 {
 	int i;
 	
-	NSLog(@"NG Spawn Index: %d", ng_spawnIndex);
+	CSLog(@"NG Spawn Index: %d", ng_spawnIndex);
 	
 	[ng_spawnXCoord setFloatValue:[_scenario netgame_flags][ng_spawnIndex].coord[0]];
 	[ng_spawnYCoord setFloatValue:[_scenario netgame_flags][ng_spawnIndex].coord[1]];

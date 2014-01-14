@@ -1,0 +1,14 @@
+//
+// Prefix header for all source files of the 'swordedit' target in the 'swordedit' project
+//
+
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif
+
+#define GLEW_STATIC
+
+//#define LITE 1
+#define MACVERSION 1
+#define RENDERINGALLOWED 1
+#define WINDOWS 1

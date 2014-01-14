@@ -20,7 +20,7 @@
 }
 - (id)initWithMapFile:(HaloMap *)map
 {
-    NSLog(@"Init scripter");
+    CSLog(@"Init scripter");
     
 	if ((self = [super init]) != nil)
 	{

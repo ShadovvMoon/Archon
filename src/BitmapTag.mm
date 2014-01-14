@@ -10,7 +10,7 @@
 #import "BitmapTag.h"
 #import <Foundation/Foundation.h>
 #include <squish.h>
-
+#import "defines.h"
 using namespace squish;
 
 #import "colourset.h"
@@ -27,7 +27,7 @@ void DecodeLinearX8R8G8B8 (int width, int height, const char *texdata, unsigned 
 void DecodeLinearA8R8G8B8 (int width, int height, const char *texdata, unsigned int *outdata);
 void DecodeLinearR5G6B5 (int width, int height, const char *texdata, unsigned int *outdata);
 void EncodeLinearR5G6B5 (int width, int height, const int *texdata, unsigned short *outdata);
-inline long bmpEndianSwap32(unsigned int x);
+inline int32_t bmpEndianSwap32(unsigned int x);
 
 int getImageSize (int format, int width, int height)
 {
@@ -53,7 +53,7 @@ int getImageSize (int format, int width, int height)
 		case BITM_FORMAT_Y8:
 		case BITM_FORMAT_AY8:
 		case BITM_FORMAT_P8:
-			//NSLog(@"A8 / Y8 / AY8 / P8!");
+			//CSLog(@"A8 / Y8 / AY8 / P8!");
 			size = width * height;
 			break;
 		
@@ -63,13 +63,13 @@ int getImageSize (int format, int width, int height)
             break;
 		case BITM_FORMAT_A1R5G5B5:
 		case BITM_FORMAT_A4R4G4B4:
-			//NSLog(@"A8Y8 / R5G6B5 / A1R5G5B5 / A4R4G4B4!");
+			//CSLog(@"A8Y8 / R5G6B5 / A1R5G5B5 / A4R4G4B4!");
 			size = width * height * 2;
 			break;
 		
 		case BITM_FORMAT_X8R8G8B8:
 		case BITM_FORMAT_A8R8G8B8:
-			//NSLog(@"X8R8G8B8 / A8R8G8B8");
+			//CSLog(@"X8R8G8B8 / A8R8G8B8");
 			size = width * height * 4;
 			break;
 		
@@ -160,7 +160,7 @@ void DecodeLinearA8R8G8B8 (int width, int height, const char *texdata, unsigned 
 
 void EncodeLinearR5G6B5 (int width, int height, const int *texdata, unsigned short *outdata)
 {
-    //NSLog(@"Encoding");
+    //CSLog(@"Encoding");
     rgba_color_t	color;
 	unsigned int cdata;
 	int x,y;
@@ -169,7 +169,7 @@ void EncodeLinearR5G6B5 (int width, int height, const int *texdata, unsigned sho
 	{
 		for (x = 0; x < width; x++)
 		{
-            //NSLog(@"decoding..");
+            //CSLog(@"decoding..");
 			cdata = ((unsigned int *)texdata)[(y * width) + x];
             
             //Double conversion
@@ -188,7 +188,7 @@ void EncodeLinearR5G6B5 (int width, int height, const int *texdata, unsigned sho
             
 		}
 	}
-    //NSLog(@"Finished encoding");
+    //CSLog(@"Finished encoding");
 }
 
 /*================================
@@ -196,7 +196,7 @@ void EncodeLinearR5G6B5 (int width, int height, const int *texdata, unsigned sho
  ================================*/
 void DecodeLinearR5G6B5 (int width, int height, const char *texdata, unsigned int *outdata)
 {
-    //NSLog(@"BITM_FORMAT_A8R8G8B8");
+    //CSLog(@"BITM_FORMAT_A8R8G8B8");
 	rgba_color_t	color;
 	unsigned short cdata;
 	int x,y;
@@ -204,7 +204,7 @@ void DecodeLinearR5G6B5 (int width, int height, const char *texdata, unsigned in
 	{
 		for (x = 0; x < width; x++)
 		{
-            //NSLog(@"decoding..");
+            //CSLog(@"decoding..");
 			cdata = ((unsigned short *)texdata)[(y * width) + x];
 
             
@@ -225,7 +225,7 @@ void DecodeLinearR5G6B5 (int width, int height, const char *texdata, unsigned in
 	}
 }
 
-inline long bmpEndianSwap32(unsigned int x)
+inline int32_t bmpEndianSwap32(unsigned int x)
 {
 	return (x >> 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x << 24);
 }
@@ -260,7 +260,7 @@ inline long bmpEndianSwap32(unsigned int x)
     images[index].reg_point_y=(int)images[index].reg_point_y;
     
     //Update the actual mapfile to fix the image values we just added.
-    long currentOffset = [_mapfile currentOffset];
+    int32_t currentOffset = [_mapfile currentOffset];
     
     [_mapfile seekToAddress:([self offsetInMap] + 0x54)];
     header.reflexive_to_first = [_mapfile readReflexive];
@@ -323,6 +323,74 @@ inline long bmpEndianSwap32(unsigned int x)
 
 }
 
+
+
+- (id)initWithData:(NSData *)data withMapfile:(HaloMap*)mapfile bitmap:(FILE *)bitmap ppc:(BOOL)ppc
+{
+	if ((self = [super initWithData:data withMapfile:mapfile]) != nil)
+	{
+		int x;
+		_mapfile = [mapfile retain];
+		bitmapFile = bitmap;
+		hasDecoded = NO;
+        
+		[_mapfile seekToAddress:([self offsetInMap] + 0x54)];
+		header.reflexive_to_first = [_mapfile readReflexive];
+		header.image_reflexive = [_mapfile readReflexive];
+        
+        
+        if (header.image_reflexive.chunkcount > 1000)
+            return self;
+        else if (header.image_reflexive.chunkcount < 0)
+            return self;
+        
+		imageBytesLookup = (uint64_t *)malloc(sizeof(uint64_t) * header.image_reflexive.chunkcount);
+		memset(imageBytesLookup,0,(sizeof(unsigned int) * header.image_reflexive.chunkcount));
+        
+        
+		imageLoaded = (BOOL *)malloc(sizeof(BOOL) * header.image_reflexive.chunkcount);
+		memset(imageLoaded, 0, (sizeof(BOOL) * header.image_reflexive.chunkcount));
+        
+		images = (bitm_image_t *)malloc(header.image_reflexive.chunkcount * sizeof(bitm_image_t));
+		[_mapfile seekToAddress:(header.image_reflexive.offset)];
+        
+        //#ifdef MACVERSION
+        subImages = (int*)malloc(sizeof(int)*100);
+        
+		//subImageee = [[NSMutableArray alloc] initWithCapacity:header.image_reflexive.chunkcount];
+		
+		for (x = 0; x < header.image_reflexive.chunkcount; x++)
+		{
+            subImages[cImage] = x;
+            cImage++;
+            
+			//[subImageee addObject:[[NSNumber alloc] initWithInt:x]];
+			bitm_image_t *tempImage = &images[x];
+			[_mapfile readint32_t:&tempImage->id];
+			[_mapfile readShort:&tempImage->width]; //Changed 4
+			[_mapfile readShort:&tempImage->height]; //Changed 6
+			[_mapfile readShort:&tempImage->depth]; //8
+			[_mapfile readShort:&tempImage->type]; //10
+			[_mapfile readShort:&tempImage->format]; //12
+			[_mapfile readByte:&tempImage->flag0]; //14
+			[_mapfile readByte:&tempImage->internalized]; //15
+			[_mapfile readShort:&tempImage->reg_point_x]; //Changed 16
+			[_mapfile readShort:&tempImage->reg_point_y]; //Changed 18
+			[_mapfile readShort:&tempImage->num_mipmaps]; //20
+			[_mapfile readShort:&tempImage->pixel_offset]; //22
+			[_mapfile readint32_t:&tempImage->offset]; //24
+			[_mapfile readint32_t:&tempImage->size]; //28
+			[_mapfile readint32_t:&tempImage->unknown8]; //32
+			[_mapfile readint32_t:&tempImage->unknown9]; //36
+			[_mapfile readint32_t:&tempImage->unknown10]; //40
+			[_mapfile readint32_t:&tempImage->unknown11]; //48
+		}
+	}
+	return self;
+}
+
+
+
 - (id)initWithMapFiles:(HaloMap *)mapfile bitmap:(FILE *)bitmap ppc:(BOOL)ppc
 {
 	if ((self = [super initWithDataFromFile:mapfile]) != nil)
@@ -342,7 +410,7 @@ inline long bmpEndianSwap32(unsigned int x)
         else if (header.image_reflexive.chunkcount < 0)
             return self;
         
-		imageBytesLookup = (unsigned int *)malloc(sizeof(unsigned int) * header.image_reflexive.chunkcount);
+		imageBytesLookup = (uint64_t *)malloc(sizeof(uint64_t) * header.image_reflexive.chunkcount);
 		memset(imageBytesLookup,0,(sizeof(unsigned int) * header.image_reflexive.chunkcount));
         
         
@@ -364,7 +432,7 @@ inline long bmpEndianSwap32(unsigned int x)
             
 			//[subImageee addObject:[[NSNumber alloc] initWithInt:x]];
 			bitm_image_t *tempImage = &images[x];
-			[_mapfile readLong:&tempImage->id];
+			[_mapfile readint32_t:&tempImage->id];
 			[_mapfile readShort:&tempImage->width]; //Changed 4
 			[_mapfile readShort:&tempImage->height]; //Changed 6
 			[_mapfile readShort:&tempImage->depth]; //8
@@ -376,12 +444,12 @@ inline long bmpEndianSwap32(unsigned int x)
 			[_mapfile readShort:&tempImage->reg_point_y]; //Changed 18
 			[_mapfile readShort:&tempImage->num_mipmaps]; //20
 			[_mapfile readShort:&tempImage->pixel_offset]; //22
-			[_mapfile readLong:&tempImage->offset]; //24
-			[_mapfile readLong:&tempImage->size]; //28
-			[_mapfile readLong:&tempImage->unknown8]; //32
-			[_mapfile readLong:&tempImage->unknown9]; //36
-			[_mapfile readLong:&tempImage->unknown10]; //40
-			[_mapfile readLong:&tempImage->unknown11]; //48
+			[_mapfile readint32_t:&tempImage->offset]; //24
+			[_mapfile readint32_t:&tempImage->size]; //28
+			[_mapfile readint32_t:&tempImage->unknown8]; //32
+			[_mapfile readint32_t:&tempImage->unknown9]; //36
+			[_mapfile readint32_t:&tempImage->unknown10]; //40
+			[_mapfile readint32_t:&tempImage->unknown11]; //48
 		}
 	}
 	return self;
@@ -433,7 +501,7 @@ inline long bmpEndianSwap32(unsigned int x)
 		}
 	}
 }
-- (void)seekToOffset:(long)_offset
+- (void)seekToOffset:(int32_t)_offset
 {
 	fseek(bitmapFile, _offset, SEEK_SET);
 }
@@ -441,7 +509,7 @@ inline long bmpEndianSwap32(unsigned int x)
 {
 	return ftell(bitmapFile);
 }
-- (void)writeData:(void *)buffer address:(long)address size:(int)size
+- (void)writeData:(void *)buffer address:(int32_t)address size:(int)size
 {
     
     fwrite(buffer, size, 1, bitmapFile);
@@ -449,38 +517,38 @@ inline long bmpEndianSwap32(unsigned int x)
     /*
 	if (isPPC)
 	{
-		long *tmpLong = (long *)buffer;
+		int32_t *tmpint32_t = (int32_t *)buffer;
 		int i;
         
 		// I need to make a working PPC hack here.
-		//NSLog(@"Were in PPC!");
+		//CSLog(@"Were in PPC!");
 		fread(buffer, size, 1, bitmapFile); // Need to flip the endians in this one
 		
 		for (i = 0; i < (size / 4); i++)
 		{
-			tmpLong[i] = bmpEndianSwap32(tmpLong[i]);
+			tmpint32_t[i] = bmpEndianSwap32(tmpint32_t[i]);
 		}
 	}
      */
 }
-- (void)readData:(void *)buffer address:(long)address size:(int)size
+- (void)readData:(void *)buffer address:(int32_t)address size:(int)size
 {	
 
 	fread(buffer,size,1,bitmapFile);
 		
 	if (isPPC)
 	{
-		long *tmpLong = (long *)buffer;
+		int32_t *tmpint32_t = (int32_t *)buffer;
 		int i;
 	
 		// I need to make a working PPC hack here.
-		//NSLog(@"Were in PPC!");
+		//CSLog(@"Were in PPC!");
 		fread(buffer, size, 1, bitmapFile); // Need to flip the endians in this one
 		/* Everything here is being read in multiples of 4, so lets get cracking. */
 		
 		for (i = 0; i < (size / 4); i++)
 		{
-			tmpLong[i] = bmpEndianSwap32(tmpLong[i]);
+			tmpint32_t[i] = bmpEndianSwap32(tmpint32_t[i]);
 		}
 	}
 }
@@ -490,7 +558,7 @@ inline long bmpEndianSwap32(unsigned int x)
 }
 - (void)setImagePixelsForImageIndex:(int)index withBytes:(unsigned int*)imageBytes
 {
-    imageBytesLookup[index] = (unsigned int)imageBytes;
+    imageBytesLookup[index] = (uint64_t)imageBytes;
 }
 
 - (unsigned int *)imagePixelsForImageIndex:(int)index
@@ -1347,17 +1415,25 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
 */
 
 
--(void)internaliseImage:(int)index size:(long)lengthOfData withBytes:(void *)imageBytes
+-(void)internaliseImage:(int)index size:(int32_t)lengthOfData withBytes:(void *)imageBytes
 {
     
-    long oldOffset = images[index].offset;
-    long oldSize = images[index].size;
+    NSLog(@"Internalising image");
+    
+    int32_t oldOffset = images[index].offset;
+    int32_t oldSize = images[index].size;
     
     fseek([_mapfile currentFile], 0L, SEEK_END);
-    long sz = ftell([_mapfile currentFile]);
+    int32_t sz = ftell([_mapfile currentFile]);
     
     //Update the actual mapfile to fix the image values we just added.
-    long currentOffset = [_mapfile currentOffset];
+    int32_t currentOffset = [_mapfile currentOffset];
+    
+    [_mapfile seekToAddress:([self offsetInMap] + 0x02)];
+    [_mapfile readShort:&format];
+    
+    [_mapfile seekToAddress:([self offsetInMap] + 0x04)];
+    [_mapfile readShort:&usage];
     
     [_mapfile seekToAddress:([self offsetInMap] + 0x54)];
     header.reflexive_to_first = [_mapfile readReflexive];
@@ -1370,14 +1446,14 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
     [_mapfile seekToAddress:(header.image_reflexive.offset) + (48*index)+15];
     [_mapfile writeByteAtAddress:(void*)(&images[index].internalized) address:((header.image_reflexive.offset) + (48*index)+15)];
     [_mapfile seekToAddress:(header.image_reflexive.offset) + (48*index)+24];
-    [_mapfile writeLong:(long*)(&images[index].offset)];
+    [_mapfile writeint32_t:(int32_t*)(&images[index].offset)];
     
     
     if (images[index].num_mipmaps <=1)
     {
     
     [_mapfile seekToAddress:(header.image_reflexive.offset) + (48*index)+28];
-    [_mapfile writeLong:(long*)(&lengthOfData)];
+    [_mapfile writeint32_t:(int32_t*)(&lengthOfData)];
     }
     
     //&tempImage->size
@@ -1447,6 +1523,15 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
     return YES;
 }
 
+-(BOOL)needsAlpha:(int)index
+{
+    if (images[index].format == BITM_FORMAT_X8R8G8B8)
+        return YES;
+    
+    if (format == 4 && usage == 1)// && (images[index].format == BITM_FORMAT_X8R8G8B8 || images[index].format == BITM_FORMAT_DXT1))
+        return YES;
+    return NO;
+}
 - (BOOL)loadImage:(int)index
 {
     
@@ -1463,49 +1548,51 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
 	imageBytes = (unsigned int *)imageBytesLookup[index];
 	lengthOfData = getImageSize(images[index].format, images[index].width, images[index].height);
 	
-	inData = (char *)malloc(lengthOfData);
-	
-	if (images[index].internalized == 0)
-	{
-		//NSLog(@"Size of data: 0x%x, at address: 0x%x", lengthOfData, images[index].offset);
-		[_mapfile readBlockOfDataAtAddress:inData size_of_buffer:lengthOfData address:images[index].offset];
-	}
-	else
-	{
-		[self seekToOffset:images[index].offset];
-		[self readData:inData address:[self currentOffset] size:lengthOfData];
-	}
-	
-	imageBytes = (unsigned int *)malloc(4 * images[index].width * images[index].height);
-    
-	switch (images[index].format)
-	{
-		case BITM_FORMAT_DXT2AND3:
-			DecompressImage((u8 *)imageBytes,images[index].width,images[index].height,inData,kDxt3);
-			break;
-		case BITM_FORMAT_DXT4AND5:
-			DecompressImage((u8 *)imageBytes,images[index].width,images[index].height,inData,kDxt5);
-			break;
-		case BITM_FORMAT_X8R8G8B8:
-			DecodeLinearX8R8G8B8(images[index].width,images[index].height,inData,imageBytes);
-			break;
-		case BITM_FORMAT_A8R8G8B8:
-			DecodeLinearA8R8G8B8(images[index].width,images[index].height,inData,imageBytes);
-			break;
-        case BITM_FORMAT_R5G6B5:
-			DecodeLinearR5G6B5(images[index].width,images[index].height,inData,imageBytes);
-			break;
-		case BITM_FORMAT_DXT1:
-			//NSLog(@"DXT 1");
-			DecompressImage((u8 *)imageBytes,images[index].width,images[index].height,inData,kDxt1);
-			break;
-        default:
-            return NO;
-	
-	}
-    
-    free(inData);
-    
+    if (lengthOfData >= 0)
+    {
+        inData = (char *)malloc(lengthOfData);
+        
+        if (images[index].internalized == 0)
+        {
+            //CSLog(@"Size of data: 0x%x, at address: 0x%x", lengthOfData, images[index].offset);
+            [_mapfile readBlockOfDataAtAddress:inData size_of_buffer:lengthOfData address:images[index].offset];
+        }
+        else
+        {
+            [self seekToOffset:images[index].offset];
+            [self readData:inData address:[self currentOffset] size:lengthOfData];
+        }
+        
+        imageBytes = (unsigned int *)malloc(4 * images[index].width * images[index].height);
+        
+        switch (images[index].format)
+        {
+            case BITM_FORMAT_DXT2AND3:
+                DecompressImage((u8 *)imageBytes,images[index].width,images[index].height,inData,kDxt3);
+                break;
+            case BITM_FORMAT_DXT4AND5:
+                DecompressImage((u8 *)imageBytes,images[index].width,images[index].height,inData,kDxt5);
+                break;
+            case BITM_FORMAT_X8R8G8B8:
+                DecodeLinearX8R8G8B8(images[index].width,images[index].height,inData,imageBytes);
+                break;
+            case BITM_FORMAT_A8R8G8B8:
+                DecodeLinearA8R8G8B8(images[index].width,images[index].height,inData,imageBytes);
+                break;
+            case BITM_FORMAT_R5G6B5:
+                DecodeLinearR5G6B5(images[index].width,images[index].height,inData,imageBytes);
+                break;
+            case BITM_FORMAT_DXT1:
+                //CSLog(@"DXT 1");
+                DecompressImage((u8 *)imageBytes,images[index].width,images[index].height,inData,kDxt1);
+                break;
+            default:
+                return NO;
+        
+        }
+        
+        free(inData);
+    }
    
     
     /*
@@ -1558,11 +1645,15 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
     */
     
     
-	imageBytesLookup[index] = (unsigned int)imageBytes;
+	imageBytesLookup[index] = (uint64_t)imageBytes;
 	return (imageLoaded[index] = TRUE);
 }
 - (BOOL)imageAlreadyLoaded:(int)index
 {
+    //if (index >= header.image_reflexive.chunkcount)
+    //    return NO;
+    
+    //CSLog(@"Chunks: %ld", header.image_reflexive.chunkcount);
 	return imageLoaded[index];
 }
 - (int)imageCount

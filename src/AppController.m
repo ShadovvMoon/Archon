@@ -15,6 +15,10 @@
 #import "BitmapView.h"
 #import "SpawnEditorController.h"
 
+#include<string.h>    //strlen
+#include<sys/socket.h>    //socket
+#include<arpa/inet.h> //inet_addr
+
 @implementation AppController
 + (void)aMethod:(id)param
 {
@@ -53,17 +57,18 @@
 
 }
 
-
+/*
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
    [self OpenMap:filename];
     return YES;
 }
-
+*/
 
 - (void)awakeFromNib
 {
     [[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
+    
     
     
     /*
@@ -78,7 +83,7 @@
     return;
 #endif*/
     
-    NSLog(@"Loading nib");
+ 
 	//Set the process ID
 	haloProcessID = 0;
 	
@@ -123,6 +128,7 @@
 	
 	//[mainWindow center];
 	
+        /*
 	NSString *autoa = [NSString stringWithContentsOfFile:@"/tmp/starlight.auto"];
 	if (autoa)
 	{
@@ -146,6 +152,8 @@
 		
 		}
 	}
+         */
+        
 	}
     
 
@@ -167,9 +175,18 @@
         [[NSUserDefaults standardUserDefaults] setObject:@"No" forKey:@"FirstTime"];
     }
     
-    NSLog(@"Show window");
-    [mainWindow makeKeyAndOrderFront:self];
+
+    //[mainWindow makeKeyAndOrderFront:self];
     
+    [welcomeWindow center];
+    [welcomeWindow makeKeyAndOrderFront:self];
+    
+    
+}
+
+-(void)closeWelcomeWindow
+{
+    [welcomeWindow close];
 }
 
 -(void)OpenMap:(NSString *)t
@@ -241,6 +258,7 @@
 		
 		[opened setStringValue:[open filename]];
 
+        /*
         //Add the filename to the recent menu
         NSMutableArray *recent = [NSMutableArray arrayWithArray:[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent"]];
         [recent insertObject:[open filename] atIndex:0];
@@ -250,6 +268,7 @@
         
         //Add a menu item.
         [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:[open URL]];
+        */
         
 		[self OpenMap:[open filename]];
 		
@@ -312,11 +331,16 @@
 }
 - (int)loadMapFile:(NSString *)location
 {
+    NSLog(@"Load map file old");
+    
+    /*
 	[opened setStringValue:location];
 	
 	[self closeMapFile];
 	mapfile = [[HaloMap alloc] initWithMapfiles:location bitmaps:bitmapFilePath];
 	return [mapfile loadMap];
+     */
+    return 0;
 }
 - (void)closeMapFile
 {
@@ -419,6 +443,188 @@
 	}
 	return FALSE;
 }
+
+-(void)clientThread
+{
+    NSString *ip = [server_ip stringValue];
+    NSString *port = [server_port stringValue];
+    
+    if (!hasServer)
+    {
+        struct sockaddr_in servaddr;
+        int iSetOption = 1;
+        
+        server_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
+        
+        if (server_sock == -1)
+        NSLog(@"Client socket error");
+        
+        const char *address = [ip cStringUsingEncoding:NSUTF8StringEncoding];
+        NSLog(@"Connecting to %s", address);
+        
+        bzero((void *) &servaddr, sizeof(servaddr));
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_port = htons([port intValue]);
+        servaddr.sin_addr.s_addr = inet_addr(address);
+        
+        //if (-1 == connect(server_sock, (struct sockaddr *)&servaddr, sizeof(servaddr)))
+        //    consolePrintf(RED, "Connection error");
+        //else
+        //{
+        char *message = "Connect";
+        int data_sent = sendto(server_sock, message, strlen(message), 0, &servaddr, sizeof(struct sockaddr_in));
+        if (data_sent != 0)
+        {
+            NSLog(@"Connected %d", data_sent);
+            hasServer = YES;
+        }
+        //}
+    }
+    
+    if (hasServer)
+    {
+        int buffer_size = 100;
+        char *messageBuffer = malloc(buffer_size);
+        while (1)
+        {
+            int n = 0;
+            
+            memset(messageBuffer, 0, buffer_size);
+            n = recv(server_sock, messageBuffer, buffer_size, 0);
+            
+            if (n > 0)
+            {
+                if (messageBuffer[0] == 'c') //Create object
+                {
+                    while (n<100)
+                    {
+                        n += recv(server_sock, messageBuffer+n, buffer_size-n, 0);
+                    }
+                    
+                    int number = messageBuffer[1];
+                    if (number < 0) number = 256-number;
+                    
+                    //oldHaloObjectFunction(&messageBuffer[2], number);
+                }
+                else
+                    NSLog(@"Message from server %s", messageBuffer);
+            }
+        }
+    }
+}
+
+-(void)serverThread
+{
+    udpsockets = malloc(sizeof(struct sockaddr_in)*maxsocks);
+    
+    NSLog(@"Server started");
+    
+    maxsocks = 50;
+    
+    fd_set readfds;
+    int i, clientaddrlen;
+    int rc;
+    int fdmax=0;
+    int iSetOption = 1;
+    
+    serversock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (serversock == -1)
+    {
+        NSLog(@"Server socket error");
+        return;
+    }
+    
+    setsockopt(serversock, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
+    
+    struct sockaddr_in serveraddr, clientaddr;
+    bzero(&serveraddr, sizeof(struct sockaddr_in));
+    serveraddr.sin_family = AF_INET;
+    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serveraddr.sin_port = htons(2500);
+    
+    if (-1 == bind(serversock, (struct sockaddr *)&serveraddr,
+                   sizeof(struct sockaddr_in)))
+    {
+        NSLog(@"Binding error");
+        return;
+    }
+    
+    struct sockaddr_in client_temp;
+    socklen_t client_len = sizeof(client_temp);
+    
+    char *messageBuffer = malloc(2000);
+    while(1)
+    {
+        if (recvfrom(serversock, messageBuffer, 2000, 0, (struct sockaddr*)&client_temp, &client_len) == -1)
+        NSLog(@"Recv error");
+        NSLog(@"Received data");
+        
+        //Is this a new client?
+        BOOL newClient = YES;
+        int newIndex = -1;
+        
+        int m;
+        for (m=0; m<maxsocks; m++)
+        {
+            if (usingSocket[m])
+            {
+                struct sockaddr_in socket = udpsockets[m];
+                if (memcmp(&socket, &client_temp, sizeof(struct sockaddr_in)) == 0)
+                {
+                    newClient = NO;
+                    break;
+                }
+            }
+            else if (newIndex == -1)
+            {
+                newIndex = m;
+            }
+        }
+        
+        if (newClient)
+        {
+            //New client!
+            if (newIndex != -1)
+            {
+                NSLog(@"New client");
+                
+                usingSocket[newIndex] = TRUE;
+                memcpy(&udpsockets[newIndex], &client_temp, sizeof(struct sockaddr_in));
+            }
+            else
+            {
+                NSLog(@"No slots");
+            }
+        }
+    }
+    
+    close(serversock);
+    return;
+}
+
+- (IBAction)startServer:(id)sender
+{
+    [self performSelectorInBackground:@selector(serverThread) withObject:nil];
+}
+
+- (IBAction)connect:(id)sender
+{
+    [self performSelectorInBackground:@selector(clientThread) withObject:nil];
+}
+
+
+- (IBAction)connectToServer:(id)sender
+{
+    [connectWindow center];
+    [connectWindow makeKeyAndOrderFront:self];
+}
+
+- (IBAction)showPreferences:(id)sender
+{
+    [preferencesWindow center];
+    [preferencesWindow makeKeyAndOrderFront:self];
+}
 - (IBAction)setNewBitmaps:(id)sender
 {
 	if ([self selectBitmapLocation])
@@ -466,7 +672,7 @@
 {
 	if ([tabView indexOfTabViewItem:tabViewItem] > 0)
 	{
-		[rendView stopDrawing];
+		//[rendView stopDrawing];
 	}
 	else if ([tabView indexOfTabViewItem:tabViewItem] == 0)
 	{

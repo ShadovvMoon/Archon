@@ -24,7 +24,7 @@ HOW TO USE
 ==========
 The function gssdkcr() requires the following parameters:
 - the destination buffer that will contain the resulted string.
-  It must be 33 bytes long (32 plus the final NULL byte).
+  It must be 33 bytes int32_t (32 plus the final NULL byte).
 - the "challenge" string (sent by the server or by the client).
 - the buffer containing the game's text string used for the calculation
   of the response.
@@ -62,7 +62,7 @@ LICENSE
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
+    aint32_t with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
     http://www.gnu.org/licenses/gpl.txt

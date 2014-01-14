@@ -43,7 +43,7 @@ typedef int FOURCC;
 
 typedef struct
 {
-	long unknown[0x15];
+	int32_t unknown[0x15];
 	reflexive reflexive_to_first;
 	reflexive image_reflexive;
 } bitm_header_t;
@@ -100,7 +100,7 @@ typedef struct
 	bitm_header_t header;
 	bitm_image_t *images;
 	
-	unsigned int *imageBytesLookup;
+	uint64_t *imageBytesLookup;
 	BOOL *imageLoaded;
     
     int *subImages;
@@ -111,16 +111,20 @@ typedef struct
     BOOL bitmapModified;
     
 	NSMutableArray *subImageee;
+    
+    short format;
+    short usage;
 }
+- (id)initWithData:(NSData *)data withMapfile:(HaloMap*)mapfile bitmap:(FILE *)bitmap ppc:(BOOL)ppc;
 -(BOOL)alreadyDouble:(int)index;
 - (void)setImagePixelsForImageIndex:(int)index withBytes:(unsigned int)imageBytes;
 - (id)initWithMapFiles:(HaloMap *)mapfile bitmap:(FILE *)bitmap ppc:(BOOL)ppc;
 - (void)dealloc;
 - (void)freeImagePixels:(int)image;
 - (void)freeAllImages;
-- (void)seekToOffset:(long)_offset;
+- (void)seekToOffset:(int32_t)_offset;
 - (unsigned int)currentOffset;
-- (void)readData:(const void *)buffer address:(long)address size:(int)size;
+- (void)readData:(const void *)buffer address:(int32_t)address size:(int)size;
 - (NSSize)textureSizeForImageIndex:(int)index;
 - (unsigned int *)imagePixelsForImageIndex:(int)index; // backwards compatability lolz
 - (BOOL)loadImage:(int)index;

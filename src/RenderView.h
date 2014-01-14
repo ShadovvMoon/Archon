@@ -22,9 +22,17 @@
 #import "BspMesh.h"
 #import "Stamps.h"
 
+#include "SDMPluginHandler.h"
+#import "SeparatorCell.h"
 
+#ifdef MODZY_RENDERING
+#define BITS_PER_PIXEL          32.0
+#define DEPTH_SIZE              32.0
+#else
 #define BITS_PER_PIXEL          64.0
 #define DEPTH_SIZE              64.0
+#endif
+
 #define DEFAULT_TIME_INTERVAL   0.001
 
 //@class Camera;
@@ -46,8 +54,24 @@ struct sockaddr *peeraddress;
 int socketAddress;
 int currentPacketNumberFirst;
 
+BOOL skipTheFog;
 @interface RenderView : NSOpenGLView
 {
+    IBOutlet NSOutlineView *tag_listing;
+    
+    GLuint water_normal;
+    GLuint refraction_map;
+    
+    BOOL reflectionIsRequired;
+    float reflectionHeight;
+    
+
+    GLuint reflect_texture;
+    
+    BOOL fastRendering;
+    BOOL renderingWater;
+
+    
 	/* Render Option Buttons */
 	IBOutlet NSMenuItem *pointsItem;
 	IBOutlet NSMenuItem *wireframeItem;
@@ -194,7 +218,7 @@ int currentPacketNumberFirst;
 	int activeBSPNumber;
 	CVector3 camCenter[3];
 	
-	Key_In_Use move_keys_down[6];
+	Key_In_Use move_keys_down[7];
 
 	// Moving on...
 	float _fps;
@@ -220,16 +244,23 @@ int currentPacketNumberFirst;
     CVector3 initialMouse;
     CVector3 initialObjectPosition;
     NSNumber *moveNameLookup;
+    NSMutableArray *cacheTagArray;
     
 	// Current selection mode
 	int _mode;
 	dynamic_object map_objects[8000];
 	// Scenario stuff
 	Selection *selee;
-	
+	struct KnownTypes *know_types;
+    
+    float globalYCoordinate;
+    IBOutlet NSView *tagClipView;
+    
 	// Selections managing
 	NSMutableArray *selections;
 	GLuint *_lookup;
+    GLsizei loopupSize;
+    
 	int _selectType;
 	int _selectFocus;
 	float s_acceleration;
@@ -336,11 +367,15 @@ int currentPacketNumberFirst;
     
     IBOutlet NSButton *copyMe;
     IBOutlet NSButton *doHost;
+    int32_t globalModelIdentifier;
+    NSMutableDictionary *tagIdConversion;
     
+    NSMutableArray *modelData;
+    NSMutableArray *indexData;
+    NSMutableArray *soundData;
+    NSMutableArray *bitmapData;
     
-    
-    
-    
+    BOOL alreadyInitialised;
     IBOutlet NSButton *render_playerSpawns;
     IBOutlet NSButton *render_Encounters;
     IBOutlet NSButton *render_itemSpawns;
@@ -368,16 +403,62 @@ int currentPacketNumberFirst;
     IBOutlet NSButton *render_SP;
     NSDate *jumpTime;
     
+    
     BOOL needsReshape;
     NSRect lastRectShape;
     
     BOOL alreadyRefreshing;
     
     BOOL needsPaintRefresh;
+    BOOL isUnfocused;
+    
+    
+    /*
+    NSMutableArray				*contents;
+	
+	// cached images for generic folder and url document
+	NSImage						*folderImage;
+	NSImage						*urlImage;
+	
+	NSView						*currentView;
+
+	
+	BOOL						buildingOutlineView; // signifies building the outline view at launch time
+    
+	BOOL						retargetWebView;
+	
+	SeparatorCell				*separatorCell;	// the cell used to draw a separator line in the outline view
+    */
+    
+    NSMutableArray *list_of_tag_types;
+    NSMutableDictionary *list_of_tag_subgroups;
+    
+    BOOL shadersDefined;
+    GLuint scex_program;
+    GLuint schi_program;
+    GLuint sgla_program;
+    GLuint light_program;
+    GLuint normal_program;
+    GLuint water_program;
+    GLuint Water_Normal_Texture, Water_Normal_TextureID;
+
+    IBOutlet NSPopUpButton *render_type_new;
+    
+    IBOutlet NSButton *paint_tool_archon;
+    IBOutlet NSButton *selection_tool_archon;
+    IBOutlet NSButton *structural_tool_archon;
+    
+    IBOutlet NSPopUpButton *paint_type;
+    
+    BOOL isRenderingAllBSPS;
+    
 }
+    
+-(IBAction)renderAllBSPS:(id)sender;
 
-
-
+-(IBAction)toggleCollisionModels:(id)sender;
+-(IBAction)rowClicked:(id)sender;
+-(IBAction)pasteTag:(id)sender;
 -(IBAction)doubleLightmaps:(id)sender;
 -(IBAction)connectToServer:(id)sender;
 
@@ -532,7 +613,7 @@ int currentPacketNumberFirst;
 @property (retain) NSButton *s_spawnEditWindowButton;
 @property (retain) SpawnEditorController *_spawnEditor;
 @property (retain) NSUserDefaults *prefs;
-@property 	bool shouldDraw;
+//@property 	bool shouldDraw;
 @property 	bool FullScreen;
 @property 	bool first;
 @property BOOL _useAlphas;
@@ -557,7 +638,6 @@ int currentPacketNumberFirst;
 @property int _mode;
 @property (retain) Selection *selee;
 @property (retain) NSMutableArray *selections;
-@property GLuint *_lookup;
 @property int _selectType;
 @property int _selectFocus;
 @property float s_acceleration;

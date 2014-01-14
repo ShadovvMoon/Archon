@@ -74,12 +74,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Scenario.m"
-            timestampString = "314586884.494304"
+            timestampString = "408410533.473293"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2143"
-            endingLineNumber = "2143"
-            landmarkName = "-deleteNetgameFlag:"
+            startingLineNumber = "2158"
+            endingLineNumber = "2158"
+            landmarkName = "-deleteScenarioObject:index:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -90,12 +90,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Scenario.m"
-            timestampString = "314586884.494324"
+            timestampString = "408410533.473293"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2169"
-            endingLineNumber = "2169"
-            landmarkName = "-buildAllTagArrays"
+            startingLineNumber = "2184"
+            endingLineNumber = "2184"
+            landmarkName = "-deleteMPEquipment:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -106,11 +106,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "defines.h"
-            timestampString = "407322383.791365"
+            timestampString = "408410533.473293"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "671"
-            endingLineNumber = "671">
+            startingLineNumber = "684"
+            endingLineNumber = "684">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

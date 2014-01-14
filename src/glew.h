@@ -279,7 +279,7 @@ typedef signed char GLbyte;
 typedef short GLshort;
 typedef unsigned char GLubyte;
 typedef unsigned short GLushort;
-typedef unsigned long GLulong;
+typedef uint32_t GLuint32_t;
 typedef float GLfloat;
 typedef float GLclampf;
 typedef double GLdouble;
@@ -289,8 +289,8 @@ typedef void GLvoid;
 typedef __int64 GLint64EXT;
 typedef unsigned __int64 GLuint64EXT;
 #elif defined(_MSC_VER) || defined(__BORLANDC__)
-typedef signed long long GLint64EXT;
-typedef unsigned long long GLuint64EXT;
+typedef signed int32_t int32_t GLint64EXT;
+typedef uint32_t int32_t GLuint64EXT;
 #else
 #  if defined(__MINGW32__) || defined(__CYGWIN__)
 #include <inttypes.h>
@@ -2437,7 +2437,7 @@ typedef void (GLAPIENTRY * PFNGLMINSAMPLESHADINGPROC) (GLclampf value);
 #define GL_VERSION_4_3 1
 
 #define GL_NUM_SHADING_LANGUAGE_VERSIONS 0x82E9
-#define GL_VERTEX_ATTRIB_ARRAY_LONG 0x874E
+#define GL_VERTEX_ATTRIB_ARRAY_int32_t 0x874E
 
 #define GLEW_VERSION_4_3 GLEW_GET_VAR(__GLEW_VERSION_4_3)
 
@@ -11859,7 +11859,7 @@ typedef void (GLAPIENTRY * PFNGLPATHSTRINGNVPROC) (GLuint path, GLenum format, G
 typedef void (GLAPIENTRY * PFNGLPATHSUBCOMMANDSNVPROC) (GLuint path, GLsizei commandStart, GLsizei commandsToDelete, GLsizei numCommands, const GLubyte* commands, GLsizei numCoords, GLenum coordType, const GLvoid*coords);
 typedef void (GLAPIENTRY * PFNGLPATHSUBCOORDSNVPROC) (GLuint path, GLsizei coordStart, GLsizei numCoords, GLenum coordType, const void* coords);
 typedef void (GLAPIENTRY * PFNGLPATHTEXGENNVPROC) (GLenum texCoordSet, GLenum genMode, GLint components, const GLfloat* coeffs);
-typedef GLboolean (GLAPIENTRY * PFNGLPOINTALONGPATHNVPROC) (GLuint path, GLsizei startSegment, GLsizei numSegments, GLfloat distance, GLfloat* x, GLfloat *y, GLfloat *tangentX, GLfloat *tangentY);
+typedef GLboolean (GLAPIENTRY * PFNGLPOINTAint32_tPATHNVPROC) (GLuint path, GLsizei startSegment, GLsizei numSegments, GLfloat distance, GLfloat* x, GLfloat *y, GLfloat *tangentX, GLfloat *tangentY);
 typedef void (GLAPIENTRY * PFNGLSTENCILFILLPATHINSTANCEDNVPROC) (GLsizei numPaths, GLenum pathNameType, const void* paths, GLuint pathBase, GLenum fillMode, GLuint mask, GLenum transformType, const GLfloat *transformValues);
 typedef void (GLAPIENTRY * PFNGLSTENCILFILLPATHNVPROC) (GLuint path, GLenum fillMode, GLuint mask);
 typedef void (GLAPIENTRY * PFNGLSTENCILSTROKEPATHINSTANCEDNVPROC) (GLsizei numPaths, GLenum pathNameType, const void* paths, GLuint pathBase, GLint reference, GLuint mask, GLenum transformType, const GLfloat *transformValues);
@@ -11909,7 +11909,7 @@ typedef void (GLAPIENTRY * PFNGLWEIGHTPATHSNVPROC) (GLuint resultPath, GLsizei n
 #define glPathSubCommandsNV GLEW_GET_FUN(__glewPathSubCommandsNV)
 #define glPathSubCoordsNV GLEW_GET_FUN(__glewPathSubCoordsNV)
 #define glPathTexGenNV GLEW_GET_FUN(__glewPathTexGenNV)
-#define glPointAlongPathNV GLEW_GET_FUN(__glewPointAlongPathNV)
+#define glPointAint32_tPathNV GLEW_GET_FUN(__glewPointAint32_tPathNV)
 #define glStencilFillPathInstancedNV GLEW_GET_FUN(__glewStencilFillPathInstancedNV)
 #define glStencilFillPathNV GLEW_GET_FUN(__glewStencilFillPathNV)
 #define glStencilStrokePathInstancedNV GLEW_GET_FUN(__glewStencilStrokePathInstancedNV)
@@ -16428,7 +16428,7 @@ GLEW_FUN_EXPORT PFNGLPATHSTRINGNVPROC __glewPathStringNV;
 GLEW_FUN_EXPORT PFNGLPATHSUBCOMMANDSNVPROC __glewPathSubCommandsNV;
 GLEW_FUN_EXPORT PFNGLPATHSUBCOORDSNVPROC __glewPathSubCoordsNV;
 GLEW_FUN_EXPORT PFNGLPATHTEXGENNVPROC __glewPathTexGenNV;
-GLEW_FUN_EXPORT PFNGLPOINTALONGPATHNVPROC __glewPointAlongPathNV;
+GLEW_FUN_EXPORT PFNGLPOINTAint32_tPATHNVPROC __glewPointAint32_tPathNV;
 GLEW_FUN_EXPORT PFNGLSTENCILFILLPATHINSTANCEDNVPROC __glewStencilFillPathInstancedNV;
 GLEW_FUN_EXPORT PFNGLSTENCILFILLPATHNVPROC __glewStencilFillPathNV;
 GLEW_FUN_EXPORT PFNGLSTENCILSTROKEPATHINSTANCEDNVPROC __glewStencilStrokePathInstancedNV;

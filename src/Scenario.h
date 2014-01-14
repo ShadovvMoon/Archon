@@ -28,11 +28,11 @@ enum
 @interface Scenario : MapTag {
 	HaloMap *_mapfile;
 	BSP *mapBsp;
-	long mapMagic;
+	int32_t mapMagic;
 	
 	char *scnr;
 	int positionInScenario;
-	long scnr_length;
+	int32_t scnr_length;
 	
 	SCNR_HEADER header;
 	
@@ -53,6 +53,7 @@ enum
 	scenery_spawn *scen_spawns;
 	int scenery_spawn_count;
 	int scen_ref_count;
+    
 	NSMutableArray *vehiTagArray;
 	NSMutableArray *scenTagArray;
 	NSMutableArray *scenModelArray;
@@ -96,7 +97,7 @@ enum
 		There are 79 reflexives in the scenario header that I have in the SCENARIO_HEADER struct
 		This will be a lookup table for each and every one of 'em for scenario reconstruction.
 		*/
-	unsigned int _reflexLookup[79];
+	uint64_t _reflexLookup[REFLEXIVE_COUNT];
 	unsigned int *_activeReflexives;
 	int _reflexCounter;
 	int _activeReflexCounter;
@@ -107,6 +108,8 @@ enum
 	int _endOfScriptDataLength;
 	BOOL _largerScenario;
 	/* End scenario reconstruction vars */
+    
+   
 }
 
 - (id)initWithMapFile:(HaloMap *)map;
@@ -141,8 +144,8 @@ enum
 - (short)netgameFlagIDForIndex:(int)index;
 - (int)netgameFlagIndexForID:(short)index;
 - (void)pairModelsWithSpawn;
-- (long)itmcModelForId:(long)ident;
-- (long)baseModelIdent:(long)ident;
+- (int32_t)itmcModelForId:(int32_t)ident;
+- (int32_t)baseModelIdent:(int32_t)ident;
 /* End these lookup methods fool. */
 
 /* BEGIN DATA SET ACCESSORS */
@@ -205,7 +208,7 @@ enum
 - (NSMutableArray *)inactiveMachTagArray;
 
 /* Here are the interesting things */
-
+- (void)updateReflexiveOffsetsWithOldMagic:(int32_t)oldMagic;
 - (void)findActiveReflexives;
 - (void)buildChunkSizes;
 - (void)updateReflexiveOffsets;

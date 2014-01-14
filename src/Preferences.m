@@ -19,7 +19,7 @@ static Preferences *sharedInstance = nil;
 
 - (id)init
 {
-    NSLog(@"Preferences window");
+    CSLog(@"Preferences window");
     
     
 	if (sharedInstance)

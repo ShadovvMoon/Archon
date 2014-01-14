@@ -18,7 +18,7 @@ static AboutBox *sharedInstance = nil;
 }
 - (id)init
 {
-    NSLog(@"About window");
+    CSLog(@"About window");
     
 	if (sharedInstance)
 		[self dealloc];
@@ -42,7 +42,7 @@ static AboutBox *sharedInstance = nil;
 		
 		if (![NSBundle loadNibNamed:@"AboutBox" owner:self])
 		{
-			NSLog(@"Failed to load AboutBox.nib");
+			CSLog(@"Failed to load AboutBox.nib");
 			NSBeep();
 			return;
 		}

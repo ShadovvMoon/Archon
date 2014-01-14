@@ -12,7 +12,7 @@
 @implementation ModelView
 - (id)initWithFrame:(NSRect)frame
 {
-    NSLog(@"Creating model view");
+    CSLog(@"Creating model view");
     
 	NSOpenGLPixelFormat *nsglFormat;
 	NSOpenGLPixelFormatAttribute attr[] = 
@@ -27,10 +27,10 @@
 	};
     [self setPostsFrameChangedNotifications: YES];
     nsglFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
-    if(!nsglFormat) { NSLog(@"Invalid format... terminating."); return nil; }
+    if(!nsglFormat) { CSLog(@"Invalid format... terminating."); return nil; }
     self = [super initWithFrame:frame pixelFormat:nsglFormat];
     [nsglFormat release];
-    if(!self) { NSLog(@"Self not created... terminating."); return nil; }
+    if(!self) { CSLog(@"Self not created... terminating."); return nil; }
     [[self openGLContext] makeCurrentContext];
     [self initGL];
     return self;
@@ -58,7 +58,7 @@
 }
 - (void)drawRect:(NSRect)rect
 {
-    NSLog(@"drawing model");
+    CSLog(@"drawing model");
 	[[self openGLContext] makeCurrentContext];
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();

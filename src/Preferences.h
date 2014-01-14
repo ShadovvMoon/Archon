@@ -7,7 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
-
+#import "defines.h"
 
 @interface Preferences : NSObject {
 

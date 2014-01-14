@@ -20,12 +20,16 @@
 
 @interface AppController : NSObject {
 	IBOutlet NSWindow *mainWindow;
+    IBOutlet NSWindow *connectWindow;
+    IBOutlet NSTextField *server_ip;
+    IBOutlet NSTextField *server_port;
 	IBOutlet RenderView *rendView;
 	IBOutlet NSTextField *opened;
 	IBOutlet SpawnEditorController *spawnEditor;
 	
 	IBOutlet BitmapView *bitmapView;
 	
+    IBOutlet NSWindow *preferencesWindow;
 	IBOutlet NSWindow *loadWindow;
 	IBOutlet NSProgressIndicator *loadProgressBar;
 	IBOutlet NSTextView *loadText;
@@ -53,8 +57,39 @@
     IBOutlet NSWindow *selectionSWindow;
     
     IBOutlet NSMenu *recentMenu;
+    
+    
+    IBOutlet NSWindow *welcomeWindow;
 	//NSString *opened;
+    
+    
+    
+    BOOL serverStarted;
+    
+    int server_sock;
+    BOOL hasServer;
+    
+    int tickCountdown;
+    BOOL connectionTried;
+    
+    int maxsocks;
+    
+    int clientsock[50];
+    
+    BOOL usingSocket[50];
+    struct sockaddr_in *udpsockets;
+    
+    int serversock;
+    fd_set fds;
+    
+    NSMutableDictionary *vehicle_tags;
+    
+    int numsocks;
 }
+- (IBAction)startServer:(id)sender;
+- (IBAction)connect:(id)sender;
+- (IBAction)connectToServer:(id)sender;
+- (IBAction)showPreferences:(id)sender;
 - (void)awakeFromNib;
 -(int)PID;
 - (IBAction)loadMap:(id)sender;

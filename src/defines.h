@@ -9,7 +9,7 @@
 #ifndef MACVERSION
  #import "glew.h"
 #endif
-
+#include <stdarg.h>
 #import <OpenGL/OpenGL.h>
 #import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
@@ -18,13 +18,57 @@
 //#define fasterRendering 1
 #define SUN 1
 #define VBO 1
+
+#define SHADERS 1
+GLuint global_positionData;
+GLuint global_rotationData;
+GLuint global_isDetailed;
+GLuint global_detailScale;
+GLuint global_detailScale2;
+
+GLuint global_baseTexture;
+GLuint global_detailTexture;
+
+BOOL global_detailedStatus;
+
+BOOL useAlphaTesting;
+BOOL legacyMode;
+BOOL renderCollisionModels;
+
+//Shaders
+
+//#define IMMEDIATE_MODE 1
+//#define DISPLAY_LISTS 1
+//#define VERTEX_BUFFERS 1
+
+//void CSLog(int n, ...);
+
+#define ADDITIONAL_SCENARIO_SPACE 0
+//#define MODZY_REFLEXIVES 1
+#ifdef MODZY_REFLEXIVES
+    #define REFLEXIVE_COUNT 68
+#else
+    #define REFLEXIVE_COUNT 79
+#endif
+
+#define MODZY_RENDERING 1
+#define FAST_MAP_OPENING 1
+
+#ifdef FAST_MAP_OPENING
+    #define MEMORY_READING 1
+    #define MEMORY_WRITING 1
+    #define SKIP_ALPHA_CREATION 1
+    #define LOWRAM 1
+#endif
+
 //#define VBO2 1
 
 //#define __DEBUG__ 1
 #define USEDEBUG if (FALSE)
 #define NEWSKY 1
 
-#define LOWRAM 1
+
+
 //#define THREADREFRESH 1
 //#define DEBUGPAINT 1
 
@@ -32,28 +76,94 @@ int newR;
 bool drawO ;
 bool lightScene;
 
+int32_t* tagFastArray;
+int tagArraySize;
+
 int useNewRenderer();
 bool drawObjects();
 
+NSBitmapImageRep *LoadImage(NSString *path, int shouldFlipVertical);
+int currentLightProgram();
+int currentSglaProgram();
+int currentNormalProgram();
+int activateLightProgram();
+int activateNormalProgram();
+int activateScexProgram();
+int activateSchiProgram();
+int activateSglaProgram();
+NSWindow * currentDocumentWindow();
+
+//Scex optimisations
+GLuint global_time;
+GLuint global_t0_scale;
+GLuint global_t0_option;
+GLuint global_t0_available;
+
+GLuint global_t1_scale;
+GLuint global_t1_option;
+GLuint global_t1_available;
+
+GLuint global_t2_scale;
+GLuint global_t2_option;
+GLuint global_t2_available;
+
+GLuint global_t3_scale;
+GLuint global_t3_option;
+GLuint global_t3_available;
+
+GLuint global_t0;
+GLuint global_t1;
+GLuint global_t2;
+GLuint global_t3;
+
+//Schi optimisations
+GLuint global_time_schi;
+GLuint global_t0_scale_schi;
+GLuint global_t0_option_schi;
+GLuint global_t0_available_schi;
+GLuint global_t1_scale_schi;
+GLuint global_t1_option_schi;
+GLuint global_t1_available_schi;
+GLuint global_t0_schi;
+GLuint global_t1_schi;
+
+//Sgla optimisations
+GLuint global_FrameWidth;
+GLuint global_FrameHeight;
+GLuint global_textureWidth;
+GLuint global_textureHeight;
+GLuint global_LightPos;
+GLuint global_BaseColor;
+GLuint global_Depth;
+GLuint global_MixRatio;
+GLuint global_EnvMap;
+GLuint global_RefractionMap;
+GLuint global_Yunitvec;
+GLuint global_Xunitvec;
+GLuint house_texture;
+GLuint frameBuffer_texture;
+
+int NextHighestPowerOf2(int n);
+void CopyFramebufferToTexture(GLuint texture);
 id renderV;
 BOOL performanceMode;
 
 NSThread* performanceThread;
 
-
-typedef struct 
+int currentScexProgram();
+typedef struct
 {
 	unsigned char TName[32];          // 'object'
 	unsigned short MaxObjects;        // Maximum number of objects - 0x800(2048 objects)
 	unsigned short Size;                  // Size of each object array - 0x0C(12 bytes)
-	unsigned long Unknown0;           // always 1?
+	uint32_t Unknown0;           // always 1?
 	unsigned char Data[4];              // '@t@d' - translates to 'data'?
 	unsigned short Unknown1;         // Something to do with number of objects
 	unsigned short Max;                  // Max number of objects the game has reached (slots maybe?)
 	unsigned short Num;                  // Number of objects in the current game
 	unsigned short NextObjectIndex; // Index number of the next object to spawn
 	unsigned short NextObjectID;      // ID number of the next object to spawn
-	unsigned long FirstObject;          // Pointer to the first object in the table 
+	uint32_t FirstObject;          // Pointer to the first object in the table 
 } Object_Table_Header; // 0x4BB206B4
 
 typedef struct
@@ -62,7 +172,7 @@ typedef struct
 	unsigned short Unknown0;
 	unsigned short Unknown1;
 	unsigned short Size;                 // Structure size
-	unsigned long Offset;                // Pointer to the object data structure
+	uint32_t Offset;                // Pointer to the object data structure
 } Object_Table_Array;
 
 
@@ -75,7 +185,7 @@ typedef struct
 	float sy;
 	float sz;
 	int address;
-	long id_tag;
+	int32_t id_tag;
 	BOOL isSelected;
 } dynamic_object;
 
@@ -112,7 +222,8 @@ typedef enum
     grass,
     lightmap,
     eyedrop,
-    newmode
+    newmode,
+    structuremode
 } Mode;
 
 typedef enum 
@@ -138,7 +249,9 @@ typedef enum
 	left,
 	right,
 	forward,
+    drop_down,
 	back
+
 } Direction;
 
 typedef struct
@@ -152,7 +265,7 @@ typedef struct
 	float red;
 	float blue;
 	float green;
-	long color_count;
+	int32_t color_count;
 } rgb;
 
 /* END RENDER VIEW */
@@ -160,41 +273,41 @@ typedef struct
 /* BEGIN MAP */
 typedef struct
 {
-	long map_id;
-	long version;
-	long map_length;
-	long zeros;
-	long offsetToIndex;
-	long metaSize;
-	long zeros2[2];
+	int32_t map_id;
+	int32_t version;
+	int32_t map_length;
+	int32_t zeros;
+	int32_t offsetToIndex;
+	int32_t metaSize;
+	int32_t zeros2[2];
 	char name[32];
 	char builddate[32];
-	long maptype;
-	long footer;
+	int32_t maptype;
+	int32_t footer;
 } Header;
 
 typedef struct
 {
-	long indexMagic;
-	long starting_id;
-	long vertexsize;
-	long tagcount;
-	long vertex_object_count;
-	long vertex_offset;
-	long indices_object_count;
-	long vertex_size;
-	long modelsize;
-	long tagstart;
+	int32_t indexMagic;
+	int32_t starting_id;
+	int32_t vertexsize;
+	int32_t tagcount;
+	int32_t vertex_object_count;
+	int32_t vertex_offset;
+	int32_t indices_object_count;
+	int32_t vertex_size;
+	int32_t modelsize;
+	int32_t tagstart;
 } IndexHeader;
 
 typedef struct
 {
-	long chunkcount;
+	int32_t chunkcount;
 	int offset;
-	long zero;
+	int32_t zero;
 	
 	// Editing / saving related aspect
-	long location_in_mapfile;
+	int32_t location_in_mapfile;
 	int oldOffset;
 	int newChunkCount;
 	int chunkSize;
@@ -205,24 +318,24 @@ typedef struct
 
 typedef struct
 {
-	long chunkcount;
+	int32_t chunkcount;
 	int offset;
-	long zero;
+	int32_t zero;
 } reflexive_tag;
 
 typedef struct
 {
   char tag[4];
-  long NamePtr;
-  long unknown;
-  long TagId;
+  int32_t NamePtr;
+  int32_t unknown;
+  int32_t TagId;
 } TAG_REFERENCE;
 
 typedef struct
 {
-    unsigned long junk1[34];
+    uint32_t junk1[34];
     TAG_REFERENCE baseMapBitm;
-    unsigned long junk2[7];
+    uint32_t junk2[7];
     float primaryMapScale;
     TAG_REFERENCE primaryMapBitm;
     float secondaryMapScale;
@@ -233,11 +346,11 @@ typedef struct
 
 typedef struct
 {
-    unsigned long junk1[41];
+    uint32_t junk1[41];
     TAG_REFERENCE baseMap;
-    unsigned long junk3[2];
+    uint32_t junk3[2];
     TAG_REFERENCE multiPurpose;
-    unsigned long junk2[3];
+    uint32_t junk2[3];
     float detailScale;
     TAG_REFERENCE detailMap;
     
@@ -250,22 +363,28 @@ typedef struct
 
 typedef struct
 {
-    //unsigned long junk1[11];
+    //uint32_t junk1[11];
     short colorFunction;
     short alphaFunction;
-    //unsigned long junk2[9];
+    //uint32_t junk2[9];
     float uscale;
     float vscale;
-    //unsigned long junk4[4];
+    
+    short uFunction;
+    short vFunction;
+    
+    float animation_period;
+    
+    //uint32_t junk4[4];
     TAG_REFERENCE bitm;
-    //unsigned long junk3[24];
+    //uint32_t junk3[24];
     
     GLfloat *texture_uv;
 } map;
 
 typedef struct
 {
-    //unsigned long junk1[21];
+    //uint32_t junk1[21];
     reflexive maps;
     
     map *read_maps;
@@ -274,11 +393,13 @@ typedef struct
 
 typedef struct
 {
-    //unsigned long junk1[21];
+    //uint32_t junk1[21];
     reflexive maps;
     reflexive maps2;
     map *read_maps;
     
+    uint32_t bitmask32;
+    int extended_flags;
 } scex;
 
 /* END MAP */
@@ -287,7 +408,7 @@ typedef struct
 // scenario header -> Taken from ScenarioDefs.h from Bob's sparkedit (Probably gren's code in the first place)
 /*
 *
-*	Scenario header is ALWAYS 0x5B0 long and ends with the skybox tag ref.
+*	Scenario header is ALWAYS 0x5B0 int32_t and ends with the skybox tag ref.
 *
 *	Scenario reconstruction leaves everything up to Scenery untouched
 *	After scenery, which we allow users to edit, the scenario may be reconstructed
@@ -303,14 +424,14 @@ typedef struct
   int unk1;
   reflexive ChildScenarios; // 2
 
-	unsigned long unneeded1[46];
+	uint32_t unneeded1[46];
   int EditorScenarioSize;
   int unk2;
   int unk3;
-  unsigned long pointertoindex;
-	unsigned long unneeded2[2];
-  unsigned long pointertoendofindex;
-	unsigned long zero1[57];
+  uint32_t pointertoindex;
+	uint32_t unneeded2[2];
+  uint32_t pointertoendofindex;
+	uint32_t zero1[57];
 
   reflexive ObjectNames; // 3
   reflexive Scenery; // 4
@@ -347,6 +468,15 @@ typedef struct
   reflexive Unknown3[7]; // 41-47
   reflexive ActorVariantRef; // 48
   reflexive Encounters; // 49
+    
+    
+    reflexive predicted_resources; // 49
+    reflexive functions; // 49
+    reflexive unknown_reflexive; // 49
+    reflexive comments; // 49
+
+    
+    
   //below this, structs still not confirmed
     
     
@@ -358,11 +488,11 @@ typedef struct
     reflexive AiRecordingRefs;
     reflexive AiConversations;
     
-    long scriptSyntax;
-    long scriptSyntax2;
+    int32_t scriptSyntax;
+    int32_t scriptSyntax2;
     float scriptSyntax3;
-    long scriptSyntax4;
-    long scriptSyntax5;
+    int32_t scriptSyntax4;
+    int32_t scriptSyntax5;
     float scriptSyntax6;
 
     reflexive Scripts;
@@ -376,9 +506,9 @@ typedef struct
     
     reflexive UnknownRef[9];
     
-    long con[2];
-    long ight[2];
-    long hud[2];
+    int32_t con[2];
+    int32_t ight[2];
+    int32_t hud[2];
     
     reflexive StructBsp;
     */
@@ -390,8 +520,8 @@ typedef struct
   reflexive AiConversations; // 54
   reflexive Unknown8[3]; // 71-78
     
-  unsigned long ScriptDataSize;
-  unsigned long Unknown4;
+  uint32_t ScriptDataSize;
+  uint32_t Unknown4;
   reflexive ScriptCrap; // 55
   reflexive Commands; // 56
   reflexive Points; // 57
@@ -410,7 +540,12 @@ typedef struct
   reflexive CutsceneTitles; // 70
   reflexive Unknown6[8]; // 71-78
     reflexive Unknown61[14]; // 71-78
-  unsigned long  Unknown7[2];
+  uint32_t  Unknown7[2];
+    
+    uint32_t Unk1[2]; // 79
+    uint32_t Unk2[12]; // 79
+    uint32_t Unk3[9]; // 79
+    
   reflexive StructBsp; // 79
     
     
@@ -419,7 +554,8 @@ typedef struct
 typedef struct SkyBox
 {
 	TAG_REFERENCE skybox;
-	long modelIdent;
+	int32_t modelIdent;
+    int32_t collisionIdent;
 } SkyBox;
 // scenery
 typedef struct scenery_spawn
@@ -433,7 +569,8 @@ typedef struct scenery_spawn
 	float unknown[10];
 	
 	// Not part of the in-map data
-	long modelIdent;
+	int32_t modelIdent;
+    int32_t collisionIdent;
 	bool isSelected;
 	bool isMoving;
 } scenery_spawn;
@@ -442,7 +579,7 @@ typedef struct scenery_spawn
 typedef struct scenery_reference
 {
 	TAG_REFERENCE scen_ref;
-	unsigned long zero[8];
+	uint32_t zero[8];
 } scenery_reference;
 #define SCENERY_REF_CHUNK 0x30 
 
@@ -458,18 +595,18 @@ typedef struct
      float coord[3];
      float rotation[3];
      
-     long unknown1[5];
+     int32_t unknown1[5];
      float body_vitality;
      //short unknown2;
-     unsigned long flags;
-     unsigned long unknown3[2];
+     uint32_t flags;
+     uint32_t unknown3[2];
      char mpTeamIndex[2];
-     long mpSpawnFlags;
+     int32_t mpSpawnFlags;
      
      short unknown2[11];
      
      // Not part of the in-map data
-     long modelIdent;
+     int32_t modelIdent;
      bool isSelected;
      bool isMoving;*/
     
@@ -480,7 +617,7 @@ typedef struct
 	short desired_permutation;
 	float coord[3];
 	float rotation[3];
-	unsigned long unknown2[22];
+	uint32_t unknown2[22];
     
     /*
     short numid;
@@ -489,17 +626,18 @@ typedef struct
     short desired_permutation;
     float coord[3];
     float rotation[3];
-    unsigned long unknown1[10];
+    uint32_t unknown1[10];
     float body_vitality; //72
     short flags; //76
     short unknown3[5]; //78
     short mpTeamIndex; //88
     short mpSpawnFlags; //90
-    unsigned long unknown2[7];
+    uint32_t unknown2[7];
 */
 	
 	// Not part of the in-map data
-	long modelIdent;
+	int32_t modelIdent;
+    int32_t collisionIdent;
 	bool isSelected;
 	bool isMoving;
 } vehicle_spawn;
@@ -509,20 +647,20 @@ typedef struct
 typedef struct bipd_reference
 {
 	TAG_REFERENCE bipd_ref;
-	unsigned long zero[8];
+	uint32_t zero[8];
 } bipd_reference;
 
 typedef struct vehicle_reference
 {
 	TAG_REFERENCE vehi_ref;
-	unsigned long zero[8];
+	uint32_t zero[8];
 } vehicle_reference;
 #define VEHICLE_REF_CHUNK 0x30
 
 // MP Equipment
 typedef struct mp_equipment
 {
-    unsigned long bitmask32;
+    uint32_t bitmask32;
     
     short type1; // Enum16
 	short type2; // Enum16
@@ -532,14 +670,15 @@ typedef struct mp_equipment
     short team_index;
     short spawn_time;
     
-	unsigned long unknown[12];
+	uint32_t unknown[12];
 	float coord[3];
 	float yaw;
 	TAG_REFERENCE itmc;
-	unsigned long unknown2[12];
+	uint32_t unknown2[12];
 	
 	// Not part of the in-map data
-	long modelIdent;
+	int32_t modelIdent;
+    int32_t collisionIdent;
 	bool isSelected;
 	bool isMoving;
 } mp_equipment;
@@ -588,10 +727,11 @@ typedef struct player_spawn
     int leftFace;
     int rightFace;
 };
- struct Verticies{
+struct Verticies{
     float x,y,z;
     int firstEdge;
 };
+
 typedef struct multiplayer_flags
 {
 	float coord[3];
@@ -599,7 +739,7 @@ typedef struct multiplayer_flags
 	short type;
 	short team_index;
 	TAG_REFERENCE item_used; // Not always there
-	long zeros[0x70]; // Never needs to be read, just needs to be here
+	int32_t zeros[0x70]; // Never needs to be read, just needs to be here
 	
 	// Not part of in-map data
 	BOOL isSelected;
@@ -610,7 +750,7 @@ typedef struct multiplayer_flags
 /* I don't really think this will work... */
 typedef struct netgame_equipment
 {
-	long bitmask32;
+	int32_t bitmask32;
 	short type0;
 	short type1;
 	short type2;
@@ -626,11 +766,11 @@ typedef struct netgame_equipment
 // 0xCC in length
 typedef struct starting_weapons
 {
-	long unk1;
-	long unk2;
-	long unk3[13];
+	int32_t unk1;
+	int32_t unk2;
+	int32_t unk3[13];
 	TAG_REFERENCE weapon[6]; // 6 * 0x10
-	long zeros2[12];
+	int32_t zeros2[12];
 } starting_weapons;
 #define STARTING_WEAPONS_CHUNK 0xCC
 
@@ -644,7 +784,7 @@ typedef struct machine_spawn
 	float coord[3];
 	float rotation[3];
 	
-    unsigned long unknown1[2]; //32
+    uint32_t unknown1[2]; //32
     
     short powerGroup; //40
     short positionGroup; //42
@@ -663,10 +803,11 @@ typedef struct machine_spawn
 typedef struct machine_ref
 {
 	TAG_REFERENCE machTag;
-	long zeros[8];
+	int32_t zeros[8];
 	
 	// non-map data
-	long modelIdent;
+	int32_t modelIdent;
+    int32_t collisionIdent;
 } machine_ref;
 #define MACHINE_REF_CHUNK 0x30
 
@@ -690,7 +831,7 @@ typedef struct device_group
 
 typedef struct encounter
 {
-	unsigned long unknown[32];
+	uint32_t unknown[32];
 	reflexive_tag squads;
 	reflexive_tag platoons;
 	reflexive_tag firing;
@@ -708,7 +849,7 @@ typedef struct encounter
 typedef struct MODEL_REGION_PERMUTATION
 {
   char Name[32];
-  unsigned long Flags[8];
+  uint32_t Flags[8];
   short LOD_MeshIndex[5];
   short Reserved[7];
 } MODEL_REGION_PERMUTATION;
@@ -733,14 +874,14 @@ typedef struct
 } geometry;
 typedef struct
 {
-	long count;
-	long rawPointer[2];
+	int32_t count;
+	int32_t rawPointer[2];
 } indicesPointer;
 typedef struct
 {
-	long count;
+	int32_t count;
 	char junk[8];
-	long rawPointer;
+	int32_t rawPointer;
 } verticesPointer;
 typedef struct
 {
@@ -757,7 +898,7 @@ typedef struct
 {
 	char junk4[4];
 	short shaderIndex;
-	long shaderBitmapIndex;
+	int32_t shaderBitmapIndex;
 	char junk[66];
 	indicesPointer indexPointer;
 	char junk2[4];
@@ -768,12 +909,15 @@ typedef struct
 	unsigned short *indices;
     
     //Additional stuff
-    long shaderBitmapIndexArray[30];
-    long lengthOfBitmapArray;
+    int32_t shaderBitmapIndexArray[30];
+    int32_t lengthOfBitmapArray;
     
-    long baseMapIndex;
-    long detailMapIndex;
+    int32_t baseMapIndex;
+    int32_t detailMapIndex;
+    int32_t isGlass;
     float detailMapScale;
+    
+    short glass_flags;
     
     int hasShader;
     schi *shader;
@@ -786,23 +930,23 @@ typedef struct
 
 typedef struct
 {
-  unsigned long BspStart;
-  unsigned long BspSize;
-  unsigned long Magic;
-  unsigned long Zero1;
+  uint32_t BspStart;
+  uint32_t BspSize;
+  uint32_t Magic;
+  uint32_t Zero1;
   char bsptag[4];
-  unsigned long NamePtr;
-  unsigned long unknown2;
-  unsigned long TagId;
+  uint32_t NamePtr;
+  uint32_t unknown2;
+  uint32_t TagId;
 }SCENARIO_BSP_INFO;
 typedef struct STRUCT_BSP_HEADER
 {
   TAG_REFERENCE LightmapsTag;
-  unsigned long unk4[0x25];
+  uint32_t unk4[0x25];
   reflexive Shaders;
   reflexive CollBspHeader;
   reflexive Nodes;
-  unsigned long unk6[6];
+  uint32_t unk6[6];
   reflexive Leaves;
   reflexive LeafSurfaces;
   reflexive SubmeshTriIndices;
@@ -812,7 +956,7 @@ typedef struct STRUCT_BSP_HEADER
   reflexive Chunk12;
   reflexive Clusters;
   int ClusterDataSize;
-  unsigned long unk11;
+  uint32_t unk11;
   reflexive Chunk14;
   reflexive ClusterPortals;
   reflexive Chunk16a;
@@ -831,25 +975,25 @@ typedef struct STRUCT_BSP_HEADER
   reflexive BackgroundSound;
   reflexive SoundEnvironment;
   int SoundPASDataSize;
-  unsigned long unk12;
+  uint32_t unk12;
   reflexive Chunk25;
   reflexive Chunk26;
   reflexive Chunk27;
   reflexive Markers;
   reflexive DetailObjects;
   reflexive RuntimeDecals;
-  unsigned long unk10[9];
+  uint32_t unk10[9];
 }BSP_HEADER;
 
 typedef struct
 {
   TAG_REFERENCE ShaderTag;
-  unsigned long UnkZero2;
-  unsigned long VertIndexOffset;
-  unsigned long VertIndexCount;
+  uint32_t UnkZero2;
+  uint32_t VertIndexOffset;
+  uint32_t VertIndexCount;
   float Centroid[3];
   float AmbientColor[3];
-  unsigned long DistLightCount;
+  uint32_t DistLightCount;
   float DistLight1[6];
   float DistLight2[6];
   float unkFloat2[3];
@@ -857,30 +1001,30 @@ typedef struct
   float ShadowVector[3];
   float ShadowColor[3];
   float Plane[4];
-  unsigned long UnkFlag2;
-  unsigned long UnkCount1;
-  unsigned long VertexCount1;
-  unsigned long UnkZero4;
-  unsigned long VertexOffset;
-  unsigned long Vert_Reflexive;
-  unsigned long UnkAlways3;
-  unsigned long VertexCount2;
-  unsigned long UnkZero9;
-  unsigned long UnkLightmapOffset;
-  unsigned long CompVert_Reflexive;
-  unsigned long UnkZero5[2];
-  unsigned long SomeOffset1;
-  unsigned long PcVertexDataOffset;
-  unsigned long UnkZero6;
-  unsigned long CompVertBufferSize;
-  unsigned long UnkZero7;
-  unsigned long SomeOffset2;
-  unsigned long VertexDataOffset;
-  unsigned long UnkZero8;
+  uint32_t UnkFlag2;
+  uint32_t UnkCount1;
+  uint32_t VertexCount1;
+  uint32_t UnkZero4;
+  uint32_t VertexOffset;
+  uint32_t Vert_Reflexive;
+  uint32_t UnkAlways3;
+  uint32_t VertexCount2;
+  uint32_t UnkZero9;
+  uint32_t UnkLightmapOffset;
+  uint32_t CompVert_Reflexive;
+  uint32_t UnkZero5[2];
+  uint32_t SomeOffset1;
+  uint32_t PcVertexDataOffset;
+  uint32_t UnkZero6;
+  uint32_t CompVertBufferSize;
+  uint32_t UnkZero7;
+  uint32_t SomeOffset2;
+  uint32_t VertexDataOffset;
+  uint32_t UnkZero8;
 }MATERIAL_SUBMESH_HEADER;
 typedef struct
 {
-  unsigned long comp_normal;
+  uint32_t comp_normal;
   short comp_uv[2];
 }COMPRESSED_LIGHTMAP_VERT;
 typedef struct
@@ -901,9 +1045,9 @@ typedef struct
 typedef struct
 {
   float vertex_k[3];
-  unsigned long  comp_normal;
-  unsigned long  comp_binormal;
-  unsigned long  comp_tangent;
+  uint32_t  comp_normal;
+  uint32_t  comp_binormal;
+  uint32_t  comp_tangent;
   float uv[2];
 }COMPRESSED_BSP_VERT;
 typedef struct
@@ -917,14 +1061,16 @@ typedef struct
   char							shader_name[128];
   UNCOMPRESSED_BSP_VERT			*pVert;
   COMPRESSED_BSP_VERT			*pCompVert;
-  unsigned long					VertCount;
+  uint32_t					VertCount;
   TRI_INDICES					*pIndex;
-  unsigned long					IndexCount;
+  uint32_t					IndexCount;
   char							*pTextureData;
-  unsigned long					ShaderType;
-  unsigned long					ShaderIndex;
-  unsigned long					DefaultBitmapIndex;
-  unsigned long					DefaultLightmapIndex;
+  uint32_t					ShaderType;
+  uint32_t					ShaderIndex;
+  uint32_t					DefaultBitmapIndex;
+  int32_t hasShader;
+  scex *scex_shader;
+  uint32_t					DefaultLightmapIndex;
   BOUNDING_BOX					Box;
   int							RenderTextureIndex;
   int							LightmapIndex;
@@ -933,10 +1079,10 @@ typedef struct
     
     
   //Additioanl junk
-  unsigned long					baseMap;
-  unsigned long					primaryMap;
-  unsigned long					secondaryMap;
-  unsigned long					microMap;
+  uint32_t					baseMap;
+  uint32_t					primaryMap;
+  uint32_t					secondaryMap;
+  uint32_t					microMap;
     
     BOOL isWaterShader;
     
@@ -951,28 +1097,28 @@ typedef struct
 typedef struct
 {
   char name[128];
-  unsigned long offset;
-  unsigned long count;
+  uint32_t offset;
+  uint32_t count;
 }BSP_XREF;
 typedef struct
 {
   char Name[32];
   char tag[4];
-  unsigned long NamePtr;
-  unsigned long zero1;
-  unsigned long TagId;
-  unsigned long reserved[20];
+  uint32_t NamePtr;
+  uint32_t zero1;
+  uint32_t TagId;
+  uint32_t reserved[20];
   char tag2[4];
-  unsigned long NamePtr2;
-  unsigned long zero2;
-  unsigned long signature2;
-  unsigned long unk[24];
+  uint32_t NamePtr2;
+  uint32_t zero2;
+  uint32_t signature2;
+  uint32_t unk[24];
 }BSP_WEATHER;
 typedef struct
 {
   short LightmapIndex;
   short unk1;
-  unsigned long unknown[4];
+  uint32_t unknown[4];
   reflexive Material;
 }BSP_LIGHTMAP;
 
@@ -1004,12 +1150,28 @@ struct Leaves
     int surfaceRef;
 };
 
+struct BSP_COLLISION_COLL
+{
+    reflexive Node3D;
+    reflexive Planes;
+    reflexive Leaves;
+    reflexive BSP2DRef;
+    reflexive BSP2DNodes;
+    reflexive Surfaces;
+    reflexive Edges;
+	reflexive Vertices;
+};
 
+
+struct Coll_Node
+{
+    reflexive bsp;
+};
 typedef struct
 {
 	short LightmapIndex;
 	short unk1;
-	unsigned long unknown[4];
+	uint32_t unknown[4];
     
     
     reflexive Node3D;
@@ -1051,9 +1213,9 @@ typedef struct
   short SoundEnvIndex;
   short WeatherIndex;
   short TransitionBsp;
-  unsigned long  unk1[10];
+  uint32_t  unk1[10];
   reflexive SubCluster;
-	unsigned long unk2[7];
+	uint32_t unk2[7];
   reflexive Portals;
 }BSP_CLUSTER;
 /* END BSP */

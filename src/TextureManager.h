@@ -24,20 +24,20 @@
 	int _textureCounter;
     int lastShaderIndex;
 }
--(BitmapTag*)bitmapForIdent:(long)ident;
+    -(NSMutableDictionary*)_textureLookupByID;
+-(BitmapTag*)bitmapForIdent:(int32_t)ident;
 - (id)init;
 - (id)initWithCapacity:(int)capacity;
 - (void)setCapacity:(int)capacity;
 - (void)dealloc;
 - (void)addTexture:(BitmapTag *)bitm;
-- (void)loadTextureOfIdent:(long)ident subImage:(int)index;
+- (void)loadTextureOfIdent:(int32_t)ident subImage:(int)index;
 - (void)loadAlTextures;
 - (void)deleteAllTextures;
-- (void)deleteTextureOfTag:(long)ident;
-- (void)activateTextureOfIdent:(long)ident subImage:(int)subImage useAlphas:(BOOL)useAlphas;
-- (void)activateTextureAndLightmap:(long)ident lightmap:(long)lightmap subImage:(int)subImage;
+- (void)deleteTextureOfTag:(int32_t)ident;
+- (void)activateTextureOfIdent:(int32_t)ident subImage:(int)subImage useAlphas:(BOOL)useAlphas;
+- (void)activateTextureAndLightmap:(int32_t)ident lightmap:(int32_t)lightmap subImage:(int)subImage;
 @property (retain) NSMutableArray *_textures;
-@property (retain) NSMutableDictionary *_textureLookupByID;
 @property unsigned int *_glTextureNameLookup;
 @property GLuint *_glTextureNames;
 @property GLuint **_glTextureTable;

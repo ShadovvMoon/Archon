@@ -14,9 +14,13 @@
 		143B86EA12A25A0A0092D35E /* machine.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86E912A25A0A0092D35E /* machine.seo */; };
 		144893AD10FA90130026A004 /* relaunch in Resources */ = {isa = PBXBuildFile; fileRef = 144893AC10FA90130026A004 /* relaunch */; };
 		1448949510FAAAE30026A004 /* Archon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1448949410FAAAE30026A004 /* Archon.icns */; };
+		1472407C1849638A00336BB5 /* xcode-project_Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1472407B1849638A00336BB5 /* xcode-project_Icon.icns */; };
+		1472407F1849978400336BB5 /* Plugins in Resources */ = {isa = PBXBuildFile; fileRef = 1472407E1849978400336BB5 /* Plugins */; };
 		14CB95FC18487DC90084F334 /* CSGradientView.m in Sources */ = {isa = PBXBuildFile; fileRef = 14CB95FB18487DC90084F334 /* CSGradientView.m */; };
 		14CB95FF184881F90084F334 /* CSGradientHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 14CB95FE184881F90084F334 /* CSGradientHeader.m */; };
 		14CB96021848B5550084F334 /* FlippedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 14CB96011848B5550084F334 /* FlippedView.m */; };
+		14CB9606184949480084F334 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 14CB9605184949480084F334 /* MainMenu.xib */; };
+		14CB964C184949FD0084F334 /* ArchonMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 14CB964B184949FD0084F334 /* ArchonMap.m */; };
 		5C00A8C50DD51D8100C2253D /* AboutBox.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C00A8C40DD51D8100C2253D /* AboutBox.m */; };
 		5C00A9130DD5210200C2253D /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C00A9120DD5210200C2253D /* Credits.rtf */; };
 		5C00A9200DD5215E00C2253D /* AboutBox.nib in Resources */ = {isa = PBXBuildFile; fileRef = 5C00A91E0DD5215E00C2253D /* AboutBox.nib */; };
@@ -44,9 +48,22 @@
 		5CEA8D2D0CCC23A100B5636E /* AppController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CEA8D2C0CCC23A100B5636E /* AppController.m */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
+		AD0ABFE01877819A0071D2FC /* water.vert in Sources */ = {isa = PBXBuildFile; fileRef = AD0ABFDF1877819A0071D2FC /* water.vert */; };
+		AD0ABFE11877819A0071D2FC /* water.vert in Sources */ = {isa = PBXBuildFile; fileRef = AD0ABFDF1877819A0071D2FC /* water.vert */; };
+		AD0ABFE3187781A40071D2FC /* water.frag in Sources */ = {isa = PBXBuildFile; fileRef = AD0ABFE2187781A40071D2FC /* water.frag */; };
+		AD0ABFE4187781A40071D2FC /* water.frag in Sources */ = {isa = PBXBuildFile; fileRef = AD0ABFE2187781A40071D2FC /* water.frag */; };
+		AD0ABFE6187781CC0071D2FC /* water.frag in Resources */ = {isa = PBXBuildFile; fileRef = AD0ABFE2187781A40071D2FC /* water.frag */; };
+		AD0ABFE7187781CE0071D2FC /* water.vert in Resources */ = {isa = PBXBuildFile; fileRef = AD0ABFDF1877819A0071D2FC /* water.vert */; };
+		AD0ABFE918778A960071D2FC /* water_normal.jpg in Resources */ = {isa = PBXBuildFile; fileRef = AD0ABFE818778A960071D2FC /* water_normal.jpg */; };
+		AD0ABFEA18778A960071D2FC /* water_normal.jpg in Resources */ = {isa = PBXBuildFile; fileRef = AD0ABFE818778A960071D2FC /* water_normal.jpg */; };
+		AD0ABFFC1877A4300071D2FC /* light.frag in Sources */ = {isa = PBXBuildFile; fileRef = AD0ABFFA1877A4300071D2FC /* light.frag */; };
+		AD0ABFFD1877A4300071D2FC /* light.vert in Sources */ = {isa = PBXBuildFile; fileRef = AD0ABFFB1877A4300071D2FC /* light.vert */; };
+		AD2B130A187E2ADC00ED3DE2 /* normal.frag in Sources */ = {isa = PBXBuildFile; fileRef = AD2B1309187E2ADC00ED3DE2 /* normal.frag */; };
+		AD2B130C187E2AE100ED3DE2 /* normal.vert in Sources */ = {isa = PBXBuildFile; fileRef = AD2B130B187E2AE100ED3DE2 /* normal.vert */; };
 		AD30D40617E19EC50071EF5B /* glew.c in Sources */ = {isa = PBXBuildFile; fileRef = AD30D40517E19EC50071EF5B /* glew.c */; };
 		AD433CBE17FBD2500049E12A /* UDPEcho in Resources */ = {isa = PBXBuildFile; fileRef = AD433CBD17FBD2500049E12A /* UDPEcho */; };
 		AD433CBF17FBD2500049E12A /* UDPEcho in Resources */ = {isa = PBXBuildFile; fileRef = AD433CBD17FBD2500049E12A /* UDPEcho */; };
+		AD55698B1859B5C2003DFA6D /* SDMPluginHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = AD5569891859B5C2003DFA6D /* SDMPluginHandler.c */; };
 		AD55C55017DDE2E00067CD85 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		AD55C55117DDE2E00067CD85 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C00A9120DD5210200C2253D /* Credits.rtf */; };
 		AD55C55217DDE2E00067CD85 /* AboutBox.nib in Resources */ = {isa = PBXBuildFile; fileRef = 5C00A91E0DD5215E00C2253D /* AboutBox.nib */; };
@@ -58,7 +75,7 @@
 		AD55C55817DDE2E00067CD85 /* scenery.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86B612A24D3B0092D35E /* scenery.seo */; };
 		AD55C55917DDE2E00067CD85 /* machine.seo in Resources */ = {isa = PBXBuildFile; fileRef = 143B86E912A25A0A0092D35E /* machine.seo */; };
 		AD55C55A17DDE2E00067CD85 /* item.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D74176C0CDD007B74E3 /* item.seo */; };
-		AD55C55B17DDE2E00067CD85 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD558001765866D0023C115 /* Main.xib */; };
+		AD55C55B17DDE2E00067CD85 /* ArchonMap.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD558001765866D0023C115 /* ArchonMap.xib */; };
 		AD55C55D17DDE2E00067CD85 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		AD55C55E17DDE2E00067CD85 /* BSP.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C46AC860CCB211800651C97 /* BSP.m */; };
 		AD55C55F17DDE2E00067CD85 /* MapTag.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1217130CCBBFA00000B2B0 /* MapTag.m */; };
@@ -89,6 +106,8 @@
 		AD55C58E17DDE9D30067CD85 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
 		AD55C59017DDE9D60067CD85 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97324FDCFA39411CA2CEA /* AppKit.framework */; };
 		AD55C59117DDE9D80067CD85 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD79512E1763266E0029CCFE /* Security.framework */; };
+		AD6911E21876AB3A00DB1A9C /* CollisionTag.m in Sources */ = {isa = PBXBuildFile; fileRef = AD6911E01876AB3A00DB1A9C /* CollisionTag.m */; };
+		AD6911E31876AB3A00DB1A9C /* CollisionTag.m in Sources */ = {isa = PBXBuildFile; fileRef = AD6911E01876AB3A00DB1A9C /* CollisionTag.m */; };
 		AD6AC82017FA633600C143DC /* ctf.ogg in Resources */ = {isa = PBXBuildFile; fileRef = AD6AC81C17FA633600C143DC /* ctf.ogg */; };
 		AD6AC82117FA633600C143DC /* ctf.ogg in Resources */ = {isa = PBXBuildFile; fileRef = AD6AC81C17FA633600C143DC /* ctf.ogg */; };
 		AD6AC82217FA633600C143DC /* slayer.ogg in Resources */ = {isa = PBXBuildFile; fileRef = AD6AC81D17FA633600C143DC /* slayer.ogg */; };
@@ -98,6 +117,10 @@
 		AD6AC82617FA633600C143DC /* race.ogg in Resources */ = {isa = PBXBuildFile; fileRef = AD6AC81F17FA633600C143DC /* race.ogg */; };
 		AD6AC82717FA633600C143DC /* race.ogg in Resources */ = {isa = PBXBuildFile; fileRef = AD6AC81F17FA633600C143DC /* race.ogg */; };
 		AD79512F1763266E0029CCFE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD79512E1763266E0029CCFE /* Security.framework */; };
+		AD873EBC18586C2A006E7E00 /* ImageAndTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = AD873EB918586C2A006E7E00 /* ImageAndTextCell.m */; };
+		AD873EBD18586C2A006E7E00 /* SeparatorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = AD873EBB18586C2A006E7E00 /* SeparatorCell.m */; };
+		AD873EC218586C75006E7E00 /* BaseNode.m in Sources */ = {isa = PBXBuildFile; fileRef = AD873EBF18586C75006E7E00 /* BaseNode.m */; };
+		AD873EC318586C75006E7E00 /* ChildNode.m in Sources */ = {isa = PBXBuildFile; fileRef = AD873EC118586C75006E7E00 /* ChildNode.m */; };
 		AD893D5417F845A20090E892 /* alpha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3817F845A20090E892 /* alpha.cpp */; };
 		AD893D5517F845A20090E892 /* alpha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3817F845A20090E892 /* alpha.cpp */; };
 		AD893D5617F845A20090E892 /* clusterfit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD893D3A17F845A20090E892 /* clusterfit.cpp */; };
@@ -121,9 +144,24 @@
 		AD893D6F17F847BB0090E892 /* BitmapTag.mm in Sources */ = {isa = PBXBuildFile; fileRef = AD893D6E17F847BB0090E892 /* BitmapTag.mm */; };
 		AD893D7017F847BB0090E892 /* BitmapTag.mm in Sources */ = {isa = PBXBuildFile; fileRef = AD893D6E17F847BB0090E892 /* BitmapTag.mm */; };
 		AD9CA5BA176D8E03004B109A /* NonKeyPanels.m in Sources */ = {isa = PBXBuildFile; fileRef = AD9CA5B9176D8E03004B109A /* NonKeyPanels.m */; };
+		ADA50091187FBEE2005CE4FB /* scex.vert in Sources */ = {isa = PBXBuildFile; fileRef = ADA50090187FBEE1005CE4FB /* scex.vert */; };
+		ADA50093187FBEEB005CE4FB /* scex.frag in Sources */ = {isa = PBXBuildFile; fileRef = ADA50092187FBEEB005CE4FB /* scex.frag */; };
+		ADA50094187FBF02005CE4FB /* scex.vert in Resources */ = {isa = PBXBuildFile; fileRef = ADA50090187FBEE1005CE4FB /* scex.vert */; };
+		ADA50095187FBF04005CE4FB /* scex.frag in Resources */ = {isa = PBXBuildFile; fileRef = ADA50092187FBEEB005CE4FB /* scex.frag */; };
+		ADA50097187FC7E0005CE4FB /* schi.vert in Sources */ = {isa = PBXBuildFile; fileRef = ADA50096187FC7E0005CE4FB /* schi.vert */; };
+		ADA50099187FC7E4005CE4FB /* schi.frag in Sources */ = {isa = PBXBuildFile; fileRef = ADA50098187FC7E4005CE4FB /* schi.frag */; };
+		ADA5009A187FC7EA005CE4FB /* schi.vert in Resources */ = {isa = PBXBuildFile; fileRef = ADA50096187FC7E0005CE4FB /* schi.vert */; };
+		ADA5009B187FC7EC005CE4FB /* schi.frag in Resources */ = {isa = PBXBuildFile; fileRef = ADA50098187FC7E4005CE4FB /* schi.frag */; };
+		ADA5009D187FCEA0005CE4FB /* sgla.frag in Sources */ = {isa = PBXBuildFile; fileRef = ADA5009C187FCEA0005CE4FB /* sgla.frag */; };
+		ADA5009F187FCEBA005CE4FB /* sgla.vert in Sources */ = {isa = PBXBuildFile; fileRef = ADA5009E187FCEBA005CE4FB /* sgla.vert */; };
+		ADA500A0187FCEBF005CE4FB /* sgla.frag in Resources */ = {isa = PBXBuildFile; fileRef = ADA5009C187FCEA0005CE4FB /* sgla.frag */; };
+		ADA500A1187FCEC0005CE4FB /* sgla.vert in Resources */ = {isa = PBXBuildFile; fileRef = ADA5009E187FCEBA005CE4FB /* sgla.vert */; };
+		ADADBF031877A5D900A9CE30 /* light.frag in Resources */ = {isa = PBXBuildFile; fileRef = AD0ABFFA1877A4300071D2FC /* light.frag */; };
+		ADADBF041877A5DA00A9CE30 /* light.vert in Resources */ = {isa = PBXBuildFile; fileRef = AD0ABFFB1877A4300071D2FC /* light.vert */; };
+		ADADBF061877B75E00A9CE30 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADADBF051877B75E00A9CE30 /* GLUT.framework */; };
 		ADC9900517FEC3D30066E1D1 /* keygen.c in Sources */ = {isa = PBXBuildFile; fileRef = ADC9900417FEC3D30066E1D1 /* keygen.c */; };
 		ADC9900617FEC3D30066E1D1 /* keygen.c in Sources */ = {isa = PBXBuildFile; fileRef = ADC9900417FEC3D30066E1D1 /* keygen.c */; };
-		ADD558011765866D0023C115 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD558001765866D0023C115 /* Main.xib */; };
+		ADD558011765866D0023C115 /* ArchonMap.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD558001765866D0023C115 /* ArchonMap.xib */; };
 		ADD958DC17E2F25200A7E674 /* csbsp.c in Sources */ = {isa = PBXBuildFile; fileRef = ADD958DB17E2F25200A7E674 /* csbsp.c */; };
 		ADE09D77176C0CDD007B74E3 /* player_spawn_blue.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D73176C0CDD007B74E3 /* player_spawn_blue.seo */; };
 		ADE09D78176C0CDD007B74E3 /* item.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D74176C0CDD007B74E3 /* item.seo */; };
@@ -131,10 +169,16 @@
 		ADE09D7A176C0CDD007B74E3 /* player_spawn_red.seo in Resources */ = {isa = PBXBuildFile; fileRef = ADE09D76176C0CDD007B74E3 /* player_spawn_red.seo */; };
 		ADEEAAD417FE37E70067F3B8 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = ADEEAAD217FE37E70067F3B8 /* md5.c */; };
 		ADEEAAD517FE37E70067F3B8 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = ADEEAAD217FE37E70067F3B8 /* md5.c */; };
+		ADF0BBF8187B961B00952E1E /* glut_teapot.c in Sources */ = {isa = PBXBuildFile; fileRef = ADF0BBF6187B961B00952E1E /* glut_teapot.c */; };
+		ADF0BBFA187B98CF00952E1E /* House.jpg in Resources */ = {isa = PBXBuildFile; fileRef = ADF0BBF9187B98CF00952E1E /* House.jpg */; };
+		ADF0BBFC187BD31300952E1E /* refraction_map.jpg in Resources */ = {isa = PBXBuildFile; fileRef = ADF0BBFB187BD31300952E1E /* refraction_map.jpg */; };
+		ADF0BBFE187BD86600952E1E /* water_normals.jpg in Resources */ = {isa = PBXBuildFile; fileRef = ADF0BBFD187BD86600952E1E /* water_normals.jpg */; };
 		ADF46ED2184607E700C763C9 /* StampLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = ADF46ECF184607E700C763C9 /* StampLibrary.m */; };
 		ADF46ED3184607E700C763C9 /* Stamps.m in Sources */ = {isa = PBXBuildFile; fileRef = ADF46ED1184607E700C763C9 /* Stamps.m */; };
 		ADF46ED71846086D00C763C9 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADF46ED61846086D00C763C9 /* Quartz.framework */; };
 		ADF638B917E554B5006C33BD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		ADFCCA30187E2CF9003A5D23 /* normal.frag in Resources */ = {isa = PBXBuildFile; fileRef = AD2B1309187E2ADC00ED3DE2 /* normal.frag */; };
+		ADFCCA31187E2CFB003A5D23 /* normal.vert in Resources */ = {isa = PBXBuildFile; fileRef = AD2B130B187E2AE100ED3DE2 /* normal.vert */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -204,12 +248,17 @@
 		143B86E912A25A0A0092D35E /* machine.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = machine.seo; sourceTree = "<group>"; };
 		144893AC10FA90130026A004 /* relaunch */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = relaunch; sourceTree = "<group>"; };
 		1448949410FAAAE30026A004 /* Archon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Archon.icns; sourceTree = "<group>"; };
+		1472407B1849638A00336BB5 /* xcode-project_Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "xcode-project_Icon.icns"; sourceTree = "<group>"; };
+		1472407E1849978400336BB5 /* Plugins */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Plugins; sourceTree = "<group>"; };
 		14CB95FA18487DC90084F334 /* CSGradientView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSGradientView.h; sourceTree = "<group>"; };
 		14CB95FB18487DC90084F334 /* CSGradientView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSGradientView.m; sourceTree = "<group>"; };
 		14CB95FD184881F90084F334 /* CSGradientHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSGradientHeader.h; sourceTree = "<group>"; };
 		14CB95FE184881F90084F334 /* CSGradientHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSGradientHeader.m; sourceTree = "<group>"; };
 		14CB96001848B5550084F334 /* FlippedView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlippedView.h; sourceTree = "<group>"; };
 		14CB96011848B5550084F334 /* FlippedView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FlippedView.m; sourceTree = "<group>"; };
+		14CB9605184949480084F334 /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
+		14CB964A184949FD0084F334 /* ArchonMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArchonMap.h; sourceTree = "<group>"; };
+		14CB964B184949FD0084F334 /* ArchonMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArchonMap.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -267,6 +316,13 @@
 		5CEC7B9A0DE24E8300C33BFB /* GeneralMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeneralMath.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Archon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Archon.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD0ABFDF1877819A0071D2FC /* water.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = water.vert; sourceTree = "<group>"; };
+		AD0ABFE2187781A40071D2FC /* water.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = water.frag; sourceTree = "<group>"; };
+		AD0ABFE818778A960071D2FC /* water_normal.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = water_normal.jpg; sourceTree = "<group>"; };
+		AD0ABFFA1877A4300071D2FC /* light.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = light.frag; sourceTree = "<group>"; };
+		AD0ABFFB1877A4300071D2FC /* light.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = light.vert; sourceTree = "<group>"; };
+		AD2B1309187E2ADC00ED3DE2 /* normal.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = normal.frag; sourceTree = "<group>"; };
+		AD2B130B187E2AE100ED3DE2 /* normal.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = normal.vert; sourceTree = "<group>"; };
 		AD2B72E317FD4A59001E2F98 /* rwbits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rwbits.h; sourceTree = "<group>"; };
 		AD2B72E417FD4A59001E2F98 /* show_dump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = show_dump.h; sourceTree = "<group>"; };
 		AD2B72E517FD4A59001E2F98 /* winerr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = winerr.h; sourceTree = "<group>"; };
@@ -274,8 +330,12 @@
 		AD30D40517E19EC50071EF5B /* glew.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = glew.c; sourceTree = "<group>"; };
 		AD30D40717E1A1A70071EF5B /* glew.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glew.h; sourceTree = "<group>"; };
 		AD433CBD17FBD2500049E12A /* UDPEcho */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = UDPEcho; sourceTree = "<group>"; };
+		AD5569891859B5C2003DFA6D /* SDMPluginHandler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SDMPluginHandler.c; sourceTree = "<group>"; };
+		AD55698A1859B5C2003DFA6D /* SDMPluginHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDMPluginHandler.h; sourceTree = "<group>"; };
 		AD55C58617DDE2E00067CD85 /* ArchonPC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ArchonPC.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD55C58817DDE2E00067CD85 /* swordedi-win32-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "swordedi-win32-Info.plist"; path = "/Users/colbrans/Documents/Programming/Projects/Swordedit/SE/swordedi-win32-Info.plist"; sourceTree = "<absolute>"; };
+		AD6911E01876AB3A00DB1A9C /* CollisionTag.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CollisionTag.m; sourceTree = "<group>"; };
+		AD6911E11876AB3A00DB1A9C /* CollisionTag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CollisionTag.h; sourceTree = "<group>"; };
 		AD6AC76717FA359100C143DC /* convolution.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = convolution.vsh; sourceTree = "<group>"; };
 		AD6AC76817FA359100C143DC /* debug.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = debug.vsh; sourceTree = "<group>"; };
 		AD6AC76917FA359100C143DC /* decal_ff.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = decal_ff.vsh; sourceTree = "<group>"; };
@@ -371,6 +431,14 @@
 		AD6AC81E17FA633600C143DC /* oddball.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = oddball.ogg; sourceTree = "<group>"; };
 		AD6AC81F17FA633600C143DC /* race.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = race.ogg; sourceTree = "<group>"; };
 		AD79512E1763266E0029CCFE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = ../../../../../../../System/Library/Frameworks/Security.framework; sourceTree = "<group>"; };
+		AD873EB818586C2A006E7E00 /* ImageAndTextCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageAndTextCell.h; sourceTree = "<group>"; };
+		AD873EB918586C2A006E7E00 /* ImageAndTextCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageAndTextCell.m; sourceTree = "<group>"; };
+		AD873EBA18586C2A006E7E00 /* SeparatorCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SeparatorCell.h; sourceTree = "<group>"; };
+		AD873EBB18586C2A006E7E00 /* SeparatorCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SeparatorCell.m; sourceTree = "<group>"; };
+		AD873EBE18586C75006E7E00 /* BaseNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseNode.h; sourceTree = "<group>"; };
+		AD873EBF18586C75006E7E00 /* BaseNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseNode.m; sourceTree = "<group>"; };
+		AD873EC018586C75006E7E00 /* ChildNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChildNode.h; sourceTree = "<group>"; };
+		AD873EC118586C75006E7E00 /* ChildNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChildNode.m; sourceTree = "<group>"; };
 		AD893D3817F845A20090E892 /* alpha.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = alpha.cpp; sourceTree = "<group>"; };
 		AD893D3917F845A20090E892 /* alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = alpha.h; sourceTree = "<group>"; };
 		AD893D3A17F845A20090E892 /* clusterfit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clusterfit.cpp; sourceTree = "<group>"; };
@@ -398,9 +466,16 @@
 		AD893D6E17F847BB0090E892 /* BitmapTag.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BitmapTag.mm; sourceTree = "<group>"; };
 		AD9CA5B8176D8E03004B109A /* NonKeyPanels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NonKeyPanels.h; sourceTree = "<group>"; };
 		AD9CA5B9176D8E03004B109A /* NonKeyPanels.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NonKeyPanels.m; sourceTree = "<group>"; };
+		ADA50090187FBEE1005CE4FB /* scex.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = scex.vert; sourceTree = "<group>"; };
+		ADA50092187FBEEB005CE4FB /* scex.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = scex.frag; sourceTree = "<group>"; };
+		ADA50096187FC7E0005CE4FB /* schi.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = schi.vert; sourceTree = "<group>"; };
+		ADA50098187FC7E4005CE4FB /* schi.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = schi.frag; sourceTree = "<group>"; };
+		ADA5009C187FCEA0005CE4FB /* sgla.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = sgla.frag; sourceTree = "<group>"; };
+		ADA5009E187FCEBA005CE4FB /* sgla.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = sgla.vert; sourceTree = "<group>"; };
+		ADADBF051877B75E00A9CE30 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = ../../../../../../../../System/Library/Frameworks/GLUT.framework; sourceTree = "<group>"; };
 		ADC9900317FEC3D30066E1D1 /* keygen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keygen.h; sourceTree = "<group>"; };
 		ADC9900417FEC3D30066E1D1 /* keygen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = keygen.c; sourceTree = "<group>"; };
-		ADD558001765866D0023C115 /* Main.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Main.xib; sourceTree = "<group>"; };
+		ADD558001765866D0023C115 /* ArchonMap.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ArchonMap.xib; sourceTree = "<group>"; };
 		ADD958DB17E2F25200A7E674 /* csbsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = csbsp.c; sourceTree = "<group>"; };
 		ADE09D73176C0CDD007B74E3 /* player_spawn_blue.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = player_spawn_blue.seo; sourceTree = "<group>"; };
 		ADE09D74176C0CDD007B74E3 /* item.seo */ = {isa = PBXFileReference; lastKnownFileType = file; path = item.seo; sourceTree = "<group>"; };
@@ -409,6 +484,11 @@
 		ADECEBB317DF242700956C2B /* glext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glext.h; sourceTree = "<group>"; };
 		ADEEAAD217FE37E70067F3B8 /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = md5.c; sourceTree = "<group>"; };
 		ADEEAAD317FE37E70067F3B8 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
+		ADF0BBF6187B961B00952E1E /* glut_teapot.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = glut_teapot.c; sourceTree = "<group>"; };
+		ADF0BBF7187B961B00952E1E /* glut_teapot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glut_teapot.h; sourceTree = "<group>"; };
+		ADF0BBF9187B98CF00952E1E /* House.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = House.jpg; sourceTree = "<group>"; };
+		ADF0BBFB187BD31300952E1E /* refraction_map.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = refraction_map.jpg; sourceTree = "<group>"; };
+		ADF0BBFD187BD86600952E1E /* water_normals.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = water_normals.jpg; sourceTree = "<group>"; };
 		ADF46ECE184607E700C763C9 /* StampLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StampLibrary.h; sourceTree = "<group>"; };
 		ADF46ECF184607E700C763C9 /* StampLibrary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StampLibrary.m; sourceTree = "<group>"; };
 		ADF46ED0184607E700C763C9 /* Stamps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Stamps.h; sourceTree = "<group>"; };
@@ -426,6 +506,7 @@
 				ADF638B917E554B5006C33BD /* Cocoa.framework in Frameworks */,
 				5C675B960CD4219D00F664DE /* OpenGL.framework in Frameworks */,
 				AD79512F1763266E0029CCFE /* Security.framework in Frameworks */,
+				ADADBF061877B75E00A9CE30 /* GLUT.framework in Frameworks */,
 				ADF46ED71846086D00C763C9 /* Quartz.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -446,6 +527,9 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				AD5569891859B5C2003DFA6D /* SDMPluginHandler.c */,
+				AD55698A1859B5C2003DFA6D /* SDMPluginHandler.h */,
+				AD873EB718586C20006E7E00 /* Cell Support */,
 				AD6AC76517FA357D00C143DC /* Shaders */,
 				1406E5A310F93FBB004A983D /* SelectView.h */,
 				1406E5A410F93FBB004A983D /* SelectView.m */,
@@ -480,6 +564,7 @@
 		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				ADADBF051877B75E00A9CE30 /* GLUT.framework */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				5C675B950CD4219D00F664DE /* OpenGL.framework */,
 				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
@@ -523,11 +608,18 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AD0ABFE5187781BA0071D2FC /* Shaders */,
+				1472407B1849638A00336BB5 /* xcode-project_Icon.icns */,
+				1472407E1849978400336BB5 /* Plugins */,
 				AD6AC81B17FA632000C143DC /* Sounds */,
 				ADE09D73176C0CDD007B74E3 /* player_spawn_blue.seo */,
 				ADE09D74176C0CDD007B74E3 /* item.seo */,
+				ADF0BBFD187BD86600952E1E /* water_normals.jpg */,
+				ADF0BBF9187B98CF00952E1E /* House.jpg */,
 				ADE09D75176C0CDD007B74E3 /* vehicle.seo */,
 				ADE09D76176C0CDD007B74E3 /* player_spawn_red.seo */,
+				ADF0BBFB187BD31300952E1E /* refraction_map.jpg */,
+				AD2B72E417FD4A59001E2F98 /* show_dump.h */,
 				143B86E912A25A0A0092D35E /* machine.seo */,
 				143B86B612A24D3B0092D35E /* scenery.seo */,
 				1448949410FAAAE30026A004 /* Archon.icns */,
@@ -536,7 +628,8 @@
 				5C00A9120DD5210200C2253D /* Credits.rtf */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
-				ADD558001765866D0023C115 /* Main.xib */,
+				14CB9605184949480084F334 /* MainMenu.xib */,
+				ADD558001765866D0023C115 /* ArchonMap.xib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -600,6 +693,8 @@
 				5CEA8D2C0CCC23A100B5636E /* AppController.m */,
 				5CDBEB760DF3094F00BA5FB4 /* SpawnEditorController.h */,
 				5CDBEB770DF3094F00BA5FB4 /* SpawnEditorController.m */,
+				14CB964A184949FD0084F334 /* ArchonMap.h */,
+				14CB964B184949FD0084F334 /* ArchonMap.m */,
 			);
 			name = "GUI Handlers";
 			sourceTree = "<group>";
@@ -607,6 +702,7 @@
 		5C62D22A0CDD5F8E0026C296 /* Render View Related */ = {
 			isa = PBXGroup;
 			children = (
+				AD873EB618586C18006E7E00 /* New Group */,
 				ADF46ECE184607E700C763C9 /* StampLibrary.h */,
 				ADF46ECF184607E700C763C9 /* StampLibrary.m */,
 				ADF46ED0184607E700C763C9 /* Stamps.h */,
@@ -617,7 +713,6 @@
 				ADEEAAD317FE37E70067F3B8 /* md5.h */,
 				AD2B72E617FD7D68001E2F98 /* gssdkcr.h */,
 				AD2B72E317FD4A59001E2F98 /* rwbits.h */,
-				AD2B72E417FD4A59001E2F98 /* show_dump.h */,
 				AD2B72E517FD4A59001E2F98 /* winerr.h */,
 				AD433CBD17FBD2500049E12A /* UDPEcho */,
 				5C62D22B0CDD5FD50026C296 /* Camera.h */,
@@ -710,6 +805,8 @@
 				5CEC7B9A0DE24E8300C33BFB /* GeneralMath.h */,
 				5C61EC630E24EB5200CB35F1 /* GeneralMath.h */,
 				5C61EC640E24EB5200CB35F1 /* GeneralMath.c */,
+				ADF0BBF6187B961B00952E1E /* glut_teapot.c */,
+				ADF0BBF7187B961B00952E1E /* glut_teapot.h */,
 			);
 			name = "Global Headers";
 			sourceTree = "<group>";
@@ -732,8 +829,30 @@
 				5CD87FF90DD1180100DAA97D /* Scenario.m */,
 				5CE019130DD7D392007AA956 /* ModelTag.h */,
 				5CE019140DD7D392007AA956 /* ModelTag.m */,
+				AD6911E11876AB3A00DB1A9C /* CollisionTag.h */,
+				AD6911E01876AB3A00DB1A9C /* CollisionTag.m */,
 			);
 			name = "Tag Subclasses";
+			sourceTree = "<group>";
+		};
+		AD0ABFE5187781BA0071D2FC /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				AD0ABFE818778A960071D2FC /* water_normal.jpg */,
+				AD2B1309187E2ADC00ED3DE2 /* normal.frag */,
+				AD2B130B187E2AE100ED3DE2 /* normal.vert */,
+				AD0ABFFA1877A4300071D2FC /* light.frag */,
+				AD0ABFFB1877A4300071D2FC /* light.vert */,
+				ADA50092187FBEEB005CE4FB /* scex.frag */,
+				ADA50090187FBEE1005CE4FB /* scex.vert */,
+				AD0ABFE2187781A40071D2FC /* water.frag */,
+				AD0ABFDF1877819A0071D2FC /* water.vert */,
+				ADA5009E187FCEBA005CE4FB /* sgla.vert */,
+				ADA5009C187FCEA0005CE4FB /* sgla.frag */,
+				ADA50096187FC7E0005CE4FB /* schi.vert */,
+				ADA50098187FC7E4005CE4FB /* schi.frag */,
+			);
+			name = Shaders;
 			sourceTree = "<group>";
 		};
 		AD55C58717DDE2E00067CD85 /* Products */ = {
@@ -891,6 +1010,28 @@
 			name = Squish;
 			sourceTree = "<group>";
 		};
+		AD873EB618586C18006E7E00 /* New Group */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "New Group";
+			sourceTree = "<group>";
+		};
+		AD873EB718586C20006E7E00 /* Cell Support */ = {
+			isa = PBXGroup;
+			children = (
+				AD873EB818586C2A006E7E00 /* ImageAndTextCell.h */,
+				AD873EBE18586C75006E7E00 /* BaseNode.h */,
+				AD873EBF18586C75006E7E00 /* BaseNode.m */,
+				AD873EC018586C75006E7E00 /* ChildNode.h */,
+				AD873EC118586C75006E7E00 /* ChildNode.m */,
+				AD873EB918586C2A006E7E00 /* ImageAndTextCell.m */,
+				AD873EBA18586C2A006E7E00 /* SeparatorCell.h */,
+				AD873EBB18586C2A006E7E00 /* SeparatorCell.m */,
+			);
+			name = "Cell Support";
+			sourceTree = "<group>";
+		};
 		ADECEBB417DF29A600956C2B /* Glew */ = {
 			isa = PBXGroup;
 			children = (
@@ -1010,22 +1151,41 @@
 			files = (
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				5C00A9130DD5210200C2253D /* Credits.rtf in Resources */,
+				ADF0BBFE187BD86600952E1E /* water_normals.jpg in Resources */,
+				AD0ABFE918778A960071D2FC /* water_normal.jpg in Resources */,
+				14CB9606184949480084F334 /* MainMenu.xib in Resources */,
 				5C00A9200DD5215E00C2253D /* AboutBox.nib in Resources */,
 				ADE09D7A176C0CDD007B74E3 /* player_spawn_red.seo in Resources */,
+				1472407C1849638A00336BB5 /* xcode-project_Icon.icns in Resources */,
 				ADE09D79176C0CDD007B74E3 /* vehicle.seo in Resources */,
 				ADE09D77176C0CDD007B74E3 /* player_spawn_blue.seo in Resources */,
 				144893AD10FA90130026A004 /* relaunch in Resources */,
+				1472407F1849978400336BB5 /* Plugins in Resources */,
 				1448949510FAAAE30026A004 /* Archon.icns in Resources */,
 				143B86B712A24D3B0092D35E /* scenery.seo in Resources */,
 				143B86EA12A25A0A0092D35E /* machine.seo in Resources */,
 				ADE09D78176C0CDD007B74E3 /* item.seo in Resources */,
-				ADD558011765866D0023C115 /* Main.xib in Resources */,
+				ADD558011765866D0023C115 /* ArchonMap.xib in Resources */,
 				AD893D6A17F845A20090E892 /* singlecolourlookup.inl in Resources */,
+				ADF0BBFA187B98CF00952E1E /* House.jpg in Resources */,
 				AD6AC82017FA633600C143DC /* ctf.ogg in Resources */,
 				AD6AC82217FA633600C143DC /* slayer.ogg in Resources */,
 				AD6AC82417FA633600C143DC /* oddball.ogg in Resources */,
 				AD6AC82617FA633600C143DC /* race.ogg in Resources */,
 				AD433CBE17FBD2500049E12A /* UDPEcho in Resources */,
+				ADADBF031877A5D900A9CE30 /* light.frag in Resources */,
+				ADADBF041877A5DA00A9CE30 /* light.vert in Resources */,
+				AD0ABFE6187781CC0071D2FC /* water.frag in Resources */,
+				AD0ABFE7187781CE0071D2FC /* water.vert in Resources */,
+				ADFCCA30187E2CF9003A5D23 /* normal.frag in Resources */,
+				ADFCCA31187E2CFB003A5D23 /* normal.vert in Resources */,
+				ADA50095187FBF04005CE4FB /* scex.frag in Resources */,
+				ADA50094187FBF02005CE4FB /* scex.vert in Resources */,
+				ADA5009A187FC7EA005CE4FB /* schi.vert in Resources */,
+				ADA5009B187FC7EC005CE4FB /* schi.frag in Resources */,
+				ADA500A1187FCEC0005CE4FB /* sgla.vert in Resources */,
+				ADA500A0187FCEBF005CE4FB /* sgla.frag in Resources */,
+				ADF0BBFC187BD31300952E1E /* refraction_map.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1036,6 +1196,7 @@
 				AD55C55017DDE2E00067CD85 /* InfoPlist.strings in Resources */,
 				AD55C55117DDE2E00067CD85 /* Credits.rtf in Resources */,
 				AD55C55217DDE2E00067CD85 /* AboutBox.nib in Resources */,
+				AD0ABFEA18778A960071D2FC /* water_normal.jpg in Resources */,
 				AD55C55317DDE2E00067CD85 /* player_spawn_red.seo in Resources */,
 				AD55C55417DDE2E00067CD85 /* vehicle.seo in Resources */,
 				AD55C55517DDE2E00067CD85 /* player_spawn_blue.seo in Resources */,
@@ -1044,7 +1205,7 @@
 				AD55C55817DDE2E00067CD85 /* scenery.seo in Resources */,
 				AD55C55917DDE2E00067CD85 /* machine.seo in Resources */,
 				AD55C55A17DDE2E00067CD85 /* item.seo in Resources */,
-				AD55C55B17DDE2E00067CD85 /* Main.xib in Resources */,
+				AD55C55B17DDE2E00067CD85 /* ArchonMap.xib in Resources */,
 				AD893D6B17F845A20090E892 /* singlecolourlookup.inl in Resources */,
 				AD6AC82117FA633600C143DC /* ctf.ogg in Resources */,
 				AD6AC82317FA633600C143DC /* slayer.ogg in Resources */,
@@ -1077,6 +1238,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD55698B1859B5C2003DFA6D /* SDMPluginHandler.c in Sources */,
+				AD6911E21876AB3A00DB1A9C /* CollisionTag.m in Sources */,
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				5C46AC870CCB211800651C97 /* BSP.m in Sources */,
 				5C1217140CCBBFA00000B2B0 /* MapTag.m in Sources */,
@@ -1084,19 +1247,29 @@
 				5CD1EC350CD5131900043A25 /* BspMesh.m in Sources */,
 				5C62D22D0CDD5FD50026C296 /* Camera.m in Sources */,
 				5CD87FEB0DD117D000DAA97D /* HaloMap.m in Sources */,
+				AD0ABFFD1877A4300071D2FC /* light.vert in Sources */,
+				14CB964C184949FD0084F334 /* ArchonMap.m in Sources */,
 				14CB96021848B5550084F334 /* FlippedView.m in Sources */,
+				AD0ABFE3187781A40071D2FC /* water.frag in Sources */,
 				5CD87FFA0DD1180100DAA97D /* Scenario.m in Sources */,
 				5CB883580DD12E070024EB30 /* RenderView.m in Sources */,
+				AD873EBD18586C2A006E7E00 /* SeparatorCell.m in Sources */,
 				5C00A8C50DD51D8100C2253D /* AboutBox.m in Sources */,
 				5CE019150DD7D392007AA956 /* ModelTag.m in Sources */,
 				5CE019550DD7D9B1007AA956 /* Geometry.m in Sources */,
 				5C04B6040DED72F500324D89 /* Scripter.m in Sources */,
+				AD2B130A187E2ADC00ED3DE2 /* normal.frag in Sources */,
+				ADF0BBF8187B961B00952E1E /* glut_teapot.c in Sources */,
 				5CDBEB790DF3094F00BA5FB4 /* SpawnEditorController.m in Sources */,
 				14CB95FC18487DC90084F334 /* CSGradientView.m in Sources */,
+				AD0ABFFC1877A4300071D2FC /* light.frag in Sources */,
 				ADF46ED2184607E700C763C9 /* StampLibrary.m in Sources */,
 				5C07BF8D0DF4A09400577EEC /* ModelView.m in Sources */,
 				5C07BFE20DF4A5B500577EEC /* BitmapView.m in Sources */,
+				AD2B130C187E2AE100ED3DE2 /* normal.vert in Sources */,
+				AD873EBC18586C2A006E7E00 /* ImageAndTextCell.m in Sources */,
 				14CB95FF184881F90084F334 /* CSGradientHeader.m in Sources */,
+				ADA50091187FBEE2005CE4FB /* scex.vert in Sources */,
 				ADF46ED3184607E700C763C9 /* Stamps.m in Sources */,
 				5CBCEEB90E07075500AE841B /* TextureManager.m in Sources */,
 				5CDA371C0E081F9300F3F2B9 /* Vector.m in Sources */,
@@ -1104,14 +1277,21 @@
 				5C61EC660E24EB5200CB35F1 /* GeneralMath.c in Sources */,
 				5CB4D5F00E69A6C400784930 /* Preferences.m in Sources */,
 				5CB4D6120E69A7B000784930 /* LoadWindow.m in Sources */,
+				ADA50097187FC7E0005CE4FB /* schi.vert in Sources */,
+				AD873EC318586C75006E7E00 /* ChildNode.m in Sources */,
+				ADA5009F187FCEBA005CE4FB /* sgla.vert in Sources */,
 				5CC6F9010E92ACE50087C4FA /* FadeView.m in Sources */,
+				AD0ABFE01877819A0071D2FC /* water.vert in Sources */,
 				AD9CA5BA176D8E03004B109A /* NonKeyPanels.m in Sources */,
 				1406E43B10F921C3004A983D /* Utility.m in Sources */,
+				AD873EC218586C75006E7E00 /* BaseNode.m in Sources */,
+				ADA50099187FC7E4005CE4FB /* schi.frag in Sources */,
 				1406E51610F93B28004A983D /* Selection.m in Sources */,
 				1406E5A510F93FBB004A983D /* SelectView.m in Sources */,
 				ADD958DC17E2F25200A7E674 /* csbsp.c in Sources */,
 				AD893D5417F845A20090E892 /* alpha.cpp in Sources */,
 				AD893D5617F845A20090E892 /* clusterfit.cpp in Sources */,
+				ADA50093187FBEEB005CE4FB /* scex.frag in Sources */,
 				AD893D5817F845A20090E892 /* colourblock.cpp in Sources */,
 				AD893D5A17F845A20090E892 /* colourfit.cpp in Sources */,
 				AD893D5C17F845A20090E892 /* colourset.cpp in Sources */,
@@ -1121,6 +1301,7 @@
 				AD893D6C17F845A20090E892 /* squish.cpp in Sources */,
 				AD893D6F17F847BB0090E892 /* BitmapTag.mm in Sources */,
 				ADEEAAD417FE37E70067F3B8 /* md5.c in Sources */,
+				ADA5009D187FCEA0005CE4FB /* sgla.frag in Sources */,
 				ADC9900517FEC3D30066E1D1 /* keygen.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1137,6 +1318,7 @@
 				AD55C56017DDE2E00067CD85 /* AppController.m in Sources */,
 				AD55C56117DDE2E00067CD85 /* BspMesh.m in Sources */,
 				AD55C56217DDE2E00067CD85 /* Camera.m in Sources */,
+				AD0ABFE11877819A0071D2FC /* water.vert in Sources */,
 				AD55C56317DDE2E00067CD85 /* HaloMap.m in Sources */,
 				AD55C56417DDE2E00067CD85 /* Scenario.m in Sources */,
 				AD55C56517DDE2E00067CD85 /* RenderView.m in Sources */,
@@ -1150,6 +1332,7 @@
 				AD55C56D17DDE2E00067CD85 /* TextureManager.m in Sources */,
 				AD55C56E17DDE2E00067CD85 /* Vector.m in Sources */,
 				AD55C57017DDE2E00067CD85 /* Bitmask.c in Sources */,
+				AD0ABFE4187781A40071D2FC /* water.frag in Sources */,
 				AD55C57117DDE2E00067CD85 /* GeneralMath.c in Sources */,
 				AD55C57217DDE2E00067CD85 /* Preferences.m in Sources */,
 				AD55C57317DDE2E00067CD85 /* LoadWindow.m in Sources */,
@@ -1169,6 +1352,7 @@
 				AD893D6D17F845A20090E892 /* squish.cpp in Sources */,
 				ADEEAAD517FE37E70067F3B8 /* md5.c in Sources */,
 				ADC9900617FEC3D30066E1D1 /* keygen.c in Sources */,
+				AD6911E31876AB3A00DB1A9C /* CollisionTag.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1194,7 +1378,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		AD55C58417DDE2E00067CD85 /* Debug */ = {
+		AD55C58417DDE2E00067CD85 /* Debug (verbose) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = i386;
@@ -1244,7 +1428,7 @@
 				SDKROOT = macosx10.8;
 				WRAPPER_EXTENSION = app;
 			};
-			name = Debug;
+			name = "Debug (verbose)";
 		};
 		AD55C58517DDE2E00067CD85 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1295,9 +1479,137 @@
 			};
 			name = Release;
 		};
-		C01FCF4B08A954540054247B /* Debug */ = {
+		AD5A03011880C15D00848B8E /* Release (Fast) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
+				SDKROOT = macosx10.7;
+				SEPARATE_SYMBOL_EDIT = NO;
+			};
+			name = "Release (Fast)";
+		};
+		AD5A03021880C15D00848B8E /* Release (Fast) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_2)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(SRCROOT)",
+					"\\\"$(SRCROOT)/../swordedit\\ 2\\ 2\\\"",
+					/Users/colbrans/GitHUB/Archon/src,
+				);
+				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/../../../Library/Frameworks\"";
+				FRAMEWORK_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/../../../Library/Frameworks\"";
+				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = fast;
+				GCC_PREFIX_HEADER = Archon_Prefix.pch;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				HEADER_SEARCH_PATHS = $SDK_DIR/usr/include/libxml2;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_LDFLAGS = "-lxml2";
+				PRODUCT_NAME = Archon;
+				PROVISIONING_PROFILE = "";
+				SDKROOT = macosx10.8;
+				USER_HEADER_SEARCH_PATHS = "";
+				WRAPPER_EXTENSION = app;
+			};
+			name = "Release (Fast)";
+		};
+		AD5A03031880C15D00848B8E /* Release (Fast) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = i386;
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = NO;
+				COMBINE_HIDPI_IMAGES = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				EXECUTABLE_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Windows";
+				EXECUTABLE_SUFFIX = .exe;
+				FRAMEWORK_SEARCH_PATHS = /Developer/Cocotron/1.0/Windows/i386/Frameworks;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_ENABLE_SYMBOL_SEPARATION = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = "";
+				GCC_PREFIX_HEADER = PC.pch;
+				GCC_VERSION = org.cocotron.1.0.windows.i386.gcc.4.3.1;
+				GCC_WARN_UNUSED_FUNCTION = NO;
+				HEADER_SEARCH_PATHS = (
+					/opt/local/include,
+					../src,
+				);
+				INFOPLIST_FILE = "$(SRCROOT)/swordedi-win32-Info.plist";
+				INSTALL_PATH = /Applications;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				MACH_O_TYPE = mh_execute;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				OTHER_LDFLAGS = (
+					"-mwindows",
+					"-mconsole",
+					"-luser32",
+					"-lopengl32",
+					"-lglu32",
+					"-gdi32",
+					"-WI",
+					"-DGLEW_STATIC",
+					"--enable-auto-import",
+				);
+				PRODUCT_NAME = ArchonPC;
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
+				SDKROOT = macosx10.8;
+				WRAPPER_EXTENSION = app;
+			};
+			name = "Release (Fast)";
+		};
+		AD628BC31855A63E002AAD3E /* Debug (quiet) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = i386;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-D",
+					__DEBUG__,
+				);
+				SDKROOT = macosx10.7;
+			};
+			name = "Debug (quiet)";
+		};
+		AD628BC41855A63E002AAD3E /* Debug (quiet) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COPY_PHASE_STRIP = NO;
@@ -1320,6 +1632,7 @@
 				GCC_PREFIX_HEADER = Archon_Prefix.pch;
 				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				HEADER_SEARCH_PATHS = $SDK_DIR/usr/include/libxml2;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
@@ -1328,20 +1641,122 @@
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "";
+				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_NAME = Archon;
 				PROVISIONING_PROFILE = "";
 				SDKROOT = macosx10.8;
+				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = YES;
 			};
-			name = Debug;
+			name = "Debug (quiet)";
+		};
+		AD628BC51855A63E002AAD3E /* Debug (quiet) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = i386;
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = NO;
+				COMBINE_HIDPI_IMAGES = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				EXECUTABLE_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Windows";
+				EXECUTABLE_SUFFIX = .exe;
+				FRAMEWORK_SEARCH_PATHS = /Developer/Cocotron/1.0/Windows/i386/Frameworks;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_ENABLE_SYMBOL_SEPARATION = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREFIX_HEADER = PC.pch;
+				GCC_VERSION = org.cocotron.1.0.windows.i386.gcc.4.3.1;
+				GCC_WARN_UNUSED_FUNCTION = NO;
+				HEADER_SEARCH_PATHS = (
+					/opt/local/include,
+					../src,
+				);
+				INFOPLIST_FILE = "$(SRCROOT)/swordedi-win32-Info.plist";
+				INSTALL_PATH = /Applications;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				MACH_O_TYPE = mh_execute;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				OTHER_LDFLAGS = (
+					"-mwindows",
+					"-mconsole",
+					"-luser32",
+					"-lopengl32",
+					"-lglu32",
+					"-gdi32",
+					"-WI",
+					"-DGLEW_STATIC",
+					"--enable-auto-import",
+				);
+				PRODUCT_NAME = ArchonPC;
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
+				SDKROOT = macosx10.8;
+				WRAPPER_EXTENSION = app;
+			};
+			name = "Debug (quiet)";
+		};
+		C01FCF4B08A954540054247B /* Debug (verbose) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_2)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(SRCROOT)",
+					"\\\"$(SRCROOT)/../swordedit\\ 2\\ 2\\\"",
+					/Users/colbrans/GitHUB/Archon/src,
+				);
+				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/../../../Library/Frameworks\"";
+				FRAMEWORK_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/../../../Library/Frameworks\"";
+				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREFIX_HEADER = Archon_Prefix.pch;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				HEADER_SEARCH_PATHS = $SDK_DIR/usr/include/libxml2;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_LDFLAGS = "-lxml2";
+				PRODUCT_NAME = Archon;
+				PROVISIONING_PROFILE = "";
+				SDKROOT = macosx10.8;
+				USER_HEADER_SEARCH_PATHS = "";
+				WRAPPER_EXTENSION = app;
+				ZERO_LINK = YES;
+			};
+			name = "Debug (verbose)";
 		};
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
@@ -1357,13 +1772,11 @@
 				GCC_ENABLE_CPP_RTTI = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREFIX_HEADER = Archon_Prefix.pch;
 				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					build/squish.framework/,
-				);
+				HEADER_SEARCH_PATHS = $SDK_DIR/usr/include/libxml2;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
@@ -1372,14 +1785,16 @@
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_NAME = Archon;
 				PROVISIONING_PROFILE = "";
 				SDKROOT = macosx10.8;
+				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
 		};
-		C01FCF4F08A954540054247B /* Debug */ = {
+		C01FCF4F08A954540054247B /* Debug (verbose) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = i386;
@@ -1394,7 +1809,7 @@
 				);
 				SDKROOT = macosx10.7;
 			};
-			name = Debug;
+			name = "Debug (verbose)";
 		};
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1419,8 +1834,10 @@
 		AD55C58317DDE2E00067CD85 /* Build configuration list for PBXNativeTarget "Archon-Win32" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				AD55C58417DDE2E00067CD85 /* Debug */,
+				AD55C58417DDE2E00067CD85 /* Debug (verbose) */,
+				AD628BC51855A63E002AAD3E /* Debug (quiet) */,
 				AD55C58517DDE2E00067CD85 /* Release */,
+				AD5A03031880C15D00848B8E /* Release (Fast) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1428,8 +1845,10 @@
 		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "Archon" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C01FCF4B08A954540054247B /* Debug */,
+				C01FCF4B08A954540054247B /* Debug (verbose) */,
+				AD628BC41855A63E002AAD3E /* Debug (quiet) */,
 				C01FCF4C08A954540054247B /* Release */,
+				AD5A03021880C15D00848B8E /* Release (Fast) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1437,8 +1856,10 @@
 		C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Archon" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C01FCF4F08A954540054247B /* Debug */,
+				C01FCF4F08A954540054247B /* Debug (verbose) */,
+				AD628BC31855A63E002AAD3E /* Debug (quiet) */,
 				C01FCF5008A954540054247B /* Release */,
+				AD5A03011880C15D00848B8E /* Release (Fast) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

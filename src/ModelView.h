@@ -8,7 +8,7 @@
 #ifndef MACVERSION
 #import "glew.h"
 #endif
-
+#import "defines.h"
 #import <Cocoa/Cocoa.h>
 
 #include  <OpenGL/OpenGL.h>

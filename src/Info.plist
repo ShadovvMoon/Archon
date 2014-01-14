@@ -23,6 +23,8 @@
 			<string></string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>NSDocumentClass</key>
+			<string>ArchonMap</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>map</string>
@@ -36,7 +38,7 @@
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
 	<key>NSMainNibFile</key>
-	<string>Main</string>
+	<string>MainMenu</string>
 	<key>SecTaskAccess</key>
 	<string>allowed</string>
 	<key>NSPrincipalClass</key>

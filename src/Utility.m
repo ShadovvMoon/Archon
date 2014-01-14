@@ -18,7 +18,7 @@
 
 -(void)awakeFromNib
 {
-    NSLog(@"Checking mac utility");
+    CSLog(@"Checking mac utility");
 #ifndef MACVERSION
     return;
 #endif

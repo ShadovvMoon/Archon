@@ -49,7 +49,7 @@
 }
 - (void)dealloc
 {
-	NSLog(@"Texture manager deallocing!");
+	CSLog(@"Texture manager deallocing!");
 	int i;
 	
 	for (i = 0; i < [_textures count]; i++)
@@ -73,6 +73,7 @@
 
 - (void)addTexture:(BitmapTag *)bitm
 {
+    
 	[_textures addObject:bitm];
 	[_textureLookupByID setObject:[NSNumber numberWithInt:_textureCounter] forKey:[NSNumber numberWithLong:[bitm idOfTag]]];
 	
@@ -85,7 +86,7 @@
 }
 
 
-- (void)exportTextureOfIdent:(long)ident subImage:(int)index
+- (void)exportTextureOfIdent:(int32_t)ident subImage:(int)index
 {
 
     
@@ -94,7 +95,7 @@
     
 	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
     
-	//NSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
+	//CSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
     
 	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
     [tmpBitm writeImageToMap:index withBytes:[tmpBitm imagePixelsForImageIndex:index]];
@@ -218,24 +219,24 @@
 
 }
 
-- (void)loadTextureOfIdent:(long)ident subImage:(int)index
+- (void)loadTextureOfIdent:(int32_t)ident subImage:(int)index
 {
     [self loadTextureOfIdent:ident subImage:index removeAlpha:NO];
 }
 
-- (void)loadTextureOfIdent:(long)ident subImage:(int)index removeAlpha:(BOOL)removeAlpha
+- (void)loadTextureOfIdent:(int32_t)ident subImage:(int)index removeAlpha:(BOOL)removeAlpha
 {
     [self loadTextureOfIdent:ident subImage:index removeAlpha:removeAlpha useMipmaps:YES];
 }
 
--(BitmapTag*)bitmapForIdent:(long)ident
+-(BitmapTag*)bitmapForIdent:(int32_t)ident
 {
     if (!_textures)
 		return nil;
     
 	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
     
-	//NSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
+	//CSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
     
 	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
     return tmpBitm;
@@ -243,7 +244,7 @@
 
 -(int)createTextureWithData:(unsigned char *)data withSize:(NSSize)sze
 {
-    NSLog(@"Creating a new texture at %d", lastShaderIndex);
+    CSLog(@"Creating a new texture at %d", lastShaderIndex);
     lastShaderIndex+=1;
     
     //Whats the last index we used
@@ -265,29 +266,52 @@
     return lastShaderIndex;
 }
 
-- (void)loadTextureOfIdent:(long)ident subImage:(int)index removeAlpha:(BOOL)ra useMipmaps:(BOOL)mipmap
+- (void)loadTextureOfIdent:(int32_t)ident subImage:(int)index removeAlpha:(BOOL)ra useMipmaps:(BOOL)mipmap
 {
-	
+    
 	if (!_textures)
+    {
+        CSLog(@"NO TEXTURES");
 		return;
-		
+    }
+	
+    /*
+	//Check for error
+    GLenum error = glGetError();
+    if( error != GL_NO_ERROR )
+    {
+        printf( "Previous error %s\n", gluErrorString( error ) );
+    }
+    */
+    
 	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
 		
-	//NSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
-		
+    #ifdef __DEBUG__
+	CSLog(@"Ident: 0x%x and index: %d", ident, texIndex);
+#endif
+    
 	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
 
+    if (!tmpBitm)
+        NSLog(@"No bitmap tag?");
+    
+    
+    //CSLog(@"Loading bitmap %d %@ 0x%lx 0x%lx", index, [tmpBitm tagName], [tmpBitm offsetInMap], [tmpBitm offsetInIndex]);
 	if (![tmpBitm imageAlreadyLoaded:index])
 	{
         [tmpBitm loadImage:index];
         int col = [[[NSApplication sharedApplication] delegate] usesColor];
 
+        glDeleteTextures(1,&_glTextureTable[texIndex][index]);
+        
         // Now lets upload it to OpenGL
         glGenTextures(1,&_glTextureTable[texIndex][index]);
         glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][index]);
    
         unsigned char *imageData = [tmpBitm imagePixelsForImageIndex:index];
-        if (ra)
+
+        //#ifndef SKIP_ALPHA_CREATION
+        if ((ra || [tmpBitm needsAlpha:index]) && imageData )
         {
             NSSize size = [tmpBitm textureSizeForImageIndex:index];
             unsigned char *newData = malloc(size.width * size.height * 4);
@@ -306,12 +330,13 @@
             }
             imageData = newData;
         }
+        //#endif
         
         if (imageData !=  NULL)
         {
-            if (!mipmap)
+            if (FALSE)
             {
-                NSLog(@"GENERATING MIPMAPS %f %f", [tmpBitm textureSizeForImageIndex:index].width, [tmpBitm textureSizeForImageIndex:index].height);
+               // CSLog(@"GENERATING MIPMAPS %f %f", [tmpBitm textureSizeForImageIndex:index].width, [tmpBitm textureSizeForImageIndex:index].height);
                 glTexImage2D(GL_TEXTURE_2D,
                          0,
                          GL_RGBA,
@@ -337,12 +362,18 @@
        
      
 
+
+#ifndef SKIP_ALPHA_CREATION
         //Create the equivalent alpha image
         glGenTextures(1,&_glTextureTable_Alphas[texIndex][index]);
         glBindTexture(GL_TEXTURE_2D,_glTextureTable_Alphas[texIndex][index]);
         
         NSSize size = [tmpBitm textureSizeForImageIndex:index];
         unsigned char *newData = malloc(size.width * size.height * 4);
+        
+        if (size.width * size.height * 4 <= 5)
+            return;
+        
         *newData = *imageData;
         
         //Make white.
@@ -386,6 +417,7 @@
         }
         
         free(newData);
+#endif
         
         //Only nonpaintables
 #ifdef LOWRAM
@@ -395,7 +427,20 @@
         
         
 	}
+    else
+    {
+
+    }
 	
+    /*
+    //Check for error
+    error = glGetError();
+    if( error != GL_NO_ERROR )
+    {
+        printf( "New error %s\n", gluErrorString( error ) );
+    }
+    */
+    
 	[tmpBitm release];
 }
 
@@ -439,7 +484,7 @@
 		[tmpBitm release];
 	}
 }
-- (void)deleteTextureOfTag:(long)ident
+- (void)deleteTextureOfTag:(int32_t)ident
 {
 	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
 	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
@@ -457,7 +502,7 @@
 	[tmpBitm release];
 }
 
--(NSString*)nameForImage:(long)ident
+-(NSString*)nameForImage:(int32_t)ident
 {
     if (!_textures)
 		return @"";
@@ -467,7 +512,7 @@
     return [tmpBitm tagName];
 }
 
--(BitmapTag*)updateBitmapDataWithIdent:(long)ident data:(unsigned char*)dat index:(int)index
+-(BitmapTag*)updateBitmapDataWithIdent:(int32_t)ident data:(unsigned char*)dat index:(int)index
 {
     if (!_textures)
 		return nil;
@@ -479,7 +524,7 @@
 }
 
 
--(BitmapTag*)bitmapWithIdent:(long)ident
+-(BitmapTag*)bitmapWithIdent:(int32_t)ident
 {
     if (!_textures)
 		return nil;
@@ -488,13 +533,13 @@
     return [_textures objectAtIndex:texIndex];
 }
 
-- (void)refreshTextureOfIdent:(long)ident
+- (void)refreshTextureOfIdent:(int32_t)ident
 {
     [self refreshTextureOfIdent:ident index:0];
 }
 
 /* Ok, here comes the fun part. */
-- (void)refreshTextureOfIdent:(long)ident index:(int)index
+- (void)refreshTextureOfIdent:(int32_t)ident index:(int)index
 {
     
 	if (!_textures)
@@ -567,7 +612,7 @@
 
 
 /* Ok, here comes the fun part. */
-- (void)refreshTextureOfIdentOld:(long)ident
+- (void)refreshTextureOfIdentOld:(int32_t)ident
 {
     
 	if (!_textures)
@@ -693,7 +738,7 @@
 }
 
 /* Ok, here comes the fun part. */
-- (void)blendTextureOfIdent:(long)ident subImage:(int)subImage useAlphas:(BOOL)useAlphas
+- (void)blendTextureOfIdent:(int32_t)ident subImage:(int)subImage useAlphas:(BOOL)useAlphas
 {
 	if (!_textures)
 		return;
@@ -710,7 +755,7 @@
     if (pixels)
     {
     NSSize size = NSMakeSize([tmpBitm textureSizeForImageIndex:subImage].width, [tmpBitm textureSizeForImageIndex:subImage].height);
-    long as;
+    int32_t as;
     for (as = 0; as < size.width * size.height * 4; as += 4)
     {
         
@@ -786,40 +831,43 @@
 
 
 /* Ok, here comes the fun part. */
-- (void)activateTextureOfIdent:(long)ident subImage:(int)subImage useAlphas:(BOOL)useAlphas
+- (void)activateTextureOfIdent:(int32_t)ident subImage:(int)subImage useAlphas:(BOOL)useAlphas
 {
 	if (!_textures)
 		return;
 		
 	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue];
 		
-	BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
-	
-	if (![tmpBitm imageAlreadyLoaded:subImage])
-		return;
-	
-	glEnable(GL_TEXTURE_2D);
-	
-	// This will be outdated as soon as I implement per-texture type alpha rendering
-	if (useAlphas)
-	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
-		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	}
-	
-	glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
-	glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
-				
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_BLEND, GL_MODULATE);
-	
-	[tmpBitm release];
+    if (texIndex >= 0 && texIndex < [_textures count])
+    {
+        BitmapTag *tmpBitm = [[_textures objectAtIndex:texIndex] retain];
+
+        if (tmpBitm && ![tmpBitm imageAlreadyLoaded:subImage])
+            return;
+        
+        glEnable(GL_TEXTURE_2D);
+        
+        // This will be outdated as soon as I implement per-texture type alpha rendering
+        if (useAlphas)
+        {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
+            glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        }
+        
+        glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
+        glBindTexture(GL_TEXTURE_2D,_glTextureTable[texIndex][subImage]);
+                    
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+        glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+        
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        glTexEnvf(GL_TEXTURE_ENV, GL_BLEND, GL_MODULATE);
+        
+        [tmpBitm release];
+    }
 }
 
 - (void)activateShader:(soso)shader
@@ -828,19 +876,27 @@
 }
 
 
-- (void)activateTextureAndLightmap:(long)ident lightmap:(long)lightmap secondary:(long)secondary subImage:(int)subImage
+- (void)activateTextureAndLightmap:(int32_t)ident lightmap:(int32_t)lightmap secondary:(int32_t)secondary subImage:(int)subImage
 {
     [self activateTextureAndLightmap:ident lightmap:lightmap secondary:secondary subImage:subImage isAlphaType:NO];
 }
 
-- (void)activateTextureAndLightmap:(long)ident lightmap:(long)lightmap secondary:(long)secondary subImage:(int)subImage isAlphaType:(BOOL)iat
+- (void)activateTextureAndLightmap:(int32_t)ident lightmap:(int32_t)lightmap secondary:(int32_t)secondary subImage:(int)subImage isAlphaType:(BOOL)iat
 {
 	if (!_textures)
 		return;
 		
 	int texIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:ident]] intValue],
-		lightmapIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:lightmap]] intValue],
-        secondaryIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:secondary]] intValue];
+    lightmapIndex = 0;
+    
+    NSNumber *index = [NSNumber numberWithLong:lightmap];
+    if (lightmap != -1)
+        //if ([[_textureLookupByID allKeys] containsObject:index])
+            lightmapIndex = [[_textureLookupByID objectForKey:index] intValue];
+    
+    //int secondaryIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:0]] intValue];
+    //if (secondary > 0)
+    int secondaryIndex = [[_textureLookupByID objectForKey:[NSNumber numberWithLong:secondary]] intValue];
     
 	BitmapTag	*mapBitmap = [[_textures objectAtIndex:texIndex] retain],
 				*lightmapBitmap = [[_textures objectAtIndex:lightmapIndex] retain];
@@ -876,8 +932,13 @@ if (useNewRenderer() != 1)
     
     glActiveTextureARB(GL_TEXTURE0_ARB);
     glEnable(GL_TEXTURE_2D);
+    
     if (iat)
+    {
+        #ifndef SKIP_ALPHA_CREATION
         glBindTexture(GL_TEXTURE_2D, _glTextureTable_Alphas[texIndex][0]);
+        #endif
+    }
     else
         glBindTexture(GL_TEXTURE_2D, _glTextureTable[texIndex][0]);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
@@ -933,8 +994,13 @@ if (useNewRenderer() != 1)
 	[mapBitmap release];
 	[lightmapBitmap release];
 }
+    
+-(NSMutableDictionary*)_textureLookupByID
+{
+    return _textureLookupByID;
+}
+    
 @synthesize _textures;
-@synthesize _textureLookupByID;
 @synthesize _glTextureNameLookup;
 @synthesize _glTextureNames;
 @synthesize _glTextureTable;

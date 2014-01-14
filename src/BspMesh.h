@@ -25,8 +25,19 @@
 	
 	TextureManager *_texManager;
 
-	unsigned long m_SubMeshCount;
-	unsigned long _bspMagic;
+    GLuint geometryList;
+    GLfloat* normals;
+    GLfloat* vertex_array;
+    GLint* index_array;
+    GLfloat* texture_uv;
+    GLfloat* light_uv;
+    
+    GLuint geometryVAO;
+    GLuint m_Buffers[5];
+    
+    BOOL alreadySetup;
+	uint32_t m_SubMeshCount;
+	uint32_t _bspMagic;
 	
 	SUBMESH_INFO *m_pMesh;
 	
@@ -60,37 +71,37 @@
 	BOOL texturesLoaded;
 	
 	float m_Centroid[3];
-	unsigned long m_CentroidCount;
+	uint32_t m_CentroidCount;
 	int m_activeBsp;
 	int m_TriTotal;
 }
 -(float*)findIntersection:(float*)p withOther:(float*)q;
 
-- (id)initWithMapAndBsp:(HaloMap *)map bsp_class:(BSP *)bsp_class texManager:(TextureManager *)texManager bsp_magic:(unsigned long)bsp_magic;
+- (id)initWithMapAndBsp:(HaloMap *)map bsp_class:(BSP *)bsp_class texManager:(TextureManager *)texManager bsp_magic:(uint32_t)bsp_magic;
 - (void)dealloc;
 - (void)freeBSPAllocation;
-- (SUBMESH_INFO *)m_pMesh:(long)index;
+- (SUBMESH_INFO *)m_pMesh:(int32_t)index;
 - (vert*)collision_verticies;
-- (unsigned long)m_SubMeshCount;
-- (void)LoadVisibleBsp:(unsigned long)BspHeaderOffset version:(unsigned long)version;
+- (uint32_t)m_SubMeshCount;
+- (void)LoadVisibleBsp:(uint32_t)BspHeaderOffset version:(uint32_t)version;
 - (void)LoadPcSubmeshes;
 - (void)LoadPcSubmeshTextures;
 - (void)LoadMaterialMeshHeaders;
 - (void)getMapCentroid:(float *)center_x center_y:(float *)center_y center_z:(float *)center_z;
-- (void)UpdateBoundingBox:(int)mesh_index pCoord:(float *)pCoord version:(unsigned long)version;
+- (void)UpdateBoundingBox:(int)mesh_index pCoord:(float *)pCoord version:(uint32_t)version;
 - (void)ResetBoundingBox;
 
 @property (retain) HaloMap *_mapfile;
 @property (retain) BSP *_bspParent;
 @property (retain) TextureManager *_texManager;
-@property (getter=m_SubMeshCount) unsigned long m_SubMeshCount;
-@property unsigned long _bspMagic;
+@property (getter=m_SubMeshCount) uint32_t m_SubMeshCount;
+@property uint32_t _bspMagic;
 @property SUBMESH_INFO *m_pMesh;
 @property BSP_WEATHER *m_pWeather;
 @property BSP_LIGHTMAP *m_pLightmaps;
 @property BSP_CLUSTER *m_pClusters;
 @property BOOL texturesLoaded;
-@property unsigned long m_CentroidCount;
+@property uint32_t m_CentroidCount;
 @property int m_activeBsp;
 @property int m_TriTotal;
 @end

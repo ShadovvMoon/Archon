@@ -24,7 +24,7 @@ void std_err(void) {
         case 10037: error = "Operation already in progress"; break;
         case 10038: error = "Socket operation on non-socket"; break;
         case 10039: error = "Destination address required"; break;
-        case 10040: error = "Message too long"; break;
+        case 10040: error = "Message too int32_t"; break;
         case 10041: error = "Protocol wrong type for socket"; break;
         case 10042: error = "Bad protocol option"; break;
         case 10043: error = "Protocol not supported"; break;
@@ -47,7 +47,7 @@ void std_err(void) {
         case 10060: error = "Connection timed out"; break;
         case 10061: error = "Connection refused"; break;
         case 10062: error = "Too many levels of symbolic links"; break;
-        case 10063: error = "File name too long"; break;
+        case 10063: error = "File name too int32_t"; break;
         case 10064: error = "Host is down"; break;
         case 10065: error = "No Route to Host"; break;
         case 10066: error = "Directory not empty"; break;

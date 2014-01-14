@@ -64,8 +64,6 @@
     NSString *images_path = [NSString stringWithFormat:@"%@%@", top_path, folder];
     [libraries setTitle:folder];
     
-    NSLog(@"Showing stamps!");
-    
     NSString *stamp_path = @"/tmp/Archon/";
     [[NSFileManager defaultManager] createDirectoryAtPath:stamp_path attributes:nil];
     [self loadImages:images_path];
@@ -226,7 +224,6 @@
     NSMenu *the_menu = [self pathToMenu:stamp_path];
     [libraries setMenu:the_menu];
     
-    NSLog(@"Set library");
     [self setLibrary:[[the_menu itemArray] objectAtIndex:0]];
 }
 
@@ -300,7 +297,7 @@
 				
 				NSString *name = [[filenames objectAtIndex:i] lastPathComponent];//[[NSFileManager defaultManager] displayNameAtPath:[filenames objectAtIndex:i]];
 			//	name = [name stringByAppendingFormat:@".%@", [[filenames objectAtIndex:i] pathExtension]];
-				//NSLog(name);
+				//CSLog(name);
 				if (![[NSFileManager defaultManager] fileExistsAtPath:[image_path stringByAppendingString: name]])
 				{
 					//SAVE AS PNG TO SAVE SPACE
@@ -345,7 +342,7 @@
     //Handle key press
     NSString *characters = [theEvent characters];
 	unichar character = [characters characterAtIndex:0];
-	//NSLog(@"%x", character);
+	//CSLog(@"%x", character);
 	if (character == NSDeleteCharacter || character == NSBackspaceCharacter)
 	{
 

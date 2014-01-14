@@ -27,13 +27,13 @@
 		0 
 	};
     
-    USEDEBUG NSLog(@"Creating bitmapview");
+    USEDEBUG CSLog(@"Creating bitmapview");
     [self setPostsFrameChangedNotifications: YES];
     nsglFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
-    USEDEBUG if(!nsglFormat) { NSLog(@"Invalid format... terminating."); return nil; }
+    USEDEBUG if(!nsglFormat) { CSLog(@"Invalid format... terminating."); return nil; }
     self = [super initWithFrame:frame pixelFormat:nsglFormat];
     [nsglFormat release];
-    USEDEBUG if(!self) { NSLog(@"Self not created... terminating."); return nil; }
+    USEDEBUG if(!self) { CSLog(@"Self not created... terminating."); return nil; }
     [[self openGLContext] makeCurrentContext];
     [self initGL];
 	
@@ -49,7 +49,7 @@
 }
 - (void)awakeFromNib
 {
-    NSLog(@"Checking mac bitmapview");
+    CSLog(@"Checking mac bitmapview");
 #ifndef MACVERSION
     return;
 #endif

@@ -19,7 +19,7 @@ static LoadWindow *sharedInstance = nil;
 
 - (id)init
 {
-    NSLog(@"Load window");
+    CSLog(@"Load window");
     
     
 	if (sharedInstance)

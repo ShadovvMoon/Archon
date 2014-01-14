@@ -29,10 +29,10 @@
 	HaloMap *_mapfile;
 	TextureManager *_texManager;
 	
-	long m_ActiveBsp;
-	long m_Version;
-	long m_Magic;
-	long m_BspCount;
+	int32_t m_ActiveBsp;
+	int32_t m_Version;
+	int32_t m_Magic;
+	int32_t m_BspCount;
 	
 	BspMesh *tempBsp;
 	
@@ -40,10 +40,17 @@
 	NSMutableArray *m_BspNames;
 	NSMutableArray *m_pBsp;
 }
+    -(int)bspCount;
+    -(int)activeBSP;
+    - (SUBMESH_INFO *)GetBsp:(int)bsp PCSubmesh:(int)mesh_index;
+    - (uint32_t)GetBspSubmeshCount:(int)bsp;
+    - (short)NumberOfBsps;
+    -(void)loadAllBsps;
+    
 - (id)initWithMapFile:(HaloMap *)map texManager:(TextureManager *)texManager;
 - (void)dealloc;
 - (void)destroyObjects;
-- (void)loadVisibleBspInfo:(reflexive)BspChunk version:(unsigned long)version;
+- (void)loadVisibleBspInfo:(reflexive)BspChunk version:(uint32_t)version;
 - (UNCOMPRESSED_BSP_VERT)readUncompressedBspVert;
 - (COMPRESSED_BSP_VERT)readCompressedBspVert;
 - (UNCOMPRESSED_LIGHTMAP_VERT)readUncompressedLightmapVert;
@@ -51,18 +58,18 @@
 - (MATERIAL_SUBMESH_HEADER)readMaterialSubmeshHeader;
 - (SCENARIO_BSP_INFO)readBspInfo;
 - (short)NumberOfBsps;
-- (void)setActiveBsp:(unsigned long)bsp;
+- (void)setActiveBsp:(uint32_t)bsp;
 - (BspMesh *)getActiveBsp;
-- (unsigned long)GetActiveBspSubmeshCount;
+- (uint32_t)GetActiveBspSubmeshCount;
 - (BspMesh*)mesh;
 - (SUBMESH_INFO *)GetActiveBspPCSubmesh:(int)mesh_index;
 - (void)GetActiveBspCentroid:(float *)_center_x center_y:(float *)_center_y center_z:(float *)_center_z;
 @property (retain) HaloMap *_mapfile;
 @property (retain) TextureManager *_texManager;
-@property long m_ActiveBsp;
-@property long m_Version;
-@property long m_Magic;
-@property long m_BspCount;
+@property int32_t m_ActiveBsp;
+@property int32_t m_Version;
+@property int32_t m_Magic;
+@property int32_t m_BspCount;
 @property SCENARIO_BSP_INFO *m_pBspInfo;
 @property (retain) NSMutableArray *m_BspNames;
 @property (retain) NSMutableArray *m_pBsp;

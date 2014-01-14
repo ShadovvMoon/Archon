@@ -36,7 +36,9 @@ enum MapFileReadResult
 	
 	NSString *bitmapFilePath;
 	FILE *bitmapsFile;
-	
+	NSMutableArray *plugins;
+    NSMutableArray *tagIdArray;
+    
 	Scenario *mapScenario;
 	BSP *bspHandler;
 	
@@ -45,7 +47,7 @@ enum MapFileReadResult
     
 	bool isPPC;
 
-	long _magic;
+	int32_t _magic;
 	
 	Header mapHeader;
 	IndexHeader indexHead;
@@ -70,9 +72,24 @@ enum MapFileReadResult
 	NSMutableDictionary *bitmTagLookupDict;
     
     
+    int originalTagCount;
+    
+    
+    int32_t currentOffset;
+    int32_t globalMapSize;
+    char *map_memory;
+    
+    BOOL dataReading;
+    uint32_t globalScenarioOffset;
 }
+- (id)initWithMapdata:(NSData *)map_data bitmaps:(NSString *)bitmaps;
+-(int32_t)globalMapSize;
+-(char*)globalMemory;
+-(void)setVertexSize:(float)size;
 -(ModelTag*)bipd;
 - (id)init;
+-(void)rebuildTagArrayToPath:(NSString*)filename withDataAtIndexes:(int32_t*)insertEnd lengths:(int32_t*)dataLength offsets:(int)count;
+- (BOOL)insertDataInFile:(NSString*)filename withData:(void *)data size:(unsigned int)newsize address:(uint32_t)address;
 - (id)initWithMapfiles:(NSString *)mapfile bitmaps:(NSString *)bitmaps;
 - (void)destroy;
 - (void)dealloc;
@@ -81,53 +98,54 @@ enum MapFileReadResult
 - (void)closeMap;
 - (FILE *)currentFile;
 - (BOOL)isPPC;
-- (void)loadShader:(senv*)shader forID:(long)shaderId ;
-- (void)seekToAddress:(unsigned long)address;
-- (void)skipBytes:(long)bytesToSkip;
+- (void)loadShader:(senv*)shader forID:(int32_t)shaderId ;
+- (void)seekToAddress:(uint32_t)address;
+- (void)skipBytes:(int32_t)bytesToSkip;
 - (BOOL)writeChar:(char)byte;
 - (BOOL)writeByte:(void *)byte;
 - (BOOL)writeShort:(void *)byte;
 - (BOOL)writeFloat:(float *)toWrite;
 - (BOOL)writeInt:(int *)myInt;
-- (BOOL)writeLong:(long *)myLong;
+- (BOOL)writeint32_t:(int32_t *)myint32_t;
 - (BOOL)writeAnyData:(void *)data size:(unsigned int)size;
 - (BOOL)writeAnyArrayData:(void *)data size:(unsigned int)size array_size:(unsigned int)array_size;
-- (BOOL)writeByteAtAddress:(void *)byte address:(unsigned long)address;
-- (BOOL)writeFloatAtAddress:(float *)toWrite address:(unsigned long)address;
-- (BOOL)writeIntAtAddress:(int *)myInt address:(unsigned long)address;
-- (BOOL)writeLongAtAddress:(long *)myLong address:(unsigned long)address;
-- (BOOL)writeAnyDataAtAddress:(void *)data size:(unsigned int)size address:(unsigned long)address;
-- (BOOL)writeAnyArrayDataAtAddress:(void *)data size:(unsigned int)size array_size:(unsigned int)array_size address:(unsigned long)address;
+- (BOOL)writeByteAtAddress:(void *)byte address:(uint32_t)address;
+- (BOOL)writeFloatAtAddress:(float *)toWrite address:(uint32_t)address;
+- (BOOL)writeIntAtAddress:(int *)myInt address:(uint32_t)address;
+- (BOOL)writeint32_tAtAddress:(int32_t *)myint32_t address:(uint32_t)address;
+- (BOOL)writeAnyDataAtAddress:(void *)data size:(unsigned int)size address:(uint32_t)address;
+- (BOOL)writeAnyArrayDataAtAddress:(void *)data size:(unsigned int)size array_size:(unsigned int)array_size address:(uint32_t)address;
 - (BOOL)read:(void *)buffer size:(unsigned int)size;
 - (BOOL)readByte:(void *)buffer;
 - (BOOL)readShort:(void *)buffer;
 - (char)readSimpleByte;
-- (BOOL)readLong:(void *)buffer;
+- (BOOL)readint32_t:(void *)buffer;
+-(Header)mapHeader;
 - (BOOL)readFloat:(void *)floatBuffer;
 - (BOOL)readInt:(void *)intBuffer;
 - (BOOL)readBlockOfData:(void *)buffer size_of_buffer:(unsigned int)size;
-- (BOOL)readByteAtAddress:(void *)buffer address:(unsigned long)address;
-- (BOOL)readIntAtAddress:(void *)buffer address:(unsigned long)address;
-- (BOOL)readFloatAtAddress:(void *)buffer address:(unsigned long)address;
-- (BOOL)readLongAtAddress:(void *)buffer address:(unsigned long)address;
-- (BOOL)readBlockOfDataAtAddress:(void *)buffer size_of_buffer:(unsigned int)size address:(unsigned long)address;
+- (BOOL)readByteAtAddress:(void *)buffer address:(uint32_t)address;
+- (BOOL)readIntAtAddress:(void *)buffer address:(uint32_t)address;
+- (BOOL)readFloatAtAddress:(void *)buffer address:(uint32_t)address;
+- (BOOL)readint32_tAtAddress:(void *)buffer address:(uint32_t)address;
+- (BOOL)readBlockOfDataAtAddress:(void *)buffer size_of_buffer:(unsigned int)size address:(uint32_t)address;
 - (char *)readCString;
 - (reflexive)readReflexive;
-- (reflexive)readBspReflexive:(long)magic;
+- (reflexive)readBspReflexive:(int32_t)magic;
 - (TAG_REFERENCE)readReference;
-- (id)bitmTagForShaderId:(long)shaderId;
-- (long)currentOffset;
-- (long)getMagic;
-- (long)magic;
+- (id)bitmTagForShaderId:(int32_t)shaderId;
+- (int32_t)currentOffset;
+- (int32_t)getMagic;
+- (int32_t)magic;
 - (IndexHeader)indexHead;
 - (NSString *)mapName;
 - (NSString *)mapLocation;
-- (id)tagForId:(long)identity;
+- (id)tagForId:(int32_t)identity;
 - (Scenario *)scenario;
 - (BSP *)bsp;
 - (TextureManager *)_texManager;
 - (void)loadAllBitmaps;
-- (BOOL)isTag:(long)tagId;
+- (BOOL)isTag:(int32_t)tagId;
 - (NSMutableArray *)itmcList;
 - (NSMutableDictionary *)itmcLookup;
 - (NSMutableArray *)scenList;
@@ -139,9 +157,9 @@ enum MapFileReadResult
 - (NSMutableDictionary *)bitmLookup;
 - (NSMutableArray *)constructArrayForTagType:(char *)tagType;
 - (void)constructArrayAndLookupForTagType:(char *)tagType array:(NSMutableArray *)array dictionary:(NSMutableDictionary *)dictionary;
-- (long)itmcIdForKey:(int)key;
-- (long)modIdForKey:(int)key;
-- (long)bitmIdForKey:(int)key;
+- (int32_t)itmcIdForKey:(int)key;
+- (int32_t)modIdForKey:(int)key;
+- (int32_t)bitmIdForKey:(int)key;
 - (void)saveMap;
 @property (getter=currentFile) FILE *mapFile;
 @property (retain) NSString *bitmapFilePath;
@@ -149,7 +167,7 @@ enum MapFileReadResult
 @property (retain,getter=scenario) Scenario *mapScenario;
 @property (retain,getter=bsp) BSP *bspHandler;
 @property (retain,getter=_texManager) TextureManager *_texManager;
-@property long _magic;
+@property int32_t _magic;
 @property (retain) NSMutableArray *tagArray;
 @property (retain) NSMutableDictionary *tagLookupDict;
 @property (retain,getter=itmcList) NSMutableArray *itmcList;

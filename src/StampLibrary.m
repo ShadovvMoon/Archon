@@ -24,7 +24,7 @@
 
 -(void)keyDown:(NSEvent *)theEvent
 {
-//	NSLog(@"KEY");
+//	CSLog(@"KEY");
 	[[self delegate] keyDown:theEvent];
 }
 @end

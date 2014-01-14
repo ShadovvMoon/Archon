@@ -36,6 +36,8 @@
 
 #import <OpenGL/glext.h>
 #import <OpenGL/glu.h>
+#import <GLUT/glut.h>
+
 #include "gssdkcr.h"
 
 #include <stdio.h>
@@ -53,11 +55,173 @@
 #include <stdlib.h>
 #include <Security/Authorization.h>
 
+#import "CollisionTag.h"
+
+
+#import "ChildNode.h"
+#import "ImageAndTextCell.h"
+#import "SeparatorCell.h"
+
+#define COLUMNID_NAME			@"NameColumn"	// the single column name in our outline view
+#define INITIAL_INFODICT		@"Outline"		// name of the dictionary file to populate our outline view
+
+#define ICONVIEW_NIB_NAME		@"IconView"		// nib name for the icon view
+#define FILEVIEW_NIB_NAME		@"FileView"		// nib name for the file view
+#define CHILDEDIT_NAME			@"ChildEdit"	// nib name for the child edit window controller
+
+#define UNTITLED_NAME			@"Untitled"		// default name for added folders and leafs
+
+#define HTTP_PREFIX				@"http://"
+
+// default folder titles
+#define PLACES_NAME				@"PLACES"
+#define BOOKMARKS_NAME			@"BOOKMARKS"
+
+// keys in our disk-based dictionary representing our outline view's data
+#define KEY_NAME				@"name"
+#define KEY_URL					@"url"
+#define KEY_SEPARATOR			@"separator"
+#define KEY_GROUP				@"group"
+#define KEY_FOLDER				@"folder"
+#define KEY_ENTRIES				@"entries"
+
+#define kMinOutlineViewSplit	120.0f
+
+#define kIconImageSize          16.0
+
+#define kNodesPBoardType		@"myNodesPBoardType"	// drag and drop pasteboard type
+
+#pragma mark -
+
+int startTime;
+GLfloat cggurrentTime()
+{
+    return (getUptimeInMilliseconds()-startTime)/1000.0;
+}
+NSWindow * currentDocumentWindow()
+{
+    return [[[[NSDocumentController sharedDocumentController] currentDocument] renderView] window];
+}
+int activateScexProgram()
+{
+    glUseProgram(currentScexProgram());
+}
+int activateSchiProgram()
+{
+    glUseProgram(currentSchiProgram());
+}
+int activateSglaProgram()
+{
+    glUseProgram(currentSglaProgram());
+}
+int activateLightProgram()
+{
+    glUseProgram(currentLightProgram());
+    GLint texLoc = glGetUniformLocation(currentLightProgram(), "skipFog");
+    
+    if (skipTheFog)
+        glUniform1i(texLoc, 1);
+}
+int activateNormalProgram()
+{
+    glUseProgram(currentNormalProgram());
+    glUniform1f(global_isDetailed, 1.0);
+    global_detailedStatus = YES;
+}
+int currentLightProgram()
+{
+    GLuint light_progr = [[[[NSDocumentController sharedDocumentController] currentDocument] renderView] light_program];
+    return light_progr;
+}
+int currentNormalProgram()
+{
+    GLuint light_progr = [[[[NSDocumentController sharedDocumentController] currentDocument] renderView] normal_program];
+    return light_progr;
+}
+int currentScexProgram()
+{
+    GLuint light_progr = [[[[NSDocumentController sharedDocumentController] currentDocument] renderView] scex_program];
+    return light_progr;
+}
+int currentSchiProgram()
+{
+    GLuint light_progr = [[[[NSDocumentController sharedDocumentController] currentDocument] renderView] schi_program];
+    return light_progr;
+}
+int currentSglaProgram()
+{
+    GLuint light_progr = [[[[NSDocumentController sharedDocumentController] currentDocument] renderView] sgla_program];
+    return light_progr;
+}
+NSBitmapImageRep *LoadImage(NSString *path, int shouldFlipVertical)
+{
+	NSBitmapImageRep *bitmapimagerep;
+	NSImage *image;
+	image = [[[NSImage alloc] initWithContentsOfFile: path] autorelease];
+	bitmapimagerep = [[NSBitmapImageRep alloc] initWithData:[image TIFFRepresentation]];
+	
+	if (shouldFlipVertical)
+	{
+		int bytesPerRow, lowRow, highRow;
+		unsigned char *pixelData, *swapRow;
+		
+		bytesPerRow = [bitmapimagerep bytesPerRow];
+		pixelData = [bitmapimagerep bitmapData];
+        
+		swapRow = (unsigned char *)malloc(bytesPerRow);
+		for (lowRow = 0, highRow = [bitmapimagerep pixelsHigh]-1; lowRow < highRow; lowRow++, highRow--)
+		{
+			memcpy(swapRow, &pixelData[lowRow*bytesPerRow], bytesPerRow);
+			memcpy(&pixelData[lowRow*bytesPerRow], &pixelData[highRow*bytesPerRow], bytesPerRow);
+			memcpy(&pixelData[highRow*bytesPerRow], swapRow, bytesPerRow);
+		}
+		free(swapRow);
+	}
+    
+	return bitmapimagerep;
+}
+
+
+int NextHighestPowerOf2(int n)
+{
+	n--;
+	n |= n >> 1;
+	n |= n >> 2;
+	n |= n >> 4;
+	n |= n >> 8;
+	n |= n >> 16;
+	n++;
+    
+    
+	return n;
+}
+
+void CopyFramebufferToTexture(GLuint texture)
+{
+
+    
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+    
+    //viewport[0] = 0.0;
+    //viewport[1] = 0.0;
+    //viewport[2] = [currentDocumentWindow() frame].size.width;
+    //viewport[3] = [currentDocumentWindow() frame].size.height;
+    
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, viewport[0], viewport[1], NextHighestPowerOf2(viewport[2]), NextHighestPowerOf2(viewport[3]), 0);
+}
+
+
+
+
 mach_port_name_t halo = MACH_PORT_NULL;
 @implementation NSBitmapImageRep (Resize)
 
+
 - (NSBitmapImageRep *)resizeBitmapImageRepToSize:(NSSize)outputBitmapSize
 {
+    CSLog(@"Bitmap image rep resizing");
     NSBitmapImageRep *newRep =
     [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
                                             pixelsWide:outputBitmapSize.width
@@ -78,7 +242,7 @@ mach_port_name_t halo = MACH_PORT_NULL;
     
     [NSGraphicsContext setCurrentContext:context];
 	
-    NSLog(@"Resizing bitmap to %f %f", outputBitmapSize.width, outputBitmapSize.height);
+    CSLog(@"Resizing bitmap to %f %f", outputBitmapSize.width, outputBitmapSize.height);
     
     // do not use drawAtPoint: !! it does not respect resolution due to a bug
     [self drawInRect:NSMakeRect(0, 0, outputBitmapSize.width, outputBitmapSize.height)];
@@ -240,7 +404,7 @@ unsigned char *convert(const char *s, int *length) {
  
  u_char    enckey[16],  // used to encrypt
  deckey[16],  // used to decrypt
- hash[17];    // the private key, it's 17 bytes long (NULL)
+ hash[17];    // the private key, it's 17 bytes int32_t (NULL)
  
  You need only 3 functions to do everything but there are many others
  available in this file so you have the maximum freedom of using your
@@ -312,7 +476,7 @@ unsigned char *convert(const char *s, int *length) {
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
+ aint32_t with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
  http://www.gnu.org/licenses/gpl.txt
@@ -389,7 +553,7 @@ typedef struct {
 
 #ifndef WIN32
 void std_err(void) {
-    NSLog(@"ERROR!");
+    CSLog(@"ERROR!");
     
 }
 #endif
@@ -719,7 +883,7 @@ u32 halo_info(u8 *buff, struct sockaddr_in *peer) {
         
         if(gamever)
         {
-            NSLog(@"We have the game version");
+            CSLog(@"We have the game version");
             p = strrchr(gamever, '.');
             if(p) {
                 p++;
@@ -2171,10 +2335,10 @@ OSStatus AcquireTaskportRight() {
     }
     
     if (stat == errAuthorizationSuccess) {
-        NSLog(@"system.privilege.taskport acquired");
+        CSLog(@"system.privilege.taskport acquired");
     }
     else {
-        NSLog(@"Failed to acquire system.privilege.taskport right. Error: %d", (int)stat);
+        CSLog(@"Failed to acquire system.privilege.taskport right. Error: %d", (int)stat);
     }
     
     return stat;
@@ -2410,12 +2574,12 @@ int readInt(ZGMemoryMap processTask, ZGMemoryAddress address)
     }
     
     int pid = [[applications objectAtIndex:0] processIdentifier];
-    NSLog(@"Halo PID: %d", pid);
+    CSLog(@"Halo PID: %d", pid);
     
     kern_return_t result = task_for_pid(current_task(), pid, &halo);
     if (result != KERN_SUCCESS || !MACH_PORT_VALID(halo))
     {
-        NSLog(@"TASK FAILED");
+        CSLog(@"TASK FAILED");
     }
 }
 
@@ -2425,7 +2589,7 @@ short object_id_for_player(short player_number)
 }
 int pointerToObject(short number)
 {
-    long address = 0x400506E8 + number * 12 + 0x8;
+    int32_t address = 0x400506E8 + number * 12 + 0x8;
     return readInt(halo, address);
 }
 float distanceToObjectH(short from, short to)
@@ -2689,17 +2853,17 @@ int playernumberinitial=0;;
     if(sd1 < 0) std_err();
     sd2 = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(sd2 < 0) std_err();
-     NSLog(@"bind!");
+     CSLog(@"bind!");
     
     if(setsockopt(sd1, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
     {
-        NSLog(@"Socket output failed");
+        CSLog(@"Socket output failed");
         std_err();
     }
     
     if(bind(sd1, (struct sockaddr *)&peer1, sizeof(peer1)) < 0)
     {
-       NSLog(@"Binding failed");
+       CSLog(@"Binding failed");
         std_err();
     }
     printf("- wait packets...\n");
@@ -2708,7 +2872,7 @@ int playernumberinitial=0;;
     
     
     //Handshake
-     NSLog(@"begin!");
+     CSLog(@"begin!");
     struct  sockaddr_in peer;
     struct  linger  ling = {1,1};
     u32     ver;
@@ -2726,7 +2890,7 @@ int playernumberinitial=0;;
     WSADATA    wsadata;
     WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif
-     NSLog(@"sart!");
+     CSLog(@"sart!");
     //setbuf(stdout, NULL);
     
     if(argc > 2) port = atoi(argv[2]);
@@ -2837,7 +3001,7 @@ int playernumberinitial=0;;
     p += putxx(p, ver,      32);
     
         printf("\n- version\n");
-    NSLog(@"%d", ver);
+    CSLog(@"%d", ver);
 
     printf("\n- sending\n");
     show_dump(buff, p - buff, stdout);
@@ -3586,7 +3750,7 @@ int playernumberinitial=0;;
 
         if ([isStrafed state] && strafeTimer == 30)
         {
-            NSLog(@"STRAFE");
+            CSLog(@"STRAFE");
             if (directionStrafe)
             {
                 isChangingPacket[my_player] = YES;
@@ -3677,7 +3841,7 @@ int playernumberinitial=0;;
             float distance = distanceToObjectH(pidm, pida);
             if (distance < closestDistance)
             {
-                NSLog(@"PLAYER ID: %d", pida);
+                CSLog(@"PLAYER ID: %d", pida);
                 closestDistance = distance;
                 closestPlayerID = ad;
             }
@@ -3713,7 +3877,7 @@ int playernumberinitial=0;;
                     float radians = atan((x2-x1)/(y2-y1));
                     float degrees = (radians*180)/M_PI;
                     testNumber = 20+((90-degrees)/90.0)*20;
-                    NSLog(@"BOTTOM LEFT %d %f %f", testNumber, radians, degrees);
+                    CSLog(@"BOTTOM LEFT %d %f %f", testNumber, radians, degrees);
                 }
                 else
                 {
@@ -3721,7 +3885,7 @@ int playernumberinitial=0;;
                     float radians = atan((x2-x1)/(y1-y2));
                     float degrees = (radians*180)/M_PI;
                     testNumber = (degrees/90.0)*20;
-                    NSLog(@"TOP LEFT %d %f %f", testNumber, radians, degrees);
+                    CSLog(@"TOP LEFT %d %f %f", testNumber, radians, degrees);
                 }
             }
             else
@@ -3732,14 +3896,14 @@ int playernumberinitial=0;;
                     float radians = atan((x1-x2)/(y2-y1));
                     float degrees = (radians*180)/M_PI;
                     testNumber = 40+(degrees/90.0)*20;
-                    NSLog(@"BOTTOM RIGHT %d %f %f", testNumber, radians, degrees);
+                    CSLog(@"BOTTOM RIGHT %d %f %f", testNumber, radians, degrees);
                 }
                 else
                 {
                     float radians = atan((x1-x2)/(y1-y2));
                     float degrees = (radians*180)/M_PI;
                     testNumber = 60+(degrees/90.0)*20;
-                    NSLog(@"TOP RIGHT %d %f %f", testNumber, radians, degrees);
+                    CSLog(@"TOP RIGHT %d %f %f", testNumber, radians, degrees);
                 }
             }
             
@@ -3968,25 +4132,25 @@ int playernumberinitial=0;;
     show_dump(buff, len, stdout);
 */
     
-    //NSLog(@"Done!");
+    //CSLog(@"Done!");
 
     
     //Lets send THEM something!
-        //NSLog(@"still waiting");
+        //CSLog(@"still waiting");
     //buff    = malloc(BUFFSZ);
    // len = 50;
     //SEND(requestClientKey, peer2);
-    //NSLog(@"sent");
+    //CSLog(@"sent");
     
     
     
     
     
-    // NSLog(@"Sending %s %d", b, length);
+    // CSLog(@"Sending %s %d", b, length);
     
     //ret = bind(clientfc, (struct sockaddr *)&cliaddr, sizeof(struct sockaddr));
     //if ( ret == -1 )
-    //NSLog(@"Bind failure");
+    //CSLog(@"Bind failure");
     
     
     /*
@@ -3995,21 +4159,21 @@ int playernumberinitial=0;;
     
  */
     /*
-    NSLog(@"Receiving");
+    CSLog(@"Receiving");
     while(1)
     {
         
         
-        NSLog(@"Sent to");
+        CSLog(@"Sent to");
         n=recvfrom(sockfd,recvline,10000,0,NULL,NULL);
-        NSLog(@"Received stuff");
+        CSLog(@"Received stuff");
         
         //42 bytes is initially crap.
         
         recvline[n]=0;
         //fputs(recvline,stdout);
         
-        NSLog(@"%d", n);
+        CSLog(@"%d", n);
         
     }
     
@@ -4179,27 +4343,27 @@ int playernumberinitial=0;;
     cliaddr.sin_addr.s_addr=INADDR_ANY;
     cliaddr.sin_port=htons(2303);
     
-    NSLog(@"Sending %s %d", b, length);
+    CSLog(@"Sending %s %d", b, length);
     
     ret = bind(clientfc, (struct sockaddr *)&cliaddr, sizeof(struct sockaddr));
     if ( ret == -1 )
-        NSLog(@"Bind failure");
+        CSLog(@"Bind failure");
     
-    NSLog(@"Receiving");
+    CSLog(@"Receiving");
     while(1)
     {
         
         sendto(sockfd,b,length,0,(struct sockaddr *)&servaddr,sizeof(servaddr));
-        NSLog(@"Sent to");
+        CSLog(@"Sent to");
         n=recvfrom(sockfd,recvline,10000,0,NULL,NULL);
-        NSLog(@"Received stuff");
+        CSLog(@"Received stuff");
         
         //42 bytes is initially crap.
         
         recvline[n]=0;
         //fputs(recvline,stdout);
         
-        NSLog(@"%d", n);
+        CSLog(@"%d", n);
         
     }
      */
@@ -4244,16 +4408,62 @@ int playernumberinitial=0;;
 {
 	my_pid_v = my_pid;
 }
+-(GLuint)sgla_program
+{
+    return sgla_program;
+}
+-(GLuint)schi_program
+{
+    return schi_program;
+}
+-(GLuint)scex_program
+{
+    return scex_program;
+}
+
 
 - (id)initWithFrame: (NSRect) frame
 {
-    USEDEBUG NSLog(@"Init render view");
+    
+    legacyMode = YES;
+    
+    
+    
+    useAlphaTesting=YES;
+    startTime = getUptimeInMilliseconds();
+    
+    list_of_tag_types = [[NSMutableArray alloc] init];
+    list_of_tag_subgroups = [[NSMutableDictionary alloc] init];
+    
+    
+    
+    NSString *pluginsFolder = [[NSBundle mainBundle] pathForResource:@"Plugins" ofType:@""];
+    know_types = LoadPluginsAtPath([[pluginsFolder stringByAppendingString:@"/"] cStringUsingEncoding:NSASCIIStringEncoding]);
+    
+    USEDEBUG CSLog(@"Init render view");
     
     [self registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
     renderV = self;
-    USEDEBUG NSLog(@"Creating");
+    USEDEBUG CSLog(@"Creating");
 	// First, we must create an NSOpenGLPixelFormatAttribute
 	NSOpenGLPixelFormat *nsglFormat;
+    
+#ifdef MODZY_RENDERING
+    NSOpenGLPixelFormatAttribute attr[] =
+	{
+		NSOpenGLPFADoubleBuffer,
+        NSOpenGLPFASupersample,
+        NSOpenGLPFASampleBuffers, 1,
+        NSOpenGLPFASamples, 4,
+        //NSOpenGLPFANoRecovery,
+		NSOpenGLPFAColorSize,
+		BITS_PER_PIXEL,
+		NSOpenGLPFADepthSize,
+		DEPTH_SIZE,
+        NSOpenGLPFAAccelerated,
+		0
+	};//NSOpenGLProfileVersionLegacy
+#else
 	NSOpenGLPixelFormatAttribute attr[] =
 	{
 		NSOpenGLPFADoubleBuffer,
@@ -4267,11 +4477,12 @@ int playernumberinitial=0;;
 		DEPTH_SIZE,
 		0 
 	};
-
+#endif
+    
     lightScene = false;
     [self setPostsFrameChangedNotifications: YES];
 	
-    USEDEBUG NSLog(@"More inits");
+    USEDEBUG CSLog(@"More inits");
     
 	// Next, we initialize the NSOpenGLPixelFormat itself
     nsglFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
@@ -4279,29 +4490,356 @@ int playernumberinitial=0;;
 	// Check for errors in the creation of the NSOpenGLPixelFormat
     // If we could not create one, return nil (the OpenGL is not initialized, and
     // we should send an error message to the user at this point)
-    if(!nsglFormat) { NSLog(@"Invalid format... terminating."); return nil; }
-	USEDEBUG  NSLog(@"Still initing");
+    if(!nsglFormat) { CSLog(@"Invalid format... terminating."); return nil; }
+	USEDEBUG  CSLog(@"Still initing");
     
 	// Now we create the the CocoaGL instance, using our initial frame and the NSOpenGLPixelFormat
     self = [super initWithFrame:frame pixelFormat:nsglFormat];
     [nsglFormat release];
 	
 	// If there was an error, we again should probably send an error message to the user
-    if(!self) { NSLog(@"Self not created... terminating."); return nil; }
-	USEDEBUG NSLog(@"Making contenxt");
+    if(!self) { CSLog(@"Self not created... terminating."); return nil; }
+	USEDEBUG CSLog(@"Making contenxt");
 	// Now we set this context to the current context (means that its now drawable)
     [[self openGLContext] makeCurrentContext];
 	[[self openGLContext] setView:self];
     
-	// Finally, we call the initGL method (no need to make this method too long or complex)
+	// Finally, we call the initGL method (no need to make this method too int32_t or complex)
     [self initGL];
-    USEDEBUG NSLog(@"Finished");
+    USEDEBUG CSLog(@"Finished");
+    
+    
+    
+    
+    
+    if (!shadersDefined)
+    {
+        shadersDefined = YES;
+        GLuint vertex_shader, fragment_shader;
+        
+        NSLog(@"Loading water shaders");
+        const char *vert_path = [[[NSBundle mainBundle] pathForResource:@"water" ofType:@"vert"]
+                                                      cStringUsingEncoding:NSUTF8StringEncoding];
+        const char *frag_path = [[[NSBundle mainBundle] pathForResource:@"water" ofType:@"frag"]
+                                 cStringUsingEncoding:NSUTF8StringEncoding];
+        
+        vertex_shader   = make_shader(GL_VERTEX_SHADER, vert_path);
+        fragment_shader = make_shader(GL_FRAGMENT_SHADER, frag_path);
+        water_program         = make_program(vertex_shader, fragment_shader);
+        
+        NSLog(@"Loading light shaders");
+        GLuint vertex_shader2, fragment_shader2;
+        
+        const char *vert_path2 = [[[NSBundle mainBundle] pathForResource:@"light" ofType:@"vert"]
+                                 cStringUsingEncoding:NSUTF8StringEncoding];
+        const char *frag_path2 = [[[NSBundle mainBundle] pathForResource:@"light" ofType:@"frag"]
+                                 cStringUsingEncoding:NSUTF8StringEncoding];
+        
+        vertex_shader2   = make_shader(GL_VERTEX_SHADER, vert_path2);
+        fragment_shader2 = make_shader(GL_FRAGMENT_SHADER, frag_path2);
+        light_program   = make_program(vertex_shader2, fragment_shader2);
+        
+        NSLog(@"Loading normal shaders");
+        const char *vert_path3 = [[[NSBundle mainBundle] pathForResource:@"normal" ofType:@"vert"]
+                                  cStringUsingEncoding:NSUTF8StringEncoding];
+        const char *frag_path3 = [[[NSBundle mainBundle] pathForResource:@"normal" ofType:@"frag"]
+                                  cStringUsingEncoding:NSUTF8StringEncoding];
+        
+        vertex_shader2   = make_shader(GL_VERTEX_SHADER, vert_path3);
+        fragment_shader2 = make_shader(GL_FRAGMENT_SHADER, frag_path3);
+        normal_program   = make_program(vertex_shader2, fragment_shader2);
+        
+        global_isDetailed           = glGetUniformLocation(normal_program, "isDetailed");
+        global_detailScale          = glGetUniformLocation(normal_program, "detailScale");
+        global_detailScale2         = glGetUniformLocation(normal_program, "detailScale2");
+        global_positionData         = glGetUniformLocation(normal_program, "global_positionData");
+        global_rotationData         = glGetUniformLocation(normal_program, "global_rotationData");
+        global_detailTexture        = glGetUniformLocation(normal_program, "detailTexture");
+        global_baseTexture          = glGetUniformLocation(normal_program, "baseTexture");
+        
+        glUniform1i(global_detailTexture, 0);
+        glUniform1i(global_baseTexture, 1);
+        
+        NSLog(@"Loading scex shaders");
+        vert_path3 = [[[NSBundle mainBundle] pathForResource:@"scex" ofType:@"vert"]
+                                  cStringUsingEncoding:NSUTF8StringEncoding];
+        frag_path3 = [[[NSBundle mainBundle] pathForResource:@"scex" ofType:@"frag"]
+                                  cStringUsingEncoding:NSUTF8StringEncoding];
+        
+        vertex_shader2   = make_shader(GL_VERTEX_SHADER, vert_path3);
+        fragment_shader2 = make_shader(GL_FRAGMENT_SHADER, frag_path3);
+        scex_program     = make_program(vertex_shader2, fragment_shader2);
+
+        glUniform1i(glGetUniformLocation(scex_program, "detailTexture") , 0);
+        glUniform1i(glGetUniformLocation(scex_program, "baseTexture"), 1);
+        
+        glUniform1i(glGetUniformLocation(scex_program, "t0"), 0);
+        glUniform1i(glGetUniformLocation(scex_program, "t1"), 1);
+        glUniform1i(glGetUniformLocation(scex_program, "t2"), 2);
+        glUniform1i(glGetUniformLocation(scex_program, "t3"), 3);
+        
+        
+        global_time         = glGetUniformLocation(scex_program, "time");
+        global_t0           = glGetUniformLocation(scex_program, "t0");
+        global_t1           = glGetUniformLocation(scex_program, "t1");
+        global_t2           = glGetUniformLocation(scex_program, "t2");
+        global_t3           = glGetUniformLocation(scex_program, "t3");
+        global_t0_scale     = glGetUniformLocation(scex_program, "t0_scale");
+        global_t0_option    = glGetUniformLocation(scex_program, "t0_option");
+        global_t0_available = glGetUniformLocation(scex_program, "t0_available");
+        global_t1_scale     = glGetUniformLocation(scex_program, "t1_scale");
+        global_t1_option    = glGetUniformLocation(scex_program, "t1_option");
+        global_t1_available = glGetUniformLocation(scex_program, "t1_available");
+        global_t2_scale     = glGetUniformLocation(scex_program, "t2_scale");
+        global_t2_option    = glGetUniformLocation(scex_program, "t2_option");
+        global_t2_available = glGetUniformLocation(scex_program, "t2_available");
+        global_t3_scale     = glGetUniformLocation(scex_program, "t3_scale");
+        global_t3_option    = glGetUniformLocation(scex_program, "t3_option");
+        global_t3_available = glGetUniformLocation(scex_program, "t3_available");
+
+        NSLog(@"Loading schi shaders");
+        vert_path3 = [[[NSBundle mainBundle] pathForResource:@"schi" ofType:@"vert"]
+                      cStringUsingEncoding:NSUTF8StringEncoding];
+        frag_path3 = [[[NSBundle mainBundle] pathForResource:@"schi" ofType:@"frag"]
+                      cStringUsingEncoding:NSUTF8StringEncoding];
+        
+        vertex_shader2   = make_shader(GL_VERTEX_SHADER, vert_path3);
+        fragment_shader2 = make_shader(GL_FRAGMENT_SHADER, frag_path3);
+        schi_program     = make_program(vertex_shader2, fragment_shader2);
+        global_time_schi         = glGetUniformLocation(schi_program, "time");
+        global_t0_schi           = glGetUniformLocation(schi_program, "t0");
+        global_t1_schi           = glGetUniformLocation(schi_program, "t1");
+        global_t0_scale_schi     = glGetUniformLocation(schi_program, "t0_scale");
+        global_t0_option_schi    = glGetUniformLocation(schi_program, "t0_option");
+        global_t0_available_schi = glGetUniformLocation(schi_program, "t0_available");
+        global_t1_scale_schi     = glGetUniformLocation(schi_program, "t1_scale");
+        global_t1_option_schi    = glGetUniformLocation(schi_program, "t1_option");
+        global_t1_available_schi = glGetUniformLocation(schi_program, "t1_available");
+
+        NSLog(@"Loading sgla shaders");
+        vert_path3 = [[[NSBundle mainBundle] pathForResource:@"sgla" ofType:@"vert"]
+                      cStringUsingEncoding:NSUTF8StringEncoding];
+        frag_path3 = [[[NSBundle mainBundle] pathForResource:@"sgla" ofType:@"frag"]
+                      cStringUsingEncoding:NSUTF8StringEncoding];
+        
+        vertex_shader2   = make_shader(GL_VERTEX_SHADER, vert_path3);
+        fragment_shader2 = make_shader(GL_FRAGMENT_SHADER, frag_path3);
+        sgla_program     = make_program(vertex_shader2, fragment_shader2);
+        global_FrameWidth       = glGetUniformLocation(sgla_program, "FrameWidth");
+        global_FrameHeight      = glGetUniformLocation(sgla_program, "FrameHeight");
+        global_textureWidth     = glGetUniformLocation(sgla_program, "textureWidth");
+        global_textureHeight    = glGetUniformLocation(sgla_program, "textureHeight");
+        global_LightPos         = glGetUniformLocation(sgla_program, "LightPos");
+        global_BaseColor        = glGetUniformLocation(sgla_program, "BaseColor");
+        global_Depth            = glGetUniformLocation(sgla_program, "Depth");
+        global_MixRatio         = glGetUniformLocation(sgla_program, "MixRatio");
+        global_EnvMap           = glGetUniformLocation(sgla_program, "EnvMap");
+        global_RefractionMap    = glGetUniformLocation(sgla_program, "RefractionMap");
+        //global_Xunitvec         = glGetUniformLocation(sgla_program, "global_Xunitvec");
+        //global_Yunitvec         = glGetUniformLocation(sgla_program, "global_Yunitvec");
+        
+        NSString *normal_file = [[NSBundle mainBundle] pathForResource:@"water_normals" ofType:@"jpg"];
+        NSData *image_data = [[NSData alloc] initWithContentsOfFile:normal_file];
+        NSBitmapImageRep *image_rep = [[NSBitmapImageRep alloc] initWithData:image_data];
+        
+        glGenTextures(1, &Water_Normal_Texture);
+        glBindTexture(GL_TEXTURE_2D, Water_Normal_Texture);
+        
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     [image_rep pixelsWide],
+                     [image_rep pixelsHigh],
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     [image_rep bitmapData]);
+        
+        //glUniform1i(program.getUniformLocation("Texture0"), 0);
+        Water_Normal_TextureID  = glGetUniformLocation(water_program, "WaterReflection");
+        
+        
+        
+    }
+    
+    /* house texture */
+    glGenTextures(1, &house_texture);
+    NSString *string = [[NSBundle mainBundle] pathForResource: @"House" ofType: @"jpg"];
+    
+    NSBitmapImageRep *bitmapimagerep = LoadImage(string, 1);
+    NSRect rect = NSMakeRect(0, 0, [bitmapimagerep pixelsWide], [bitmapimagerep pixelsHigh]);
+    
+    glBindTexture(GL_TEXTURE_2D, house_texture);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, rect.size.width, rect.size.height, 0,
+                 (([bitmapimagerep hasAlpha])?(GL_RGBA):(GL_RGB)), GL_UNSIGNED_BYTE,
+                 [bitmapimagerep bitmapData]);
+    
+    
+    /* frameBuffer texture */
+    glGenTextures(1, &frameBuffer_texture);
+    glBindTexture(GL_TEXTURE_2D, frameBuffer_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,viewport);
+    CopyFramebufferToTexture(frameBuffer_texture);
+    
+    glGenTextures(1, &reflect_texture);
+    glBindTexture(GL_TEXTURE_2D, reflect_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    CopyFramebufferToTexture(reflect_texture);
+    
+    
+    /* water normal */
+    glGenTextures(1, &water_normal);
+    string = [[NSBundle mainBundle] pathForResource: @"water_normals" ofType: @"jpg"];
+    
+    bitmapimagerep = LoadImage(string, 1);
+    rect = NSMakeRect(0, 0, [bitmapimagerep pixelsWide], [bitmapimagerep pixelsHigh]);
+    
+    glBindTexture(GL_TEXTURE_2D, water_normal);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    
+    gluBuild2DMipmaps(GL_TEXTURE_2D,
+                      GL_RGB,
+                      rect.size.width, rect.size.height,
+                      (([bitmapimagerep hasAlpha])?(GL_RGBA):(GL_RGB)),
+                      GL_UNSIGNED_BYTE,
+                      [bitmapimagerep bitmapData]);
+    
+    /* refraction map */
+    glGenTextures(1, &refraction_map);
+    string = [[NSBundle mainBundle] pathForResource: @"refraction_map" ofType: @"jpg"];
+    
+    bitmapimagerep = LoadImage(string, 1);
+    rect = NSMakeRect(0, 0, [bitmapimagerep pixelsWide], [bitmapimagerep pixelsHigh]);
+    
+    glBindTexture(GL_TEXTURE_2D, refraction_map);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, rect.size.width, rect.size.height, 0,
+                 (([bitmapimagerep hasAlpha])?(GL_RGBA):(GL_RGB)), GL_UNSIGNED_BYTE,
+                 [bitmapimagerep bitmapData]);
+    
     return self;
     
 }
+char *file_contents(char *filename, GLint *len)
+{
+    char * buffer = 0;
+    GLint length;
+    FILE * f = fopen (filename, "rb");
+    
+    if (f)
+    {
+        fseek (f, 0, SEEK_END);
+        length = ftell (f);
+        fseek (f, 0, SEEK_SET);
+        buffer = malloc (length);
+        if (buffer)
+        {
+            fread (buffer, 1, length, f);
+        }
+        fclose (f);
+    }
+    memcpy(len, &length, sizeof(GLint));
+    return buffer;
+}
+static GLuint make_shader(GLenum type, const char *filename)
+{
+   
+    
+    GLint length;
+    GLchar *source = file_contents(filename, &length);
+    GLuint shader;
+    GLint shader_ok;
+    
+    if (!source)
+    {
+        NSLog(@"No source");
+        return 0;
+    }
+    
+    shader = glCreateShader(type);
+    glShaderSource(shader, 1, (const GLchar**)&source, &length);
+    free(source);
+    glCompileShader(shader);
+    
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
+    if (!shader_ok)
+    {
+        fprintf(stderr, "Failed to compile %s:\n", filename);
+        
+        GLint log_length;
+        char *log;
+        
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
+        log = malloc(log_length);
+        glGetShaderInfoLog(shader, log_length, NULL, log);
+        fprintf(stderr, "Error: %s", log);
+        free(log);
+        
+        glDeleteShader(shader);
+        return 0;
+    }
+    else
+    {
+        NSLog(@"Shader compiled successfully");
+    }
+    return shader;
+}
+static GLuint make_program(GLuint vertex_shader, GLuint fragment_shader)
+{
+    GLint program_ok;
+    
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertex_shader);
+    glAttachShader(program, fragment_shader);
+    glLinkProgram(program);
+    glGetProgramiv(program, GL_LINK_STATUS, &program_ok);
+    if (!program_ok)
+    {
+        fprintf(stderr, "Failed to link shader program:\n");
+        show_info_log(program);
+        glDeleteProgram(program);
+        return 0;
+    }
+    return program;
+}
+
+
+static void show_info_log(
+                          GLuint object)
+{
+    GLint log_length;
+    char *log;
+    
+    glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
+    log = malloc(log_length);
+    glGetProgramInfoLog(object, log_length, NULL, log);
+    fprintf(stderr, "Error: %s", log);
+    free(log);
+}
+
+
+-(char*)loadShader:(NSString*)name withExtension:(NSString *)ext
+{
+    NSString *path = [[NSBundle mainBundle] pathForResource:name ofType:ext];
+    return [[NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil] cStringUsingEncoding:NSUTF8StringEncoding];
+}
 - (void)initGL
 {
-    NSLog(@"Initing GL");
+
 #ifndef MACVERSION
     GLenum error = glewInit();
     if (error != GLEW_OK)
@@ -4351,12 +4889,12 @@ int playernumberinitial=0;;
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 	
 	first = YES;
-	//NSLog(@"end initGL");
+	//CSLog(@"end initGL");
 }
 
 -(void)updateQuickLink:(NSTimer *)abc
 {
-    //NSLog(@"Update quicklink");
+    //CSLog(@"Update quicklink");
     /*
 	[player_1 setTitle:[new_characters objectAtIndex:0]];
 	[player_2 setTitle:[new_characters objectAtIndex:1]];
@@ -4428,11 +4966,11 @@ int playernumberinitial=0;;
             elapsed = end - start;
         
             double fps = ((1000000000.0 * averageFPS)/ elapsed);
-            [fpsText performSelectorOnMainThread:@selector(setStringValue:) withObject:[NSString stringWithFormat:@"FPS: %f", fps] waitUntilDone:YES];
+            //[fpsText performSelectorOnMainThread:@selector(setStringValue:) withObject:[NSString stringWithFormat:@"FPS: %f", fps] waitUntilDone:YES];
             
         if (!performanceMode)
             break;
-        //NSLog(@"%f", fps);
+        //CSLog(@"%f", fps);
          
     }
     
@@ -4524,27 +5062,84 @@ int playernumberinitial=0;;
 	// Check for errors in the creation of the NSOpenGLPixelFormat
     // If we could not create one, return nil (the OpenGL is not initialized, and
     // we should send an error message to the user at this point)
-    //if(!nsglFormat) { NSLog(@"Invalid format... terminating."); return nil; }
+    //if(!nsglFormat) { CSLog(@"Invalid format... terminating."); return nil; }
 	
 	// Now we create the the CocoaGL instance, using our initial frame and the NSOpenGLPixelFormat
     //self = [super initWithFrame:frame pixelFormat:nsglFormat];
     //[nsglFormat release];
 	
 	// If there was an error, we again should probably send an error message to the user
-    //if(!self) { NSLog(@"Self not created... terminating."); return nil; }
+    //if(!self) { CSLog(@"Self not created... terminating."); return nil; }
 	
 	// Now we set this context to the current context (means that its now drawable)
     [[self openGLContext] makeCurrentContext];
 	
-	// Finally, we call the initGL method (no need to make this method too long or complex)
+	// Finally, we call the initGL method (no need to make this method too int32_t or complex)
     [self initGL];
     //glFlush();
 }
 - (void)awakeFromNib
 {
+   
+    if (alreadyInitialised)
+        return;
+    alreadyInitialised = YES;
+    
+    
+    
+    //Check support
+    GLint maxRectTextureSize;
+    GLint myMaxTextureUnits;
+    GLint myMaxTextureSize;
+    const GLubyte * strVersion;
+    const GLubyte * strExt;
+    float myGLVersion;
+    GLboolean isVAO, isTexLOD, isColorTable, isFence, isShade,
+    isTextureRectangle;
+    strVersion = glGetString (GL_VERSION); // 1
+    sscanf((char *)strVersion, "%f", &myGLVersion);
+    strExt = glGetString (GL_EXTENSIONS); // 2
+    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &myMaxTextureUnits); // 3
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &myMaxTextureSize); // 4
+    isVAO =
+    gluCheckExtension ((const GLubyte*)"GL_APPLE_vertex_array_object",strExt); // 5
+    isFence = gluCheckExtension ((const GLubyte*)"GL_APPLE_fence", strExt); // 6
+    isShade =
+    gluCheckExtension ((const GLubyte*)"GL_ARB_shading_language_100", strExt); // 7
+    isColorTable =
+    gluCheckExtension ((const GLubyte*)"GL_SGI_color_table", strExt) ||
+    gluCheckExtension ((const GLubyte*)"GL_ARB_imaging", strExt); // 8
+    isTexLOD =
+    gluCheckExtension ((const GLubyte*)"GL_SGIS_texture_lod", strExt) ||
+    (myGLVersion >= 1.2); // 9
+    isTextureRectangle = gluCheckExtension ((const GLubyte*)
+                                            "GL_EXT_texture_rectangle", strExt);
+    if (isTextureRectangle)
+    glGetIntegerv (GL_MAX_RECTANGLE_TEXTURE_SIZE_EXT, &maxRectTextureSize);
+    else
+    maxRectTextureSize = 0;
+    
+    if (isShade && isVAO)
+        [render_type_new setTitle:@"High"];
+    else
+        [render_type_new setTitle:@"Low"];
+    
+    
+    
+    
+    
+    
+    /*
+    NSNotificationCenter * center = [NSNotificationCenter defaultCenter];
+    [center addObserver:self
+               selector:@selector(outlineViewSelectionDidChange:)
+                   name:@"NSOutlineViewSelectionDidChangeNotification"
+                 object:tag_listing];
+    */
+    
     _mode = newmode;
     [self unpressButtons];
-    [newMode setState:NSOnState];
+    [selection_tool_archon setState:NSOnState];
     
 
     //New popover
@@ -4564,7 +5159,7 @@ int playernumberinitial=0;;
     lastHostLength=0;
     lastHostPacket = malloc(10000);
     message_data=malloc(10000);
-    NSLog(@"Checking mac render view");
+
 #ifndef MACVERSION
     [render_SP setState:0];
     [pixelPaint setState:1];
@@ -4601,7 +5196,7 @@ int playernumberinitial=0;;
 	
 	//[[self window] setFrame:NSMakeRect(0, 0, [[NSScreen mainScreen] frame].size.width, [[NSScreen mainScreen] frame].size.height) display:YES];
 	
-	_fps = 30;
+	_fps = 100;
 	drawTimer = [[NSTimer scheduledTimerWithTimeInterval:(1.0/_fps) target:self selector:@selector(timerTick:) userInfo:nil repeats:YES] retain];
 	
     //NSThread* timerThread = [[NSThread alloc] initWithTarget:self selector:@selector(renderTimer:) object:nil]; //Create a new thread
@@ -4610,6 +5205,7 @@ int playernumberinitial=0;;
 	prefs = [NSUserDefaults standardUserDefaults];
 	[self loadPrefs];
 	
+    NSLog(@"Awake from nib");
 	shouldDraw = NO;
 	
 	_camera = [[Camera alloc] init];
@@ -4617,7 +5213,7 @@ int playernumberinitial=0;;
 	cameraMoveSpeed = 0.5;
 	maxRenderDistance = 3000000.0f;
 	
-	selectDistance = 300.0f;
+	selectDistance = 3000.0f;
 	rendDistance = 3000000.0f;
 	
 	meshColor.blue = 1.0;
@@ -4680,7 +5276,7 @@ int playernumberinitial=0;;
 
 -(IBAction)FocusOnPlayer:(id)sender
 {
-    NSLog(@"Focus on plaer");
+    CSLog(@"Focus on plaer");
 	int i;
 	for (i = 0; i < 16; i++)
 	{
@@ -4714,7 +5310,7 @@ int playernumberinitial=0;;
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
     
-    NSLog(@"Application is terminating why");
+    CSLog(@"Application is terminating why");
     
 		//Save main screen window
 	if ([[[NSUserDefaults standardUserDefaults]objectForKey:@"automatic"] isEqualToString:@"NO"])
@@ -4781,7 +5377,7 @@ int playernumberinitial=0;;
             NSRange r = [path rangeOfString:@"/tmp/Archon/"];
             if (r.location != NSNotFound)
             {
-                NSLog(@"Special drop");
+                CSLog(@"Special drop");
                 
                 //What type of file is it?
                 NSRange scen = [path rangeOfString:@"/tmp/Archon/scen"];
@@ -4815,12 +5411,12 @@ int playernumberinitial=0;;
                     if (scen.location != NSNotFound)
                     {
                         //Create a new scenery at the location. What type?
-                        NSLog(@"NEW SCENERY %@", [[path lastPathComponent] stringByDeletingPathExtension]);
+                        CSLog(@"NEW SCENERY %@", [[path lastPathComponent] stringByDeletingPathExtension]);
                     }
                     else if (vehi.location != NSNotFound)
                     {
                         //Create a new scenery at the location. What type?
-                        NSLog(@"NEW VEHICLE %@", [[path lastPathComponent] stringByDeletingPathExtension]);
+                        CSLog(@"NEW VEHICLE %@", [[path lastPathComponent] stringByDeletingPathExtension]);
                         int newSpawnCount = [_scenario createVehicle:gg];
                         
                         int m;
@@ -4838,7 +5434,7 @@ int playernumberinitial=0;;
                     else if (mach.location != NSNotFound)
                     {
                         //Create a new scenery at the location. What type?
-                        NSLog(@"NEW MACHINE %@", [[path lastPathComponent] stringByDeletingPathExtension]);
+                        CSLog(@"NEW MACHINE %@", [[path lastPathComponent] stringByDeletingPathExtension]);
                     }
                     
                 }
@@ -4857,7 +5453,7 @@ int playernumberinitial=0;;
 //DRAG OPERATIONS. THIS ENABLES SOMEBODY TO SIMPLE DRAG AN IMAGE FROM THE FINDER ONTO OUR DOCUMENT. IT ALSO ALLOWS STAMPS TO WORK :)
 - (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
 {
-    NSLog(@"Drag enter");
+    CSLog(@"Drag enter");
     if ((NSDragOperationGeneric & [sender draggingSourceOperationMask]) == NSDragOperationGeneric)
     {
         //this means that the sender is offering the type of operation we want
@@ -4908,7 +5504,7 @@ int playernumberinitial=0;;
         return;
     needsReshape = NO;
     
-    //NSLog(@"RESHAPING");
+    CSLog(@"RESHAPING");
     
     //[[self window] setFrame:[[self window] frame] display:NO];
     //[self setFrame:[[[self window] contentView] bounds]];
@@ -4927,6 +5523,7 @@ int playernumberinitial=0;;
 					4000000.0f);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+    
 }
 
 - (BOOL)acceptsFirstResponder
@@ -4992,7 +5589,7 @@ int playernumberinitial=0;;
 #endif
     [self rotateFocusedItem:[s_xRotation floatValue] y:[s_yRotation floatValue] z:[s_zRotation floatValue]];
     
-    //NSLog(@"test");
+    //CSLog(@"test");
 }
 
 int wKey = 0;
@@ -5007,14 +5604,14 @@ int spaceKey = 0;
     NSString *characters = [theEvent characters];
     if ([characters length]<=0)
     {
-        //NSLog(@"No characters!");
+        //CSLog(@"No characters!");
     }
     
     int k = [theEvent keyCode];
 
 	unichar character = [characters characterAtIndex:0];
-	//NSLog(@"%x", character);
-    //NSLog(@"DOWN: %d %x", k, character);
+	//CSLog(@"%x", character);
+    //CSLog(@"DOWN: %d %x", k, character);
 	if (character == NSDeleteCharacter || character == NSBackspaceCharacter)
 	{
 		//Delete the current shape.
@@ -5035,13 +5632,13 @@ int spaceKey = 0;
             wKey = k;
 			break;
 		case '1':
-			[self buttonPressed:translateMode];
+			[self buttonPressed:paint_tool_archon];
 			break;
 		case '2':
-			[self buttonPressed:selectMode];
+			[self buttonPressed:selection_tool_archon];
 			break;
 		case '3':
-			[self buttonPressed:dirtMode];
+			[self buttonPressed:structural_tool_archon];
 			break;
 		case '4':
 			[self buttonPressed:grassMode];
@@ -5080,16 +5677,22 @@ int spaceKey = 0;
             break;
         }
 		case ' ':
-			move_keys_down[4].direction = up;
+			move_keys_down[4].direction = drop_down;
 			move_keys_down[4].isDown = YES;
             
             spaceKey = k;
 			break;
-		case 'c':
+		case 'q':
 			move_keys_down[5].direction = down;
 			move_keys_down[5].isDown = YES;
             
             cKey = k;
+			break;
+        case 'e':
+			move_keys_down[6].direction = up;
+			move_keys_down[6].isDown = YES;
+            
+            //cKey = k;
 			break;
 		case 0xF700: // Forward Key
 			if (_mode == rotate_camera)
@@ -5152,7 +5755,7 @@ int spaceKey = 0;
 			}
 			break;
 		case 'l':
-			NSLog(@"Camera z coord: %f", [_camera position][2]);
+			CSLog(@"Camera z coord: %f", [_camera position][2]);
 			break;
 	}
 		
@@ -5180,19 +5783,22 @@ int spaceKey = 0;
 		case ' ':
 			move_keys_down[4].isDown = NO;
 			break;
-		case 'c':
+		case 'q':
 			move_keys_down[5].isDown = NO;
+			break;
+        case 'e':
+			move_keys_down[6].isDown = NO;
 			break;
 	}
 #else
     NSString *characters = [event characters];
     if ([characters length]<=0)
     {
-        //NSLog(@"No characters!");
+        //CSLog(@"No characters!");
     }
     
     int k = [event keyCode];
-    //NSLog(@"UP %d %@", k, characters);
+    //CSLog(@"UP %d %@", k, characters);
     
     
 
@@ -5351,11 +5957,1054 @@ int spaceKey = 0;
 }
 
 
+-(NSMutableDictionary*)extractTag:(int32_t)tagId
+{
+    MapTag *tag = (MapTag *)([_mapfile tagForId:tagId]);
+    
+    //Export the tag data
+    NSMutableDictionary *outputData = [[NSMutableDictionary alloc] init];
+    [outputData setObject:[NSNumber numberWithLong:[tag idOfTag]] forKey:@"ID"];
+    [outputData setObject:[tag tagName] forKey:@"Name"];
+    
+    //Cache (to reduce extract time)
+    NSNumber *tagID = [NSNumber numberWithLong:tagId];
+    if ([cacheTagArray containsObject:tagID])
+        return outputData;
+    [cacheTagArray addObject:tagID];
+    
+    CSLog(@"%.4s %@", [tag tagClassHigh], [tag tagName]);
+    int32_t minTagId = tagFastArray[0];
+    int32_t maxTagId = tagFastArray[tagArraySize-1];
+    
+    void *data = malloc(tag.tagLength);
+    [_mapfile seekToAddress:tag.offsetInMap];
+    [_mapfile read:data size:tag.tagLength];
+    [outputData setObject:[[NSData alloc] initWithBytes:data length:tag.tagLength] forKey:@"Data"];
+    free(data);
+    
+    //Identity data
+    data = malloc(tag.tagLength);
+    [_mapfile seekToAddress:[tag offsetInIndex]-32];
+    [_mapfile read:data size:32];
+    [outputData setObject:[[NSData alloc] initWithBytes:data length:32] forKey:@"Tag data"];
+    free(data);
+
+    char *tempInt = malloc(4);
+    NSMutableDictionary *arrayDictionary = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *reflexiveDictionary = [[NSMutableDictionary alloc] init];
+    
+    int32_t offsetInMap = tag.offsetInMap;
+    int32_t tagLength = tag.tagLength;
+    
+    int i, a;
+    int32_t tempValue;
+    int32_t prevTemp = 0;
+    
+    for (i=0; i < tag.tagLength; i+=4)
+    {
+        int32_t temp_position = tag.offsetInMap+i;
+        int32_t tagOffset = tag.offsetInMap+i;
+        int32_t tagLen = tag.tagLength;
+        
+        [_mapfile seekToAddress:temp_position];
+        [_mapfile read:&tempValue size:4];
+        
+        if (tempValue == 0)
+            continue;
+        
+        BOOL foundOffset = NO;
+        
+        //Is this outside the bounds for tag id's?
+        if (tempValue >= minTagId && tempValue <= maxTagId)
+        {
+            //Is this a tagid?
+            int size = tagArraySize;
+            int search = tagArraySize / 2;
+            
+            while (TRUE)
+            {
+                if (search >= 0 && search < tagArraySize)
+                {
+                    size/=2;
+                    
+                    if (size <= 0)
+                        size = 1;
+                    
+                    int32_t number = tagFastArray[search];
+                    if (tempValue == number)
+                    {
+                        //Dependency or tagid?
+                        [_mapfile seekToAddress:tag.offsetInMap+i-12];
+                        [_mapfile read:tempInt size:4];
+                        
+                        BOOL foundTag = NO;
+                        for (a=0; a < [[_mapfile plugins] count]; a++)
+                        {
+                            const char *pluginValue = [[[_mapfile plugins] objectAtIndex:a] cStringUsingEncoding:NSMacOSRomanStringEncoding];
+                            if (memcmp(tempInt, pluginValue, 4) == 0)
+                            {
+                                foundTag = YES;
+                                break;
+                            }
+                        }
+                        
+                        //What sort of tag did we find?
+                        MapTag *found_tag = [_mapfile tagForId:tempValue];
+                        if (foundTag)
+                        {
+                            //Dependency
+                            CSLog(@"Dependency 0x%lx", temp_position);
+                            foundOffset = YES;
+                            [arrayDictionary setObject:[self extractTag:tempValue] forKey:[NSString stringWithFormat:@"%d", i]];
+                        }
+                        else
+                        {
+                            //Lone ID
+                            CSLog(@"LoneID 0x%lx", temp_position);
+                            foundOffset = YES;
+                            [arrayDictionary setObject:[self extractTag:tempValue] forKey:[NSString stringWithFormat:@"%d", i]];
+                        }
+                        break;
+                    }
+                    else if (tempValue > number) //Jump above
+                    {
+                        search+=size;
+                    }
+                    else //Jump below
+                    {
+                        search-=size;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+        
+        
+        //Check for reflexive
+        if (!foundOffset)
+        {
+            if (tempValue != 0 && tempValue != 0xFFFFFFFF && tempValue != 0xCACACACA)
+            {
+                int32_t pos = tempValue - [_mapfile magic];
+                if (pos >= offsetInMap && pos <= offsetInMap+tagLength && pos > temp_position && tagLength > 0)
+                {
+                    if (i>=4)
+                    {
+                        //Check nonnegative count
+                        int32_t count, zeroes;
+                        count = prevTemp;
+
+                        if (count > 0)
+                        {
+                            //Check for a zero at the end
+                            if (temp_position+4 < offsetInMap+tagLength)
+                            {
+                                [_mapfile seekToAddress:temp_position+4];
+                                [_mapfile readint32_t:&zeroes];
+                                
+                                if (zeroes == 0)
+                                {
+                                    CSLog(@"Found reflexive 0x%lx", temp_position);
+                                    [reflexiveDictionary setObject:[NSNumber numberWithLong:pos-offsetInMap] forKey:[NSString stringWithFormat:@"%ld", temp_position-offsetInMap]];
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+            }
+        }
+        prevTemp = tempValue;
+    }
+    
+    //Extract any model data
+    NSMutableDictionary *modelDictionary = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *indexDictionary = [[NSMutableDictionary alloc] init];
+    
+    int32_t vertexSize = [_mapfile indexHead].vertex_size;
+    int32_t vertexOffset = [_mapfile indexHead].vertex_offset;
+
+    CSLog(@"Comparing bytes %.4s %s %@", [tag tagClassHigh], "2dom", [tag tagName]);
+    if (memcmp([tag tagClassHigh], "2dom", 4) == 0)
+    {
+        CSLog(@"Extracting model data 2");
+        
+        //modelData
+        [_mapfile seekToAddress:[tag offsetInMap]+48+4+4+140+12]; //Check
+        
+        int32_t chunk_count, geometry_offset;
+        [_mapfile readint32_t:&chunk_count]; //Check
+        [_mapfile readint32_t:&geometry_offset]; //Check
+        
+        int32_t geoOffsetResolved = geometry_offset-[_mapfile magic];
+        int a;
+        for (a=0; a < chunk_count; a++)
+        {
+            int32_t parts_count, parts_offset;
+            [_mapfile seekToAddress:(geoOffsetResolved + (a * 48)) +36]; //Checked
+            [_mapfile readint32_t:&parts_count];
+            [_mapfile readint32_t:&parts_offset];
+            [_mapfile seekToAddress:parts_offset-[_mapfile magic]];
+            
+            int x;
+            for (x=0; x < parts_count; x++)
+            {
+                [_mapfile skipBytes:4+2+66]; //Checked
+                
+                int32_t indexPointer_count, indexPointerRaw1, indexPointerRaw2;
+                int32_t vertPointer_count, vertPointerRaw;
+                //int32_t compressedVertPointer_count, compressedVertPointerRaw;
+                
+                [_mapfile readint32_t:&indexPointer_count];
+                
+                int32_t indexLocation = [_mapfile currentOffset]-[tag offsetInMap];
+                [_mapfile readint32_t:&indexPointerRaw1];
+                [_mapfile readint32_t:&indexPointerRaw2];
+                
+                [_mapfile skipBytes:4];
+                
+                [_mapfile readint32_t:&vertPointer_count];
+                [_mapfile skipBytes:8];
+                int32_t vertLocation = [_mapfile currentOffset]-[tag offsetInMap];
+                [_mapfile readint32_t:&vertPointerRaw];
+                [_mapfile skipBytes:16];
+                [_mapfile skipBytes:12];
+                
+                int32_t endOfPart = [_mapfile currentOffset];
+                
+                //Add the vertices to the model dictionary
+                int32_t vSize = 68 * vertPointer_count;
+                [_mapfile seekToAddress:vertPointerRaw+vertexOffset];
+                short *vertex_data = malloc(vSize);
+                [_mapfile read:vertex_data size:vSize];
+                
+                //Add the indices to the model dictionary
+                int32_t iSize = sizeof(short) * (indexPointer_count+2);
+                [_mapfile seekToAddress:vertexOffset+vertexSize+indexPointerRaw1];
+                short *index_data = malloc(iSize);
+                [_mapfile read:index_data size:iSize];
+                
+                NSData *model_nsdata = [NSData dataWithBytes:vertex_data length:vSize];
+                [modelData addObject:model_nsdata];
+                NSData *index_nsdata = [NSData dataWithBytes:index_data length:iSize];
+                [indexData addObject:index_nsdata];
+                
+                CSLog(@"Adding offset %d %0xlx", [modelData count]-1, vertLocation);
+                [modelDictionary setObject:[NSNumber numberWithInt:[modelData count]-1] forKey:[NSString stringWithFormat:@"%ld", vertLocation]];
+                [indexDictionary setObject:[NSNumber numberWithInt:[indexData count]-1] forKey:[NSString stringWithFormat:@"%ld", indexLocation]];
+                
+                [_mapfile seekToAddress:endOfPart];
+            }
+        }
+    }
+    else if (memcmp([tag tagClassHigh], "mtib", 4) == 0)
+    {
+        CSLog(@"Extracting bitmap data");
+        
+        //Extract all of the 'images'
+        [_mapfile seekToAddress:[tag offsetInMap]+0x60];
+        reflexive images = [_mapfile readReflexive];
+        
+        int x;
+        for (x=0; x<images.chunkcount; x++)
+        {
+            long location = images.offset+x*48 + 15;
+            [_mapfile seekToAddress:location];
+            
+            char internalized;
+            [_mapfile readByte:&internalized];
+            
+            if (internalized == 0)
+            {
+                NSLog(@"Internalized bitmap");
+            }
+        }
+        
+        //modelData
+        [_mapfile seekToAddress:[tag offsetInMap]+48+4+4+140+12]; //Check
+    }
+    
+    [outputData setObject:arrayDictionary forKey:@"References"];
+    [outputData setObject:reflexiveDictionary forKey:@"Reflexives"];
+    [outputData setObject:modelDictionary forKey:@"Model"];
+    [outputData setObject:indexDictionary forKey:@"Index"];
+    return outputData;
+    
+    /*
+    void *data = malloc(tag.tagLength);
+    [_mapfile read:data size:tag.tagLength];
+    
+    FILE *outFile = fopen([@"/Users/samuco/Desktop/Archon/tag.archontag" cString],"wb+");
+    fwrite(data,tag.tagLength,1,outFile);
+    fclose(outFile);*/
+    
+    //CSLog(@"%ld %d %s", tag.offsetInMap, tag.tagLength, tag.tagClassHigh);
+}
+
+-(int32_t)tagExists:(int32_t)tag_ident
+{
+    BOOL found = NO;
+    
+    //Check if the tag already exists
+    NSMutableArray *tagArray = [_mapfile tagArray];
+    
+    int a;
+    for (a=0; a < [tagArray count]; a++)
+    {
+        int32_t tempID = [[tagArray objectAtIndex:a] idOfTag];
+        if (tempID == tag_ident)
+        {
+            found = YES;
+            break;
+        }
+    }
+
+    if (found)
+        return a;
+    return -1;
+}
+
+-(int32_t)generateTagId
+{
+    NSMutableArray *tagArray = [_mapfile tagArray];
+    
+    int32_t tagDifference = 65537;
+    if ([tagArray count] > 0)
+    {
+        int32_t largestTagId = [[tagArray objectAtIndex:0] idOfTag];
+        MapTag *biggestTag = [tagArray objectAtIndex:0];
+        int a;
+        for (a=0; a < [tagArray count]; a++)
+        {
+            int32_t tempID = [[tagArray objectAtIndex:a] idOfTag];
+            if (tempID > 0)
+                continue;
+            
+            if (tempID > largestTagId)
+            {
+                biggestTag = [tagArray objectAtIndex:a];
+                largestTagId = tempID;
+            }
+        }
+#ifdef __DEBUG__
+        CSLog(@"BIGGEST TAG %@ 0x%lx", [biggestTag tagName], [biggestTag idOfTag]);
+#endif
+        return largestTagId+tagDifference;
+    }
+    
+    CSLog(@"FAILURE TAG ARRAY COUNT %d", [tagArray count]);
+    return -1;
+}
+/*05:53:15 <Modzy> Don't use reflexive searching code for the BSP, SCNR and animation/coll, actually map out the reflexives and references for updating. Or you'll end up with corrupted bits in some cases.*/
+
+-(int32_t)addArchonTag:(NSDictionary*)tagDictionary
+{
+    NSString *tag_name = [tagDictionary objectForKey:@"Name"];
+    
+  
+    
+    
+    #ifdef __DEBUG__
+    CSLog(@"ADDING ARCHON TAG %@", tag_name);
+#endif
+    
+    int32_t tag_ident = [[tagDictionary objectForKey:@"ID"] longValue];
+    //int32_t foundId = [self tagExists:tag_ident];
+    
+    int32_t newTagid = -1;
+    int32_t mapLength;
+    int32_t endOfFile;
+    
+    if ([[tagDictionary allKeys] containsObject:@"Tag data"])
+    {
+        NSData *tag_data = [tagDictionary objectForKey:@"Tag data"];
+        NSData *data = [tagDictionary objectForKey:@"Data"];
+        
+        if ([data length] <= 0)
+        {
+            #ifdef __DEBUG__
+            CSLog(@"SKIPPING TAG");
+#endif
+            
+            return -1;
+        }
+        
+        
+        //Does this tag already exist?
+        NSArray *tagArray = [_mapfile tagArray];
+        char *tagClassHigh = malloc(4);
+        memcpy(tagClassHigh, [tag_data bytes], 4);
+        
+        int a;
+        for (a=0; a < [tagArray count]; a++)
+        {
+            MapTag *findTag = [tagArray objectAtIndex:a];
+            NSString *tempName = [findTag tagName];
+            if (memcmp(tagClassHigh, [findTag tagClassHigh], 4) == 0 && [tempName isEqualToString:tag_name])
+            {
+                return [findTag idOfTag];
+            }
+        }
+        
+        //tag_name = [tag_name stringByAppendingString:@"\\archoncopy"];
+        
+        NSDictionary *references = [tagDictionary objectForKey:@"References"];
+        NSDictionary *reflexives = [tagDictionary objectForKey:@"Reflexives"];
+        NSArray *offsets = [references allKeys];
+        NSArray *reflex = [reflexives allKeys];
+        
+        newTagid = [self generateTagId];
+#ifdef __DEBUG__
+        CSLog(@"Generated ID: %ld", newTagid);
+#endif
+        
+        
+        
+        const char *string = [tag_name cStringUsingEncoding:NSUTF8StringEncoding];
+        
+        int remainder = strlen(string) % 4;
+        int zeroLength = 4+remainder;
+        void *zerodata = malloc(1);
+        memset(zerodata, 0, zeroLength);
+        
+#ifdef MEMORY_WRITING
+        //Add the new data at the end of the memory
+        int32_t oldMapSize = [_mapfile globalMapSize];
+        
+        [_mapfile setGlobalMapSize:oldMapSize+strlen(string)+zeroLength+[data length]];
+        
+        char *new_memory = malloc([_mapfile globalMapSize]);
+        memcpy(new_memory, [_mapfile globalMemory], oldMapSize);
+        memcpy(&new_memory[oldMapSize], string, strlen(string)); endOfFile=oldMapSize;
+        memcpy(&new_memory[oldMapSize+strlen(string)], zerodata, zeroLength);
+        memcpy(&new_memory[oldMapSize+strlen(string)+zeroLength], [data bytes], [data length]);
+        
+        mapLength = oldMapSize+strlen(string)+zeroLength;
+        
+        free([_mapfile globalMemory]);
+        [_mapfile setGlobalMemory:new_memory];
+#else
+        fseek([_mapfile currentFile], 0, SEEK_END);
+        endOfFile = ftell([_mapfile currentFile]);
+        fseek([_mapfile currentFile], endOfFile, SEEK_SET);
+        fwrite(string, strlen(string), 1, [_mapfile currentFile]);
+        
+       
+        fwrite(zerodata, zeroLength, 1, [_mapfile currentFile]);
+        
+        //Add the tag data to the end of the file. Fix later. (maybe we can copy the map to a temp location on open!)
+        fseek([_mapfile currentFile], 0L, SEEK_END);
+        mapLength = ftell([_mapfile currentFile]);
+        fseek([_mapfile currentFile], mapLength, SEEK_SET);
+        fwrite([data bytes], [data length], 1, [_mapfile currentFile]);
+#endif
+        
+        //Increase metadata size
+        int32_t metaSize;
+        [_mapfile readint32_tAtAddress:&metaSize address:20];
+        
+        metaSize+=[data length];
+        metaSize+=zeroLength;
+        metaSize+=strlen(string);
+        
+        [_mapfile writeint32_tAtAddress:(int32_t*)(&metaSize) address:20];
+    
+        
+        //Increase map size by 8
+        int32_t mapSize;
+        [_mapfile readint32_tAtAddress:&mapSize address:0x8];
+        
+        mapSize+=[data length];
+        mapSize+=zeroLength;
+        mapSize+=strlen(string);
+        
+        [_mapfile writeint32_tAtAddress:(int32_t*)(&mapSize) address:0x8];
+    
+        
+        NSMutableData *dat = [NSMutableData dataWithData:tag_data];
+        int32_t newOffset = mapLength+[_mapfile magic];
+        int32_t newStrOffset = endOfFile+[_mapfile magic];
+        void *bytes = [dat mutableBytes];
+        
+        
+        memcpy(bytes+12, (int32_t*)(&newTagid), 4);
+        memcpy(bytes+16, (int32_t*)(&newStrOffset), 4);
+        memcpy(bytes+20, (int32_t*)(&newOffset), 4);
+
+        //Add the tag to the tagarray
+        MapTag *tag = [[MapTag alloc] initWithData:dat withMapfile:_mapfile];
+        [[_mapfile tagArray] addObject:tag];
+        
+        int tagIndex = [[_mapfile tagArray] indexOfObject:tag];
+        
+        #ifdef __DEBUG__
+        CSLog(@"SETTING TAG %@ %d FOR ID 0x%lx", [[[_mapfile tagArray] objectAtIndex:tagIndex] tagName], tagIndex, newTagid);
+#endif
+        
+        [[_mapfile tagLookupDict] setObject:[NSNumber numberWithInt:tagIndex] forKey:[NSNumber numberWithLong:newTagid]];
+        [tagIdConversion setObject:[NSNumber numberWithLong:newTagid] forKey:[NSNumber numberWithLong:tag_ident]];
+        
+        #ifdef __DEBUG__
+        CSLog(@"Generated ID: 0x%lx", newTagid);
+        CSLog(@"Offset in map: 0x%lx", [tag offsetInMap]);
+#endif
+        
+        //Fix reflexives
+        int i;
+        for (i=0; i < [reflex count]; i++)
+        {
+            NSString *offset = [reflex objectAtIndex:i];
+            NSNumber *reflexive = [reflexives objectForKey:offset];
+            
+            //Check for a zero
+            int32_t zero;
+            [_mapfile seekToAddress:[tag offsetInMap]+[offset intValue]+4];
+            [_mapfile readint32_t:&zero];
+            
+            int32_t newOffsetint32_t = [tag offsetInMap]+[_mapfile magic]+[reflexive intValue];
+            
+#ifdef __DEBUG__
+            CSLog(@"Updating reflexive index %d 0x%lx 0x%lx %d %ld %d", [offset intValue], [tag offsetInMap]+[offset intValue], newOffsetint32_t, [reflexive intValue], zero, [offset intValue]);
+#endif
+            
+            [_mapfile writeint32_tAtAddress:(int32_t*)(&newOffsetint32_t) address:[tag offsetInMap]+[offset intValue]];
+            
+            int32_t readint32_t;
+            [_mapfile readint32_tAtAddress:&readint32_t address:[tag offsetInMap]+[offset intValue]];
+            
+#ifdef __DEBUG__
+            CSLog(@"READ REFLEXIVE 0x%lx", readint32_t);
+#endif
+        }
+        
+       
+        //Fix model offsets
+        //Extract any model data
+        NSMutableDictionary *modelDictionary = [tagDictionary objectForKey:@"Model"];
+        NSMutableDictionary *indexDictionary = [tagDictionary objectForKey:@"Index"];
+        
+#ifdef __DEBUG__
+        CSLog(@"Comparing bytes %.4s %s %@", [tag tagClassHigh], "2dom", [tag tagName]);
+#endif
+        
+        if (memcmp([tag tagClassHigh], "2dom", 4) == 0)
+        {
+#ifdef __DEBUG__
+            CSLog(@"Extracting model data 3");
+#endif
+            
+            NSArray *keys = [modelDictionary allKeys];
+            int a;
+            for (a=0; a < [keys count]; a++)
+            {
+                int offset = [[keys objectAtIndex:a] intValue];
+                int modelDataK = [[modelDictionary objectForKey:[keys objectAtIndex:a]] intValue];
+                
+                [_mapfile seekToAddress: [tag offsetInMap]+offset];
+                
+                int32_t newOffsetint32_t = [[modelData objectAtIndex:modelDataK] longValue];
+                [_mapfile writeint32_t:(int32_t*)(&newOffsetint32_t)];
+                
+            }
+            
+            keys = [indexDictionary allKeys];
+            for (a=0; a < [keys count]; a++)
+            {
+                int offset = [[keys objectAtIndex:a] intValue];
+                int modelDataK = [[indexDictionary objectForKey:[keys objectAtIndex:a]] intValue];
+                
+                
+                int32_t newOffsetint32_t = [[indexData objectAtIndex:modelDataK] longValue];
+                [_mapfile writeint32_tAtAddress:(int32_t*)(&newOffsetint32_t) address:[tag offsetInMap]+offset];
+                [_mapfile writeint32_tAtAddress:(int32_t*)(&newOffsetint32_t) address:[tag offsetInMap]+offset+4];
+                
+            }
+            
+        }
+        
+        //Fix offsets and add more tags
+        for (i=0; i < [offsets count]; i++)
+        {
+            NSString *offset = [offsets objectAtIndex:i];
+            if ([[references allKeys] containsObject:offset])
+            {
+                NSDictionary *tagDict = [references objectForKey:offset];
+                
+                int tagOffset = [offset intValue];
+                int32_t temptag = [[tagDict objectForKey:@"ID"] longValue];
+                
+                if (![[tagDict allKeys] containsObject:@"Tag data"])
+                {
+                    if ([[tagIdConversion allKeys] containsObject:[NSNumber numberWithLong:temptag]])
+                    {
+                        int32_t newTagIdOL = [[tagIdConversion objectForKey:[NSNumber numberWithLong:temptag]] longValue];
+                        MapTag *reftag = [_mapfile tagForId:newTagIdOL];
+                        
+    #ifdef __DEBUG__
+                        CSLog(@"Referencing tag %.4s %@ at location 0x%lx 0x%lx", [reftag tagClassHigh], [reftag tagName], [reftag offsetInMap], mapLength+tagOffset);
+    #endif
+                        
+                        int32_t newOffsetint32_t = [reftag idOfTag];
+                        [_mapfile writeint32_tAtAddress:(int32_t*)(&newOffsetint32_t) address:mapLength+tagOffset];
+                    }
+                    else
+                    {
+    #ifdef __DEBUG__
+                        CSLog(@"Missing tag %@", [tagDict objectForKey:@"Name"]);
+    #endif
+                    }
+                }
+                else
+                {
+                    int32_t newOffsetint32_t = [self addArchonTag:tagDict];
+                    
+    #ifdef __DEBUG__
+                    CSLog(@"Adding tag with ID %@ 0x%lx", [tagDict objectForKey:@"Name"], newOffsetint32_t);
+    #endif
+                    [_mapfile writeint32_tAtAddress:(int32_t*)(&newOffsetint32_t) address:mapLength+tagOffset];
+                }
+            }
+        }
+    
+
+
+    
+    
+        if (memcmp([tag tagClassHigh], "2dom", 4) == 0)
+		{
+            #ifdef __DEBUG__
+            CSLog(@"Found model tag");
+#endif
+            
+#ifdef __DEBUG__
+            CSLog(@"Model tag: %.4s %@ 0x%lx 0x%lx 0x%lx", [tag tagClassHigh], [tag tagName], [tag idOfTag], [tag offsetInMap], [tag offsetInIndex]);
+#endif
+            //[[_mapfile tagArray] removeObject:tag];
+            //[tag release];
+            
+            tag = [[ModelTag alloc] initWithMapFile:_mapfile texManager:_texManager usingData:dat];
+            [[_mapfile tagArray] replaceObjectAtIndex:tagIndex withObject:tag];
+            
+           
+            
+            globalModelIdentifier = [tag idOfTag];
+        }
+        else if (memcmp([tag tagClassHigh], "mtib", 4) == 0)
+		{
+            //[[_mapfile tagArray] removeObject:tag];
+            //[tag release];
+            tag = [[BitmapTag alloc] initWithData:dat withMapfile:_mapfile bitmap:[_mapfile bitmapsFile] ppc:NO];
+            [[_mapfile tagArray] replaceObjectAtIndex:tagIndex withObject:tag];
+            
+            [_texManager addTexture:tag];
+            
+        }
+        
+        [tag setTagLength:[data length]];
+        //int indexInArray = [[_mapfile tagArray] indexOfObject:tag];
+        
+        //CSLog(@"SETTING NEW TAG %@ %d FOR ID 0x%lx", [[[_mapfile tagArray] objectAtIndex:indexInArray] tagName], indexInArray, newTagid);
+        //[[_mapfile tagLookupDict] setObject:[NSNumber numberWithInt:indexInArray] forKey:[NSNumber numberWithLong:newTagid]];
+        
+        
+        
+        #ifdef __DEBUG__
+        CSLog(@"Adding tag at location %.4s %@ 0x%lx 0x%lx", [tag tagClassHigh], tag_name, [tag offsetInMap], [tag idOfTag]);
+        #endif
+        
+        //CSLog(@"TAG ID %ld %ld", [tag idOfTag], newTagid);
+        [tag release];
+    }
+    /*
+    else if (foundId != -1)
+    {
+        MapTag *tag = [[_mapfile tagArray] objectAtIndex:foundId];
+        
+        CSLog(@"Tag already exists? %@ as %@", tag_name, [tag tagName]);
+    }
+    else
+    {
+        CSLog(@"Failed adding tag %@", tag_name);
+    }
+     */
+    
+    return newTagid;
+}
+
+-(void)pasteTag:(id)sender
+{
+    #ifdef __DEBUG__
+    CSLog(@"Paste test");
+#endif
+    
+    if (tagIdConversion)
+        [tagIdConversion release];
+    
+    tagIdConversion = [[NSMutableDictionary alloc] init];
+    
+    //Insert the new model data into the file and record the offsets. Then, update the tag array path
+    NSDictionary *pasteFile = [[NSDictionary alloc] initWithContentsOfFile:@"/tmp/archon_clipboard.atag"];
+    
+    
+    if (!pasteFile)
+        return;
+    
+    //DOES THE TAG ALREADY EXIST?
+    NSArray *tagArray = [_mapfile tagArray];
+    
+    NSData *tag_data = [[pasteFile objectForKey:@"Tag"] objectForKey:@"Tag data"];
+    NSString *tag_name = [[pasteFile objectForKey:@"Tag"] objectForKey:@"Name"];
+    
+    char *tagClassHigh = malloc(4);
+    memcpy(tagClassHigh, [tag_data bytes], 4);
+    
+    int32_t tagIDFound = -1;
+    int a;
+    for (a=0; a < [tagArray count]; a++)
+    {
+        MapTag *findTag = [tagArray objectAtIndex:a];
+        NSString *tempName = [findTag tagName];
+        if (memcmp(tagClassHigh, [findTag tagClassHigh], 4) == 0 && [tempName isEqualToString:tag_name])
+        {
+            tagIDFound = [findTag idOfTag];
+            break;
+        }
+    }
+    
+    
+    
+    
+    //Add the model data to the end of the map
+    /*[saveFile setObject:output forKey:@"Tag"];
+      [saveFile setObject:modelData forKey:@"Model"];
+      [saveFile setObject:indexData forKey:@"Index"];
+      [saveFile setObject:soundData forKey:@"Sound"];
+      [saveFile setObject:bitmapData forKey:@"Bitmap"];*/
+    //[modelData addObject:[NSNumber numberWithLong:mapLength]];
+    
+    
+    
+    
+    
+    
+    //Reopen the mapfile in write mode
+    //fclose([_mapfile currentFile]);
+    //FILE *newMap = fopen([[_mapfile mapLocation] cStringUsingEncoding:NSASCIIStringEncoding],"rwb+");
+    //[_mapfile setFile:newMap];
+	
+    if (tagIDFound == -1)
+    {
+        modelData = [[NSMutableArray alloc] init];
+        indexData = [[NSMutableArray alloc] init];
+        
+        //------------------------------------------------------------------------
+        //Add some new models to the vertex path
+        //------------------------------------------------------------------------
+        NSArray *models = [pasteFile objectForKey:@"Model"];
+        int32_t vertexSize = [_mapfile indexHead].vertex_size;
+        int32_t vertexOffset = [_mapfile indexHead].vertex_offset;
+        int32_t modelSize = [_mapfile indexHead].modelsize;
+        int32_t indexSize = [_mapfile indexHead].indices_object_count;
+        int32_t vertexCount = [_mapfile indexHead].vertex_object_count;
+        int32_t totalinsertlenv = 0;
+        
+        #ifdef __DEBUG__
+        CSLog(@"MAP SIZE COUNTS 0x%lx 0x%lx 0x%lx", vertexOffset, vertexSize, modelSize);
+    #endif
+        
+        int i;
+        for (i=0; i < [models count]; i++)
+        {
+            NSData *data = [models objectAtIndex:i];
+            totalinsertlenv+=[data length];
+        }
+        
+        totalinsertlenv += totalinsertlenv % 4;
+        
+        void *insertionData = malloc(totalinsertlenv);
+        int32_t insertOffset = 0;
+        for (i=0; i < [models count]; i++)
+        {
+            NSData *data = [models objectAtIndex:i];
+            memcpy(insertionData+insertOffset, [data bytes], [data length]);
+            
+            [modelData addObject:[NSNumber numberWithLong:insertOffset]];
+            insertOffset+=[data length];
+        }
+        //Insert the new data into the file
+        #ifdef __DEBUG__
+        CSLog(@"Inserting model data at 0x%lx 0x%lx", totalinsertlenv, vertexOffset);
+    #endif
+        
+        NSArray *indices = [pasteFile objectForKey:@"Index"];
+        int32_t totalinsertlen = 0;
+        
+        for (i=0; i < [indices count]; i++)
+        {
+            NSData *data = [indices objectAtIndex:i];
+            totalinsertlen+=[data length];
+        }
+        
+        
+        vertexSize += totalinsertlenv;
+        modelSize += totalinsertlenv+totalinsertlen;
+        indexSize+= [indices count];
+        vertexCount+= [models count];
+        
+        [_mapfile seekToAddress:[_mapfile mapHeader].offsetToIndex+16];
+        [_mapfile writeint32_t:(int32_t*)(&vertexCount)];
+        
+        [_mapfile seekToAddress:[_mapfile mapHeader].offsetToIndex+24];
+        [_mapfile writeint32_t:(int32_t*)(&indexSize)];
+        
+        [_mapfile seekToAddress:[_mapfile mapHeader].offsetToIndex+28];
+        [_mapfile writeint32_t:(int32_t*)(&vertexSize)];
+        
+        [_mapfile seekToAddress:[_mapfile mapHeader].offsetToIndex+32];
+        [_mapfile writeint32_t:(int32_t*)(&modelSize)];
+        
+        [_mapfile setVertexSize:vertexSize];
+      
+        //Is this one?
+        [_mapfile insertDataInFile:[_mapfile mapLocation] withData:insertionData size:totalinsertlenv address:vertexOffset];
+        
+        
+        
+        
+        //------------------------------------------------------------------------
+        //Add some new models to the vertex path
+        //------------------------------------------------------------------------
+        
+        totalinsertlen += totalinsertlen % 4;
+        
+        void *insertionDataIndex = (short *)malloc(totalinsertlen );
+        insertOffset = 0;
+        for (i=0; i < [indices count]; i++)
+        {
+            NSData *data = [indices objectAtIndex:i];
+            memcpy(insertionDataIndex + insertOffset, [data bytes], [data length]);
+            [indexData addObject:[NSNumber numberWithLong:insertOffset]];
+            insertOffset+=[data length];
+        }
+       
+        /*
+        FILE *test = fopen("/Users/colbrans/testfile", "wb+");
+        //fwrite(insertionData, totalinsertlenv, 1, test);
+        fwrite(insertionDataIndex, totalinsertlen, 1, test);
+        fclose(test);
+        */
+        #ifdef __DEBUG__
+        CSLog(@"Inserting index data at 0x%lx 0x%lx", totalinsertlen, vertexOffset+vertexSize);
+    #endif
+        
+        
+        [_mapfile insertDataInFile:[_mapfile mapLocation] withData:insertionDataIndex size:totalinsertlen address:vertexOffset+vertexSize];
+
+        
+        //fclose([_mapfile currentFile]);
+        //FILE *newMap2 = fopen([[_mapfile mapLocation] cStringUsingEncoding:NSASCIIStringEncoding],"rb+");
+        //[_mapfile setFile:newMap2];
+        
+        
+        /*
+        modelSize += totalinsertlen;
+        [_mapfile seekToAddress:[_mapfile mapHeader].offsetToIndex+32];
+        [_mapfile writeint32_t:(int32_t*)(&modelSize)];
+       */
+        
+        //------------------------------------------------------------------------
+        //Update the tag array
+        //------------------------------------------------------------------------
+        int32_t *indexes = malloc(sizeof(int32_t)*2);
+        int32_t *lengths = malloc(sizeof(int32_t)*2);
+        
+        indexes[0] = vertexOffset;
+        indexes[1] = vertexOffset+vertexSize;
+        
+        lengths[0]=totalinsertlenv;
+        lengths[1]=totalinsertlen;
+        
+        #ifdef __DEBUG__
+        CSLog(@"Rebuilding tag array");
+    #endif
+        
+        [_mapfile rebuildTagArrayToPath:[_mapfile mapName] withDataAtIndexes:indexes lengths:lengths offsets:2  flipped:NO isChangingData:YES];
+        //------------------------------------------------------------------------
+        
+        
+      
+        
+        
+        
+        free(insertionData);
+        free(insertionDataIndex);
+        free(indexes);
+        free(lengths);
+        
+        /*
+        //Flush the map
+        fclose([_mapfile currentFile]);
+        FILE *new = fopen([[_mapfile mapLocation] cStringUsingEncoding:NSASCIIStringEncoding], "rb+");
+        [_mapfile setFile:new];
+        */
+        
+        globalModelIdentifier = -1;
+        int32_t tagId = [self addArchonTag:[pasteFile objectForKey:@"Tag"]];
+        
+        //We need to recreate all of the tags
+        MapTag *tag = [_mapfile tagForId:tagId];
+        if (tag)
+        {
+    #ifdef __DEBUG__
+            CSLog(@"");
+            CSLog(@"Creating object %@ %.4s", [tag tagName], [tag tagClassHigh]);
+    #endif
+            
+            if (memcmp([tag tagClassHigh], "necs", 4) == 0)
+            {
+    #ifdef __DEBUG__
+                CSLog(@"Scenery object. Adding a new palette");
+    #endif
+                
+                TAG_REFERENCE tempTagRef;
+                memcpy(tempTagRef.tag,[tag tagClassHigh],4);
+                tempTagRef.NamePtr = [tag stringOffset];
+                tempTagRef.unknown = 0x00000000;
+                tempTagRef.TagId = [tag idOfTag];
+                
+                
+                CSLog(@"Creating reference");
+                
+                [_scenario createSceneryReference:tempTagRef];
+                
+                CSLog(@"Creating scenery");
+                
+                
+                //Create a new scenery object
+                unsigned int scen_num = [_scenario createSkull:[_camera vView]];
+                
+                [self deselectAllObjects];
+                [self processSelection:(unsigned int)scen_num];
+            
+                unsigned int type, index;
+                int32_t mapIndex;
+                BOOL overrideString;
+                
+                type = (int32_t)(scen_num / MAX_SCENARIO_OBJECTS);
+                index = (scen_num % MAX_SCENARIO_OBJECTS);
+                
+                CSLog(@"Model ident 0x%lx %@", globalModelIdentifier, [[_mapfile tagForId:globalModelIdentifier] tagName]);
+                [_scenario scen_spawns][index].numid = [_scenario scen_ref_count]-1;
+                [_scenario scen_spawns][index].modelIdent = globalModelIdentifier;
+
+                //Load the bitmaps
+                CSLog(@"Loading bitmaps");
+                [(ModelTag *)[_mapfile tagForId:[_scenario scen_spawns][index].modelIdent] loadAllBitmaps];
+            }
+        }
+    }
+    else
+    {
+        NSLog(@"Tag already exists");
+        
+        MapTag *tag = [_mapfile tagForId:tagIDFound];
+        if (tag)
+        {
+            if (memcmp([tag tagClassHigh], "necs", 4) == 0)
+            {
+                //Create a new scenery object
+                unsigned int scen_num = [_scenario createSkull:[_camera vView]];
+                
+                [self deselectAllObjects];
+                [self processSelection:(unsigned int)scen_num];
+                
+                unsigned int type, index;
+                int32_t mapIndex;
+                BOOL overrideString;
+                
+                type = (int32_t)(scen_num / MAX_SCENARIO_OBJECTS);
+                index = (scen_num % MAX_SCENARIO_OBJECTS);
+                
+                CSLog(@"Model ident 0x%lx %@", globalModelIdentifier, [[_mapfile tagForId:globalModelIdentifier] tagName]);
+                [_scenario scen_spawns][index].numid = [_scenario scen_ref_count]-1;
+                [_scenario scen_spawns][index].modelIdent = [_scenario baseModelIdent:[tag idOfTag]];
+
+            }
+        }
+    }
+}
+
+-(void)copy:(id)sender
+{
+    CSLog(@"Copy test");
+    
+    //Recursively copy tags
+    // Now lets apply the transformations.
+    cacheTagArray = [[NSMutableArray alloc] init];
+    
+    NSMutableDictionary *saveFile = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *output = nil;
+    modelData = [[NSMutableArray alloc] init];
+    indexData = [[NSMutableArray alloc] init];
+    soundData = [[NSMutableArray alloc] init];;
+    bitmapData = [[NSMutableArray alloc] init];;
+    
+    unsigned int	i,
+    nameLookup,
+    type,
+    index;
+    if ([selections count] > 0)
+    {
+        nameLookup = [[selections objectAtIndex:0] unsignedIntValue];
+        type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
+        index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
+
+        switch (type)
+        {
+            case s_scenery:
+                output = [self extractTag:[_scenario scen_references][[_scenario scen_spawns][index].numid].scen_ref.TagId];
+                break;
+            case s_vehicle:
+                output = [self extractTag:[_scenario vehi_references][[_scenario vehi_spawns][index].numid].vehi_ref.TagId];
+                break;
+            case s_playerspawn:
+                break;
+            case s_netgame:
+                break;
+            case s_item:
+                break;
+            case s_machine:
+                break;
+        }
+    }
+    
+    
+    if (output)
+    {
+        [saveFile setObject:output forKey:@"Tag"];
+        [saveFile setObject:modelData forKey:@"Model"];
+        [saveFile setObject:indexData forKey:@"Index"];
+        [saveFile setObject:soundData forKey:@"Sound"];
+        [saveFile setObject:bitmapData forKey:@"Bitmap"];
+        
+        CSLog(@"Writing file");
+        [saveFile writeToFile:@"/tmp/archon_clipboard.atag" atomically:YES];
+    }
+    
+}
+
+
+
+
 - (void)mouseDown:(NSEvent *)event
 {
-
+    CSLog(@"Mouse down");
+    
     didMoveObject = NO;
-    //NSLog(@"Mouse down %d %d %d %d", (([event modifierFlags] & NSControlKeyMask)!=0), (([event modifierFlags] & NSCommandKeyMask)!=0), (([event modifierFlags] & NSShiftKeyMask)!=0), (([event modifierFlags] & NSAlternateKeyMask)!=0));
+    //CSLog(@"Mouse down %d %d %d %d", (([event modifierFlags] & NSControlKeyMask)!=0), (([event modifierFlags] & NSCommandKeyMask)!=0), (([event modifierFlags] & NSShiftKeyMask)!=0), (([event modifierFlags] & NSAlternateKeyMask)!=0));
     
     duplicatedAlready = NO;
     
@@ -5460,9 +7109,9 @@ int spaceKey = 0;
             
             NSPoint sp = NSMakePoint(tx, ty);
         
-       /// NSLog(@"Trying selection %f %f %f %f", sp.x, sp.y, w, h);
+       /// CSLog(@"Trying selection %f %f %f %f", sp.x, sp.y, w, h);
             [self trySelection:sp shiftDown:(([event modifierFlags] & NSShiftKeyMask) != 0) width:[NSNumber numberWithFloat:w] height:[NSNumber numberWithFloat:h]];
-       // NSLog(@"Finished trying");
+       // CSLog(@"Finished trying");
         
             [selee close];
 			
@@ -5472,13 +7121,20 @@ int spaceKey = 0;
 	}
     else if (_mode == newmode)
     {
+        
+        CSLog(@"Trying selection");
         [self trySelection:local_point shiftDown:(([event modifierFlags] & NSShiftKeyMask) != 0) width:[NSNumber numberWithFloat:1.0] height:[NSNumber numberWithFloat:1.0]];
+
+        CSLog(@"Updating matricies");
         
         //Fix the matricies
         needsReshape=YES;
+        CSLog(@"Reshaping");
         [self reshape];
         
+        CSLog(@"Looking camera");
         [_camera Look];
+        CSLog(@"Updating camera");
         [_camera Update];
         
         GLdouble x_coordinate;
@@ -5486,7 +7142,7 @@ int spaceKey = 0;
         GLdouble z_coordinate;
         
         BOOL found = NO;
-        
+        CSLog(@"Applying transformation");
         // Now lets apply the transformations.
         unsigned int	i,
         nameLookup,
@@ -5534,41 +7190,49 @@ int spaceKey = 0;
             }
         }
         
-        
+        CSLog(@"Calculating new location");
         if ([selections count] > 0)
         {
+            //Fix up the matricies
+            //needsReshape = YES;
+            //[self reshape];
+            
+            CSLog(@"1");
             //Calculate the new location using mouse location
             double afModelviewMatrix[16];
             double afProjectionMatrix[16];
             glGetDoublev(GL_MODELVIEW_MATRIX, afModelviewMatrix);
             glGetDoublev(GL_PROJECTION_MATRIX, afProjectionMatrix);
-            
+            CSLog(@"2");
             GLint anViewport[4];
             glGetIntegerv(GL_VIEWPORT, anViewport);
-            
+            CSLog(@"3");
             GLdouble winX = 0.0;
             GLdouble winY = 0.0;
             GLdouble winZ = 0.0;
             gluProject(x_coordinate, y_coordinate, z_coordinate, afModelviewMatrix, afProjectionMatrix, anViewport, &winX, &winY, &winZ);
-           
+           CSLog(@"4");
             float fMouseX, fMouseY, fMouseZ;
             fMouseX = local_point.x;
             fMouseY = local_point.y;
             fMouseZ = 0.0f;
-            
+            CSLog(@"5");
+            CSLog(@"Reading pixels");
             glReadPixels(fMouseX, fMouseY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &fMouseZ);
 
             
-            
+            CSLog(@"Updating position");
             initialPosition = NewCVector3(winX-fMouseX,winY-fMouseY,winZ-fMouseZ);
             initialMouse = NewCVector3(local_point.x, local_point.y, 0);
             initialObjectPosition = NewCVector3(x_coordinate, y_coordinate, z_coordinate);
             moveNameLookup = [[NSNumber numberWithUnsignedInteger:nameLookup] retain];
+            CSLog(@"Done!");
         }
         else
         {
             //[self showSelectionController:NO];
         }
+        CSLog(@"Completeted");
     }
     
 		
@@ -5594,7 +7258,7 @@ int spaceKey = 0;
     
     
     
-        NSLog(@"Doubling lightmap");
+        CSLog(@"Doubling lightmap");
         float scalingFactor = 2;
         
         //Ok, we need to encode the new lightmaps
@@ -5683,7 +7347,7 @@ int spaceKey = 0;
 
                 //[selections removeAllObjects];
                 
-                long selection = [_scenario duplicateScenarioObject:type index:index];
+                int32_t selection = [_scenario duplicateScenarioObject:type index:index];
                 
        
                 duplicatedAlready = YES;
@@ -5756,6 +7420,7 @@ int spaceKey = 0;
 	}
     else if (_mode == newmode)
     {
+        CSLog(@"Mouse dragged");
         NSPoint downPoint = [theEvent locationInWindow];
         NSPoint local_point = [self convertPoint:downPoint fromView:[[self window] contentView]];
 
@@ -5773,7 +7438,7 @@ int spaceKey = 0;
                 type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
                 index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
 
-                long selection = [_scenario duplicateScenarioObject:type index:index];
+                int32_t selection = [_scenario duplicateScenarioObject:type index:index];
                 duplicatedAlready = YES;
                 
                 switch (type)
@@ -5851,6 +7516,12 @@ int spaceKey = 0;
                     break;
             }
         }
+        
+        //Fix up the matricies
+        needsReshape = YES;
+        [self reshape];
+        [_camera Update];
+        [_camera Look];
         
         //Calculate the new location using mouse location
         double afModelviewMatrix[16];
@@ -5948,12 +7619,13 @@ int spaceKey = 0;
             
             didMoveObject = YES;
         }
+        CSLog(@"Finish drag");
     }
     else
     {
-        bool PAINT = TRUE;
+        //BOOL PAINT = TRUE;
         
-        if ([dirtMode state]||[grassMode state]||[lightmapMode state]||[eyedropperMode state])
+        if ([paint_tool_archon state])
         {
             
             NSPoint downPoint = [theEvent locationInWindow];
@@ -5984,7 +7656,7 @@ int spaceKey = 0;
                 
                 
                 
-               // NSLog(@"%d %d %d %d", selection, pMesha->DefaultLightmapIndex, pMesha->LightmapIndex, pMesha->DefaultBitmapIndex );
+               // CSLog(@"%d %d %d %d", selection, pMesha->DefaultLightmapIndex, pMesha->LightmapIndex, pMesha->DefaultBitmapIndex );
 
                 
                 //Texture ident
@@ -6006,12 +7678,12 @@ int spaceKey = 0;
                 float x = uva1*vertex1[0] + uva2*vertex2[0] + uva3*vertex3[0];
                 float y = uva1*vertex1[1] + uva2*vertex2[1] + uva3*vertex3[1];
                 
-                //NSLog(@"%f %f | %f %f %f | %f %f %f %f %f %f", x, y, uva1, uva2, uva3, vertex1[0], vertex1[1], vertex2[0], vertex2[1], vertex3[0], vertex3[1]);
+                //CSLog(@"%f %f | %f %f %f | %f %f %f %f %f %f", x, y, uva1, uva2, uva3, vertex1[0], vertex1[1], vertex2[0], vertex2[1], vertex3[0], vertex3[1]);
                 
                 int index = 0;
                 BitmapTag *tmpBitm;
                 
-                if ([lightmapMode state])
+                if ([[[paint_type selectedItem] title] isEqualToString:@"Lightmap"])
                 {
                     index = pMesha->LightmapIndex;
                     
@@ -6057,7 +7729,7 @@ int spaceKey = 0;
                 if ([pixelPaint state])
                     data = [imgRep bitmapData];
                 
-                if (![lightmapMode state])
+                if (![[[paint_type selectedItem] title] isEqualToString:@"Lightmap"])
                 {
                     data = [imgRep bitmapData];
                     
@@ -6095,7 +7767,7 @@ int spaceKey = 0;
                 float xa = size.width*x;
                 float ya =  size.height- size.height*y;
                 
-                if ([eyedropperMode state])
+                if ([[[paint_type selectedItem] title] isEqualToString:@"Eyedropper"])
                 {
                     int xap = size.width*x;
                     int yap =  size.height- size.height*y;
@@ -6110,11 +7782,11 @@ int spaceKey = 0;
                         b = *(pixels + as+2);
                         a = *(pixels + as+3);
                         
-                        //NSLog(@"%d %d %d %d", r, g, b, a);
-                        //NSLog(@"Setting paint colour %f %f %f", r/255.0, g/255.0, b/255.0);
+                        //CSLog(@"%d %d %d %d", r, g, b, a);
+                        //CSLog(@"Setting paint colour %f %f %f", r/255.0, g/255.0, b/255.0);
                         [paintColor setColor:[NSColor colorWithCalibratedRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:1]];
                     }
-                    //NSLog(@"Done!");
+                    //CSLog(@"Done!");
                     //uv's are a percent that map into the texture.
                     /*
                     *(data + as + 0) = 0;
@@ -6146,7 +7818,7 @@ int spaceKey = 0;
                         float xap3 = size.width*vertex3[0];
                         float yap3 =  size.height-size.height*vertex3[1];
                         
-                        if ([lightmapMode state])
+                        if ([[[paint_type selectedItem] title] isEqualToString:@"Lightmap"])
                         {
                             xap1 = size.width*lmvertex1[0];
                             yap1 =  size.height-size.height*lmvertex1[1];
@@ -6172,6 +7844,7 @@ int spaceKey = 0;
                     
                     if (![pixelPaint state])
                     {
+                        CSLog(@"Painting");
                         
                         [[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
                         //Need to do this twice unfortunately.
@@ -6253,7 +7926,7 @@ int spaceKey = 0;
                                     *(data + as + 1) = (char)(int)((*(data + as + 1))*e   + [[paintColor color] greenComponent]*255*ac);
                                     *(data + as + 2) = (char)(int)((*(data + as + 2))*e   + [[paintColor color] blueComponent]*255*ac);
                                     
-                                    if ([grassMode state])
+                                    if ([[[paint_type selectedItem] title] isEqualToString:@"Grass"])
                                         a=*(data + as + 3)*e + 0*ac;
                                     else
                                         a=*(data + as + 3)*e + 255*ac;
@@ -6285,19 +7958,20 @@ int spaceKey = 0;
                         }
                     }
                     
-                    if (![lightmapMode state])
+                    if (![[[paint_type selectedItem] title] isEqualToString:@"Lightmap"])
                     {
                         
                         //Dont need this save?
                         if (![pixelPaint state])
                         {
+                            CSLog(@"Painting pixel lightmap");
                             [NSGraphicsContext saveGraphicsState];
                             [NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithBitmapImageRep:imgRepalpha]];
                             
                             if ([clipPaint state])
                             [path addClip];
                             
-                            if ([grassMode state])
+                            if ([[[paint_type selectedItem] title] isEqualToString:@"Grass"])
                                 [[NSColor colorWithCalibratedHue:0.0 saturation:0.0 brightness:0.0 alpha:[[paintColor color] alphaComponent]] set];
                             else
                                 [[NSColor colorWithCalibratedHue:1.0 saturation:1.0 brightness:1.0 alpha:[[paintColor color] alphaComponent]] set];
@@ -6358,16 +8032,19 @@ int spaceKey = 0;
                     }
                     
                     //Update the bitmap data
-                    if (![lightmapMode state])
+                    if (![[[paint_type selectedItem] title] isEqualToString:@"Lightmap"])
                     {
-                        [_texManager updateBitmapDataWithIdent:pMesha->baseMap data:[imgRep bitmapData] index:index];
+                        //CSLog(@"Updating bitmap %d", index);
+                        //[_texManager updateBitmapDataWithIdent:pMesha->baseMap data:[imgRep bitmapData] index:index];
                     }
                     else
+                    {
+                        
                         [_texManager updateBitmapDataWithIdent:pMesha->LightmapIndex data:[imgRep bitmapData] index:index];
-                    
+                    }
                     [imgRep release];
                     
-                    if (![lightmapMode state])
+                    if (![[[paint_type selectedItem] title] isEqualToString:@"Lightmap"])
                     {
                         [imgRepalpha release];
                     }
@@ -6417,7 +8094,7 @@ int spaceKey = 0;
                 
                 
                 /*
-                NSLog(@"%d %d %f %f", xa, ya, x,y );
+                CSLog(@"%d %d %f %f", xa, ya, x,y );
                 NSImage *renderImage = [[NSImage alloc] initWithSize:NSMakeSize(alpha.pixelsWide, alpha.pixelsHigh)];
                 
                 //Paint in a circle around it
@@ -6532,7 +8209,12 @@ int spaceKey = 0;
 
 - (void)timerTick:(NSTimer *)timer
 {
-
+    if (!_mapfile)
+        return;
+    
+    if (![[self window] isVisible])
+        return;
+    
     uint64_t current = mach_absolute_time();
     
     // In here we handle a few things, mmk?
@@ -6541,10 +8223,10 @@ int spaceKey = 0;
 
     
    
-        USEDEBUG NSLog(@"TICK");
+    USEDEBUG CSLog(@"TICK");
     
 
-    long double value = pow(10,9)*1.0;
+     double value = pow(10,9)*1.0;
     
     
 #ifndef MACVERSION
@@ -6555,10 +8237,10 @@ int spaceKey = 0;
         [tickSlider setDoubleValue:3500000];
 #endif
     
+    if (tickSlider && [tickSlider respondsToSelector:@selector(doubleValue)])
+        value = [tickSlider doubleValue];
     
-    value = [tickSlider doubleValue];
-    
-	long double adjustment = ((current - previous) / value);
+    double adjustment = ((current - previous) / value);
     
     uint64_t elapsed;
     elapsed = current - previous;
@@ -6567,12 +8249,12 @@ int spaceKey = 0;
     
     if (adjustment > 5000)
         adjustment = 0.0;
-	//NSLog(@"%f", adjustment);
+	//CSLog(@"%f", adjustment);
 	int x;
 	BOOL key_is_down = NO;
 	float oldView = _camera.vView[2];
     float oldPosition = _camera.position[2];
-	for (x = 0; x < 6; x++)
+	for (x = 0; x < 7; x++)
 	{
 		if (move_keys_down[x].isDown)
 		{
@@ -6623,6 +8305,10 @@ int spaceKey = 0;
 					[_camera LevitateCamera:(-1 * ([cspeed doubleValue] * adjustment))]; 
 					break;
 				case up:
+                    if (!([first_person_mode state] && isInAir))
+                        [_camera LevitateCamera:(1 * ([cspeed doubleValue] * adjustment))];
+					break;
+                case drop_down:
                 {
                     if (![first_person_mode state])
                     {
@@ -6724,7 +8410,7 @@ int spaceKey = 0;
 			}
 		}
 	}
-   USEDEBUG  NSLog(@"TICK2");
+   USEDEBUG  CSLog(@"TICK2");
     previous = current;
     
     
@@ -6833,7 +8519,7 @@ int spaceKey = 0;
                 initialTime = mach_absolute_time();
                 jumpZ = gg[2];
                 
-                //NSLog(@"%f", (gg[2] - _camera.position[2])/adjustment);
+                //CSLog(@"%f", (gg[2] - _camera.position[2])/adjustment);
                 if (0)//(gg[2] - _camera.position[2])/adjustment > maxWall || (gg2[2] - Gg[2])/adjustment > maxWall)
                 {
                     _camera.position[0]=lastPosition[0];
@@ -6975,7 +8661,7 @@ int spaceKey = 0;
         jumpZ = _camera.position[2];
         initialTime = mach_absolute_time();
     }
-  USEDEBUG NSLog(@"TICK3");
+  USEDEBUG CSLog(@"TICK3");
 	if (key_is_down)
 	{
 		
@@ -7000,7 +8686,7 @@ int spaceKey = 0;
 		acceleration = 0;
 		accelerationCounter = 0;
 	}
-	USEDEBUG NSLog(@"TICK4");
+	USEDEBUG CSLog(@"TICK4");
     if ([render_reshape state])
         [self performSelectorOnMainThread:@selector(reshape) withObject:nil waitUntilDone:YES];
     [self setNeedsDisplay:YES];
@@ -7008,9 +8694,9 @@ int spaceKey = 0;
 	if (shouldDraw)
 	{
 		
-        USEDEBUG NSLog(@"TICK4.5");
+        USEDEBUG CSLog(@"TICK4.5");
 		
-       USEDEBUG  NSLog(@"TICK5");
+       USEDEBUG  CSLog(@"TICK5");
 	}
     else
     {
@@ -7066,15 +8752,74 @@ int spaceKey = 0;
 	return 4;
 }
 
+int renderedFrames = 0;
+
+#include <mach/mach_time.h>
+long timeMillis;
+
+int getUptimeInMilliseconds()
+{
+    const int64_t kOneMillion = 1000 * 1000;
+    static mach_timebase_info_data_t s_timebase_info;
+    
+    if (s_timebase_info.denom == 0) {
+        (void) mach_timebase_info(&s_timebase_info);
+    }
+    
+    // mach_absolute_time() returns billionth of seconds,
+    // so divide by one million to get milliseconds
+    return (int)((mach_absolute_time() * s_timebase_info.numer) / (kOneMillion * s_timebase_info.denom));
+}
+
+
+
+
+
+
+
+
+
+
 
 -(void)drawView
 {
+    [[self openGLContext] makeCurrentContext];
+    
+    
+    if ([[[render_type_new selectedItem] title] isEqualToString:@"Low"])
+    legacyMode = YES;
+    else
+    legacyMode = NO;
+    
+    //reflectionHeight=45.0;
+    //reflectionIsRequired=YES;
+    
+    if ([[self window] isMainWindow] && [NSApp isActive])
+    {
+        if (reflectionIsRequired && [render_bsp state])
+            [self RenderReflection];
+        
+        //[[self openGLContext] flushBuffer];
+        //return;
+        //glFlush();
+        
+
+        needsReshape=YES;
+    }
+    
+    //glFlush();
+    //return;
+    
+    
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
     
     /*
     if ([_scenario scen_ref_count] <=0)
         return;
     
-    long modelIdent = [_scenario baseModelIdent:[_scenario scen_references][0].scen_ref.TagId];
+    int32_t modelIdent = [_scenario baseModelIdent:[_scenario scen_references][0].scen_ref.TagId];
     ModelTag *model = [_mapfile tagForId:modelIdent];
     
     const int width = 512;
@@ -7133,12 +8878,22 @@ int spaceKey = 0;
     
     */
     
-    
-    
-    
+    if ([[self window] isMainWindow] && [NSApp isActive])
+    {
+        if (isUnfocused)
+            needsReshape = YES;
+        
+        [self reshape];
+        
+        isUnfocused = NO;
+    }
+    else
+    {
+        isUnfocused=YES;
+    }
     
     //Moving
-    if (![[self window] isKeyWindow] || ![NSApp isActive])
+    if (![[self window] isMainWindow] || ![NSApp isActive])
     {
         move_keys_down[0].isDown = NO;
         move_keys_down[1].isDown = NO;
@@ -7152,7 +8907,7 @@ int spaceKey = 0;
     {
     
   
-        if (![NSApp isActive])
+        if (![[self window] isMainWindow] || ![NSApp isActive])
         {
             //[[self openGLContext] flushBuffer];
             return;
@@ -7164,18 +8919,20 @@ int spaceKey = 0;
             glClearColor(100/100.0,90/100.0,76/100.0,1.0);          // We'll Clear To The Color Of The Fog ( Modified )
         */
         
+        glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0,0,0,1.0);          // We'll Clear To The Color Of The Fog ( Modified )
         
-       
         [_camera Look];
         [_camera Update];
+        
     }
     
-	//NSLog(@"%f %f %f", [_camera position][0], [_camera position][1], [_camera position][2]);
+	//CSLog(@"%f %f %f", [_camera position][0], [_camera position][1], [_camera position][2]);
 	//[self drawAxes];
 	
+ 
     //shouldDraw = FALSE;
 	if (shouldDraw)
 	{
@@ -7195,8 +8952,8 @@ int spaceKey = 0;
             {
 
                 fogColor[0] = 0.5f;
-                 fogColor[1] = 0.5f;
-                 fogColor[2] = 0.5f;
+                fogColor[1] = 0.5f;
+                fogColor[2] = 0.5f;
   
             }// Fog Color
             
@@ -7260,6 +9017,11 @@ int spaceKey = 0;
         
         if (true)
         {
+            skipTheFog = YES;
+            GLint texLoc = glGetUniformLocation(light_program, "skipFog");
+            glUniform1i(texLoc, 1);
+            
+            
             if ([render_sky state])
             {
             glDisable(GL_DEPTH_TEST);
@@ -7274,11 +9036,13 @@ int spaceKey = 0;
             if (useNewRenderer() >= 2)
                 glDisable(GL_FOG);
             
+            glDisable( GL_ALPHA_TEST ) ;
+                
             SkyBox *skies;
             skies = [_scenario sky];
 
             
-            USEDEBUG NSLog(@"MP8");
+            USEDEBUG CSLog(@"MP8");
             int x; float pos[6];
             for (x = 0; x < [_scenario skybox_count]; x++)
             {
@@ -7294,13 +9058,14 @@ int spaceKey = 0;
                     pos[4]=0;
                     pos[5]=0;
                     
-                    [[_mapfile tagForId:skies[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:NO useAlphas:NO distance:0];
+                    [[_mapfile tagForId:skies[x].modelIdent] disableOcclusion];
+                    [[_mapfile tagForId:skies[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:NO useAlphas:NO withCollision:nil];
                 }
             }
-            USEDEBUG NSLog(@"MP9");
+            USEDEBUG CSLog(@"MP9");
             if (useNewRenderer() >= 2)
                 glEnable(GL_FOG);
-            USEDEBUG NSLog(@"MP10");
+            USEDEBUG CSLog(@"MP10");
             if (TRUE)//useNewRenderer())
             {
                 glDisableClientState(GL_VERTEX_ARRAY);
@@ -7311,8 +9076,14 @@ int spaceKey = 0;
             }
             glEnable(GL_DEPTH_TEST);
             }
+            
+            skipTheFog=NO;
+            glUniform1i(texLoc, 0);
+            
         }
         
+        
+        renderingWater = YES;
 		if (mapBSP)
 		{
             if ([render_bsp state])
@@ -7321,6 +9092,18 @@ int spaceKey = 0;
             }
 		}
 
+        fastRendering = NO;
+#ifdef SHADERS
+        activateNormalProgram();
+
+        GLint texLoc = glGetUniformLocation(normal_program, "baseTexture");
+        glUniform1i(texLoc, 0);
+        
+        texLoc = glGetUniformLocation(normal_program, "detailTexture");
+        glUniform1i(texLoc, 1);
+#endif
+        
+        CopyFramebufferToTexture(frameBuffer_texture);
 		if (_scenario)
 		{
             if ([render_objects state])
@@ -7329,15 +9112,37 @@ int spaceKey = 0;
             }
 			
 		}
+#ifdef SHADERS
+        glUseProgram(0);
+#endif
+        
 
-       
         
 	}
     else
     {
         
     }
+    
+    renderedFrames++;
+    int since = getUptimeInMilliseconds();
+    float timeSinceDisplay = since - timeMillis;
+    if (timeSinceDisplay >= 200)
+    {
+        [fpsText setStringValue:[NSString stringWithFormat:@"%f", renderedFrames/(timeSinceDisplay / 1000.0)]];
 
+        renderedFrames = 0;
+        timeMillis = since;
+        
+        
+    }
+    
+    
+    GLenum error = glGetError();
+    if( error != GL_NO_ERROR )
+    {
+        //NSLog(@"Opengl error %s", gluErrorString( error ));
+    }
     
 	[[self openGLContext] flushBuffer];
     
@@ -7357,8 +9162,6 @@ int spaceKey = 0;
 }
 - (void)loadPrefs
 {
-	NSLog(@"Loading preferences!");
-	
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	_useAlphas = [userDefaults boolForKey:@"_useAlphas"];
 	[useAlphaCheckbox setState:_useAlphas];
@@ -7389,6 +9192,7 @@ int spaceKey = 0;
 }
 - (void)releaseMapObjects
 {
+    NSLog(@"Release map objects");
 	shouldDraw = NO;
 	[[self openGLContext] flushBuffer];
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -7407,10 +9211,20 @@ int spaceKey = 0;
 	
 	_mapfile = [mapfile retain];
 	_scenario = [[mapfile scenario] retain];
+    
+    
+    
+
+    
+    
 	mapBSP = [[mapfile bsp] retain];
 	_texManager = [[mapfile _texManager] retain];
 	if (_mapfile && _scenario && mapBSP)
+    {
+        NSLog(@"Start drawing");
 		shouldDraw = YES;
+    }
+    
 	[bspNumbersButton removeAllItems];
 	for (i = 0; i < [mapBSP NumberOfBsps]; i++)
 		[bspNumbersButton addItemWithTitle:[[NSNumber numberWithInt:i+1] stringValue]];
@@ -7432,7 +9246,7 @@ int spaceKey = 0;
 	
 	if ([[NSFileManager defaultManager] fileExistsAtPath:@"/tmp/starlight.auto"])
 	{
-		NSLog(@"Loading map file");
+		CSLog(@"Loading map file");
 		NSArray *settings = [autoa componentsSeparatedByString:@","];
 		NSString *pat = [settings objectAtIndex:0];
 		if ([[NSFileManager defaultManager] fileExistsAtPath:pat])
@@ -7498,7 +9312,52 @@ int spaceKey = 0;
 	//Look, we have all of the collision data
 	editable = 1;
 	
+    
+    [self performSelectorOnMainThread:@selector(updateTagEditor) withObject:nil waitUntilDone:YES];
+    
 }
+
+-(void)updateTagEditor
+{
+    [list_of_tag_types removeAllObjects];
+    [list_of_tag_subgroups removeAllObjects];
+    
+    char *string = malloc(5);
+    memset(string, 0, 5);
+    
+    NSArray *tags = [_mapfile tagArray];
+    int a;
+    for (a=0; a < [tags count]; a++)
+    {
+        memcpy(string, [[tags objectAtIndex:a] tagClassHigh], 4);
+        NSString *tagClassHigh = [[NSString alloc] initWithCString:string encoding:NSASCIIStringEncoding];
+        NSMutableString *reversedString = [NSMutableString string];
+        NSInteger charIndex = [tagClassHigh length];
+        while (charIndex > 0) {
+            charIndex--;
+            NSRange subStrRange = NSMakeRange(charIndex, 1);
+            [reversedString appendString:[tagClassHigh substringWithRange:subStrRange]];
+        }
+        if (![list_of_tag_types containsObject:reversedString])
+        {
+            [list_of_tag_types addObject:reversedString];
+        }
+        
+        if (![[list_of_tag_subgroups allKeys] containsObject:reversedString])
+        {
+            [list_of_tag_subgroups setObject:[[NSMutableArray alloc] init] forKey:reversedString];
+        }
+        [[list_of_tag_subgroups objectForKey:reversedString] addObject:@[[[tags objectAtIndex:a] tagName], [NSNumber numberWithLong:[[tags objectAtIndex:a] idOfTag]]]];
+    }
+    [list_of_tag_types sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+    [tag_listing reloadData];
+    
+   
+    
+    
+    
+}
+
 - (void)lookAt:(float)x y:(float)y z:(float)z
 {
 	//[_camera PositionCamera:[_camera position][0] positionY:[_camera position][1] positionZ:[_camera position][2] 
@@ -7508,9 +9367,10 @@ int spaceKey = 0;
 - (void)stopDrawing
 {
 	//int i;
+    NSLog(@"STOP DRAWING");
 	shouldDraw = NO;
 	[[self openGLContext] flushBuffer];
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.3f, 0.0f, 0.0f, 0.0f);
 }
 - (void)resetTimerWithClassVariable
 {
@@ -7537,24 +9397,393 @@ int spaceKey = 0;
 *		Begin BSP Rendering 
 *
 */
+-(IBAction)renderAllBSPS:(id)sender
+{
+    isRenderingAllBSPS = YES;
+    [mapBSP loadAllBsps];
+}
+    
+-(void)renderBSP:(int)number
+{
+    glDisable( GL_ALPHA_TEST ) ;
+    reflectionIsRequired = YES;
+    
+    [[mapBSP getBsp:number] setupDrawing];
+    glBindVertexArrayAPPLE([[mapBSP getBsp:number] geometryVAO]);
+    
+    int currentIndex = 0;
+    int currentVertices = 0;
+    
+    NSMutableDictionary *texture_lookup = [_texManager _textureLookupByID];
+    
+    int mesh_count, i;
+    GLuint isLit      = glGetUniformLocation(currentNormalProgram(), "isLit");
+    GLuint isSeconded = glGetUniformLocation(currentNormalProgram(), "isSeconded");
+    
+    SUBMESH_INFO *sub_mesh;
+    mesh_count = [mapBSP GetBspSubmeshCount:number];
+    for (i = 0; i < mesh_count; i++)
+    {
+        sub_mesh = [mapBSP GetBsp:number PCSubmesh:i];
+        
+        int index_count     = (sub_mesh->IndexCount * 3);
+        int vertex_count    =  sub_mesh->VertCount;
+        
+        if (sub_mesh->DefaultBitmapIndex == -1 || sub_mesh->hasShader == 6)
+        {
+            if (sub_mesh->hasShader == 6) //Swat
+            {
+                if (renderingWater)
+                {
+                    reflectionIsRequired = YES;
+                    
+                    glUseProgram(light_program);
+                    GLint texLoc = glGetUniformLocation(light_program, "skipFog");
+                    glUniform1i(texLoc, 0);
+                   
+                    GLuint program_object = light_program;
+                    texLoc = glGetUniformLocation(light_program, "swatShader");
+                    glUniform1i(texLoc, 1);
+                    
+                    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
+                    glDisable(GL_TEXTURE_2D);
+                    glDisable(GL_TEXTURE_3D);
+                    
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    
+                    GLint viewport[4];
+                    glGetIntegerv(GL_VIEWPORT,viewport);
+                    glUniform1f(glGetUniformLocation(program_object, "FrameWidth"), viewport[2]);
+                    glUniform1f(glGetUniformLocation(program_object, "FrameHeight"), viewport[3]);
+                    glUniform1f(glGetUniformLocation(program_object, "textureWidth"), NextHighestPowerOf2(viewport[2]));
+                    glUniform1f(glGetUniformLocation(program_object, "textureHeight"), NextHighestPowerOf2(viewport[3]));
+                    
+                    glUniform3f(glGetUniformLocation(program_object, "LightPos"), 0.0, 0.0, 4.0);
+                    glUniform3f(glGetUniformLocation(program_object, "BaseColor"), 0.4, 0.4, 1.0);
+                    glUniform1f(glGetUniformLocation(program_object, "Depth"), 0.1);
+                    glUniform1f(glGetUniformLocation(program_object, "MixRatio"), 1);
+                    glUniform1i(glGetUniformLocation(program_object, "EnvMap"), 2);
+                    glUniform1i(glGetUniformLocation(program_object, "t0"), 0);
+                    glUniform1i(glGetUniformLocation(program_object, "ignoreEnvMap"), 1);
+                    glUniform1i(glGetUniformLocation(program_object, "RefractionMap"), 1);
+                    
+                    glUniform4f(glGetUniformLocation(program_object, "specular"), 1.0, 1.0, 1.0, 1.0);
+                    glUniform4f(glGetUniformLocation(program_object, "p_Color"), 1.0, 1.0, 1.0,0.8);
+                    glUniform1f(glGetUniformLocation(light_program, "time"), cggurrentTime());
+                    glUniform1i(glGetUniformLocation(program_object, "p_WaterNormalsTexture"), 0);
+                    glUniform1i(glGetUniformLocation(program_object, "p_RefractionMap"), 1);
+                    
+                    reflectionHeight = sub_mesh->pVert[0].vertex_k[2];
+                    
+                    glEnable(GL_BLEND);
+                    glColor4f((CGFloat)(sub_mesh->r), (CGFloat)(sub_mesh->g), (CGFloat)(sub_mesh->b), 0.5f);
+                    
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, water_normal);
+                    
+                    glActiveTexture(GL_TEXTURE1);
+                    glBindTexture(GL_TEXTURE_2D, reflect_texture);
+                    
+                    glColor4f(1.0, 1.0, 1.0, 0.8);
+                    
+                    glEnable(GL_AUTO_NORMAL);
+                    glEnable(GL_NORMALIZE);
+                    
+                    glClientActiveTexture(GL_TEXTURE0);
+         
+                    glUniform1i(glGetUniformLocation(program_object, "ignoreEnvMap"), 0);
+                    glDrawElementsBaseVertex(GL_TRIANGLES,
+                                             index_count,
+                                             GL_UNSIGNED_INT,
+                                             (void*)(currentIndex*sizeof(GLint)),
+                                             0);
+
+                    glUniform1i(texLoc, 0);
+                    activateNormalProgram();
+                    
+                    texLoc = glGetUniformLocation(currentNormalProgram(), "baseTexture");
+                    glUniform1i(texLoc, 0);
+                    
+                    texLoc = glGetUniformLocation(currentNormalProgram(), "detailTexture");
+                    glUniform1i(texLoc, 1);
+                    
+                }
+            }
+            
+            if (NO)//sub_mesh->hasShader == 4) //Scex shaders
+            {
+                activateLightProgram();
+                
+                
+                glDisable(GL_ALPHA_TEST);
+                glEnable(GL_BLEND);
+                
+                glAlphaFunc(GL_GREATER, 0.1);
+                glDepthFunc(GL_LEQUAL);
+                
+                
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+                glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+                glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+                
+                //Render the scex shader
+                activateLightProgram();
+                
+                
+                GLint texLoc = glGetUniformLocation(light_program, "scexShader");
+                glUniform1i(texLoc, 1);
+                
+                glUniform1i(glGetUniformLocation(light_program, "t0"), 0);
+                glUniform1i(glGetUniformLocation(light_program, "t1"), 1);
+                glUniform1i(glGetUniformLocation(light_program, "t2"), 2);
+                glUniform1i(glGetUniformLocation(light_program, "t3"), 3);
+                
+                glUniform1f(glGetUniformLocation(light_program, "time"), cggurrentTime()*1000.0);
+                
+                glUniform1i(glGetUniformLocation(light_program, "t0_available"), 0);
+                glUniform1i(glGetUniformLocation(light_program, "t1_available"), 0);
+                glUniform1i(glGetUniformLocation(light_program, "t2_available"), 0);
+                glUniform1i(glGetUniformLocation(light_program, "t3_available"), 0);
+                
+                
+                if ((sub_mesh->scex_shader->extended_flags & 16) == 16)
+                    return;
+                
+                //Bind all of the textures
+                int g;
+                for (g=0; g<sub_mesh->scex_shader->maps.chunkcount; g++)
+                {
+                    int texIndex = [[[_texManager _textureLookupByID] objectForKey:[NSNumber numberWithLong:sub_mesh->scex_shader->read_maps[g].bitm.TagId]] intValue];
+                    //[_texManager activateTextureOfIdent:pMesh->DefaultLightmapIndex subImage:pMesh->LightmapIndex useAlphas:YES];
+                    
+                    float u = sub_mesh->scex_shader->read_maps[g].uscale;
+                    float v = sub_mesh->scex_shader->read_maps[g].vscale;
+                    
+                    short c       = sub_mesh->scex_shader->read_maps[g].colorFunction;
+                    short a       = sub_mesh->scex_shader->read_maps[g].alphaFunction;
+                    short uf      = sub_mesh->scex_shader->read_maps[g].uFunction;
+                    short vf      = sub_mesh->scex_shader->read_maps[g].vFunction;
+                    
+                    if (g == 0)
+                    {
+                        glActiveTexture(GL_TEXTURE0);
+                        glUniform2f(glGetUniformLocation(light_program, "t0_scale"), u,v);
+                        glUniform4i(glGetUniformLocation(light_program, "t0_option"), c,a,uf,vf);
+                        glUniform1i(glGetUniformLocation(light_program, "t0_available"), 1);
+                    }
+                    else if (g == 1)
+                    {
+                        glActiveTexture(GL_TEXTURE1);
+                        glUniform2f(glGetUniformLocation(light_program, "t1_scale"), u,v);
+                        glUniform4i(glGetUniformLocation(light_program, "t1_option"), c,a,uf,vf);
+                        glUniform1i(glGetUniformLocation(light_program, "t1_available"), 1);
+                    }
+                    else if (g == 2)
+                    {
+                        glActiveTexture(GL_TEXTURE2);
+                        glUniform2f(glGetUniformLocation(light_program, "t2_scale"), u,v);
+                        glUniform4i(glGetUniformLocation(light_program, "t2_option"), c,a,uf,vf);
+                        glUniform1i(glGetUniformLocation(light_program, "t2_available"), 1);
+                    }
+                    else if (g == 3)
+                    {
+                        glActiveTexture(GL_TEXTURE3);
+                        glUniform2f(glGetUniformLocation(light_program, "t3_scale"), u,v);
+                        glUniform4i(glGetUniformLocation(light_program, "t3_option"), c,a,uf,vf);
+                        glUniform1i(glGetUniformLocation(light_program, "t3_available"), 1);
+                    }
+                    else
+                        continue;
+                    
+                    
+                    glEnable(GL_TEXTURE_2D);
+                    glBindTexture(GL_TEXTURE_2D, _texManager._glTextureTable[texIndex][0]);
+                }
+                
+                glClientActiveTexture(GL_TEXTURE0);
+       
+                
+                glDrawElementsBaseVertex(GL_TRIANGLES,
+                                         index_count,
+                                         GL_UNSIGNED_INT,
+                                         (void*)(currentIndex*sizeof(GLint)),
+                                         0);
+
+                
+                texLoc = glGetUniformLocation(light_program, "scexShader");
+                glUniform1i(texLoc, 0);
+                glUseProgram(0);
+
+                
+                activateNormalProgram();
+            }
+            
+            currentVertices += vertex_count;
+            currentIndex    += index_count;
+            
+            continue;
+        }
+        
+        glColor4f(1.0, 1.0, 1.0, 1.0);
+        glDisable(GL_BLEND);
+        int texIndex    = [[[_texManager _textureLookupByID] objectForKey:[NSNumber numberWithLong:(int32_t)sub_mesh->DefaultBitmapIndex]] intValue];
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D,_texManager._glTextureTable[texIndex][0]);
+        
+        
+        if ((int32_t)sub_mesh->primaryMap != -1)
+        {
+            if (!global_detailedStatus)
+            {
+                glUniform1f(global_isDetailed, 1.0);
+                global_detailedStatus = YES;
+            }
+            
+            int detailIndex = [[[_texManager _textureLookupByID] objectForKey:[NSNumber numberWithLong:(int32_t)sub_mesh->primaryMap]] intValue];
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D,_texManager._glTextureTable[detailIndex][0]);
+            
+            glUniform1f(global_detailScale, sub_mesh->primaryMapScale);
+        }
+        else
+        {
+            if (global_detailedStatus)
+            {
+                glUniform1f(global_isDetailed, 0.0);
+                global_detailedStatus = NO;
+            }
+        }
+        
+        if ((int32_t)sub_mesh->secondaryMap != -1)
+        {
+            glUniform1f(isSeconded, 1.0);
+            
+            int detailIndex = [[[_texManager _textureLookupByID] objectForKey:[NSNumber numberWithLong:(int32_t)sub_mesh->secondaryMap]] intValue];
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D,_texManager._glTextureTable[detailIndex][0]);
+            
+            glUniform1f(global_detailScale2, sub_mesh->secondaryMapScale);
+        }
+        else
+        {
+            glUniform1f(isSeconded, 0.0);
+        }
+        
+        
+        if ((int32_t)sub_mesh->DefaultLightmapIndex != -1)
+        {
+            glUniform1f(isLit, 1.0);
+            
+            int detailIndex = [[[_texManager _textureLookupByID] objectForKey:[NSNumber numberWithLong:(int32_t)sub_mesh->DefaultLightmapIndex]] intValue];
+            
+            glActiveTexture(GL_TEXTURE3);
+            glBindTexture(GL_TEXTURE_2D,_texManager._glTextureTable[detailIndex][sub_mesh->LightmapIndex]);
+        }
+        else
+        {
+            glUniform1f(isLit, 0.0);
+        }
+        
+        glDrawElementsBaseVertex(GL_TRIANGLES,
+                                 index_count,
+                                 GL_UNSIGNED_INT,
+                                 (void*)(currentIndex*sizeof(GLint)),
+                                 0);
+        
+        currentVertices += vertex_count;
+        currentIndex    += index_count;
+    }
+    glEnable(GL_BLEND);
+}
+    
 - (void)renderVisibleBSP:(BOOL)selectMode
 {
+    /*
+    glBindVertexArrayAPPLE(0);
+    
+    //Disable states
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    */
+    
 	unsigned int mesh_count;
 	int i;
-	int m;
 	
-    
 	if (shouldDraw)
 	{
+        //Render ALL of the bsps!
+        if (!legacyMode)
+        {
+        activateNormalProgram();
+        
+        GLint texLoc = glGetUniformLocation(currentNormalProgram(), "baseTexture");
+        glUniform1i(texLoc, 0);
+        
+        texLoc = glGetUniformLocation(currentNormalProgram(), "detailTexture");
+        glUniform1i(texLoc, 1);
+        
+        texLoc = glGetUniformLocation(currentNormalProgram(), "detailTexture2");
+        glUniform1i(texLoc, 2);
+        
+        texLoc = glGetUniformLocation(currentNormalProgram(), "lightTexture");
+        glUniform1i(texLoc, 3);
+        
+        GLuint isLit      = glGetUniformLocation(currentNormalProgram(), "isLit");
+        GLuint isSeconded = glGetUniformLocation(currentNormalProgram(), "isSeconded");
+        
+        glActiveTexture(GL_TEXTURE0);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+        glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        
+        if (isRenderingAllBSPS)
+        {
+            texLoc = glGetUniformLocation(currentNormalProgram(), "fogCap");
+            glUniform1f(texLoc, 1.0);
+            
+            int i;
+            for (i=0; i < [mapBSP bspCount]; i++)
+            {
+                [self renderBSP:i];
+            }
+            
+            glUniform1f(texLoc, 0.0);
+        }
+        else
+            [self renderBSP:[mapBSP activeBSP]];
+        
+        glUniform1f(isLit       , 0.0);
+        glUniform1f(isSeconded  , 0.0);
+        
+        glBindVertexArrayAPPLE(0);
+        glUseProgram(0);
+        
+        glBlendFunc(GL_DST_ALPHA,GL_ONE_MINUS_DST_ALPHA);
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        //reflectionIsRequired=YES;
+        
+        
+        glEnable(GL_BLEND);
+        }
+        else
+        {
+  
+        glBindVertexArrayAPPLE(0);
+        glUseProgram(0);
 		mesh_count = [mapBSP GetActiveBspSubmeshCount];
-		
+        
         if ([render_colours state])
         {
             [self resetMeshColors];
 		}
         
-		NSString *points = @"";
-		
 		for (i = 0; i < mesh_count; i++)
 		{
             
@@ -7623,7 +9852,7 @@ int spaceKey = 0;
 			}
 			 
 		}
-		
+		}
 		
 	}
 }
@@ -7701,7 +9930,7 @@ static const GLfloat g_color_buffer_data[] = {
 	int i;
 	
 	pMesh = [mapBSP GetActiveBspPCSubmesh:mesh_index];
-	//NSLog(@"%d %d", indexMesh, indexHighlight);
+	//CSLog(@"%d %d", indexMesh, indexHighlight);
     
     glLineWidth(5.0f);
 	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
@@ -7746,7 +9975,7 @@ static const GLfloat g_color_buffer_data[] = {
 
 -(void)renderSkybox
 {
-    NSLog(@"Rendering skyboxes");
+    CSLog(@"Rendering skyboxes");
     
 	SkyBox *skies;
 	skies = [_scenario sky];
@@ -7762,11 +9991,11 @@ static const GLfloat g_color_buffer_data[] = {
     
     
     
-    [[_mapfile bipd] drawAtPoint:pos lod:_LOD isSelected:YES useAlphas:NO];
+    [[_mapfile bipd] drawAtPoint:pos lod:_LOD isSelected:YES useAlphas:NO withCollision:nil];
     
     BOUNDING_BOX*bb = [[_mapfile bipd] bounding_box];
     if (bb != NULL)
-        NSLog(@"Determining bounding box %f %f %f %f %f %f", bb->min[0], bb->min[1], bb->min[2], bb->max[0], bb->max[1], bb->max[2]);
+        CSLog(@"Determining bounding box %f %f %f %f %f %f", bb->min[0], bb->min[1], bb->min[2], bb->max[0], bb->max[1], bb->max[2]);
 
     
 	//[[_mapfile tagForId:skies[0].modelIdent] drawAtPoint:pos lod:_LOD isSelected:YES useAlphas:_useAlphas];
@@ -7795,15 +10024,216 @@ static const GLfloat g_color_buffer_data[] = {
     alreadyRefreshing = NO;
 }
 
+-(void)RenderReflection
+{
+    if (legacyMode)
+    return;
+    [[self openGLContext] update];
+    
+    float texSize = 256;
+    NSSize sceneBounds = [self bounds].size;
+	glViewport(0,0,sceneBounds.width,sceneBounds.height);
+
+    glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0f,
+                   (sceneBounds.width / sceneBounds.height),
+                   0.1f,
+                   4000000.0f);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+    
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0,0,0,1.0);          // We'll Clear To The Color Of The Fog ( Modified )
+    
+    [_camera Look];
+    [_camera Update];
+    
+    //Calculate the reflection matrix
+    //GLfloat[16] m_reflection;
+    //m_reflection[0]
+    
+    glPushMatrix();
+    glTranslatef(0.0f, 0.0f, 2*reflectionHeight);
+    glScalef(1.0, 1.0, -1.0);
+    
+    //NSLog(@"%f", reflectionHeight);
+    glDisable( GL_ALPHA_TEST ) ;
+    
+    double plane[4] = {0.0, 0.0, 1.0, -reflectionHeight}; //water at y=0
+    glEnable(GL_CLIP_PLANE0);
+    glClipPlane(GL_CLIP_PLANE0, plane);
+    
+    
+    
+    //CopyFramebufferToTexture
+    if (useNewRenderer() >= 2)
+    {
+        GLfloat fogColor[4];     // Fog Color
+        fogColor[0] = 1.0f;
+        fogColor[1] = 1.0f;
+        fogColor[2] = 1.0f;
+        fogColor[3] = 1.0f;
+        
+        if (useNewRenderer() == 3)
+        {
+            
+            fogColor[0] = 0.5f;
+            fogColor[1] = 0.5f;
+            fogColor[2] = 0.5f;
+            
+        }
+        
+        glFogi(GL_FOG_MODE, GL_LINEAR);        // Fog Mode
+        glFogfv(GL_FOG_COLOR, fogColor);            // Set Fog Color
+        glFogf(GL_FOG_DENSITY, 0.5f);              // How Dense Will The Fog Be
+        glHint(GL_FOG_HINT, GL_NICEST);          // Fog Hint Value
+        glFogf(GL_FOG_START, 0.3f);             // Fog Start Depth
+        glFogf(GL_FOG_END, 200.0f);               // Fog End Depth
+    }
+    
+    if (useNewRenderer() >= 2)
+    {
+        glEnable(GL_FOG);
+        glEnable(GL_MULTISAMPLE);
+        glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    }
+    else
+    {
+        glDisable(GL_FOG);
+        
+        if (useNewRenderer() >= 1)
+        {
+            
+            glEnable(GL_MULTISAMPLE);
+            glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+            
+        }
+    }
+
+    skipTheFog = YES;
+    GLint texLoc = glGetUniformLocation(light_program, "skipFog");
+    glUniform1i(texLoc, 1);
+    
+    if ([render_sky state])
+    {
+        glDisable(GL_DEPTH_TEST);
+        if (TRUE)//useNewRenderer())
+        {
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
+        }
+        if (useNewRenderer() >= 2)
+            glDisable(GL_FOG);
+        
+        SkyBox *skies;
+        skies = [_scenario sky];
+        
+        
+        USEDEBUG CSLog(@"MP8");
+        int x; float pos[6];
+        for (x = 0; x < [_scenario skybox_count]; x++)
+        {
+            // Lookup goes hur
+            
+            if ([_mapfile isTag:skies[x].modelIdent])
+            {
+                
+                pos[0]=0;
+                pos[1]=0;
+                pos[2]=0;//-10000;
+                pos[3]=0;
+                pos[4]=0;
+                pos[5]=0;
+                
+                [[_mapfile tagForId:skies[x].modelIdent] disableOcclusion];
+                [[_mapfile tagForId:skies[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:NO useAlphas:NO withCollision:nil];
+            }
+        }
+        USEDEBUG CSLog(@"MP9");
+        if (useNewRenderer() >= 2)
+            glEnable(GL_FOG);
+        USEDEBUG CSLog(@"MP10");
+        if (TRUE)//useNewRenderer())
+        {
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_BLEND);
+        }
+        glEnable(GL_DEPTH_TEST);
+    }
+    
+    skipTheFog=NO;
+    glUniform1i(texLoc, 0);
+    glUseProgram(0);
+    
+    renderingWater = NO;
+    if (mapBSP)
+    {
+        if ([render_bsp state])
+        {
+            [self renderVisibleBSP:FALSE];
+        }
+    }
+
+    fastRendering = YES;
+#ifdef SHADERS
+    activateNormalProgram();
+    
+    texLoc = glGetUniformLocation(normal_program, "baseTexture");
+    glUniform1i(texLoc, 0);
+    
+    texLoc = glGetUniformLocation(normal_program, "detailTexture");
+    glUniform1i(texLoc, 1);
+#endif
+    
+    if (_scenario)
+    {
+        if ([render_objects state])
+        {
+            [self renderAllMapObjects];
+        }
+        
+    }
+#ifdef SHADERS
+    glUseProgram(0);
+#endif
+    
+    glPopMatrix();
+    //[[self openGLContext] flushBuffer];
+    
+    glDisable(GL_CLIP_PLANE0);
+    //glPopMatrix();
+
+    //render reflection to texture
+    glBindTexture(GL_TEXTURE_2D, reflect_texture);
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0,0, NextHighestPowerOf2(sceneBounds.width),NextHighestPowerOf2(sceneBounds.height), 0);
+    
+}
+
+
 - (void)renderBSPAsTexturedAndLightmaps:(int)mesh_index
 {
     
+    glUseProgram(0);
+
 	pMesh = [mapBSP GetActiveBspPCSubmesh:mesh_index];
 	
+    if (!pMesh)
+        return;
     
     if (mesh_index == selectedBSP)
     {
         //Update the texture using the photoshop file
+        if (pMesh->hasShader != 4)
+        {
 #ifdef THREADREFRESH
         
         
@@ -7824,13 +10254,308 @@ static const GLfloat g_color_buffer_data[] = {
             needsPaintRefresh=NO;
         }
 #endif
+        }
         //[_texManager exportTextureOfIdent:pMesh->baseMap subImage:0];
     }
-   
     
-	/*if (pMesh->ShaderIndex == -1)
+    
+    if (pMesh->DefaultBitmapIndex == -1 || pMesh->hasShader == 5 || pMesh->hasShader == 6)
+    {
+        /*
+        if (pMesh->hasShader == 4)
+        {
+            glDisable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+            
+            glAlphaFunc(GL_GREATER, 0.1);
+            glDepthFunc(GL_LEQUAL);
+
+            
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+            glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+            glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+            
+            //Render the scex shader
+            activateLightProgram();
+            
+
+            GLint texLoc = glGetUniformLocation(light_program, "scexShader");
+            glUniform1i(texLoc, 1);
+            
+            glUniform1i(glGetUniformLocation(light_program, "t0"), 0);
+            glUniform1i(glGetUniformLocation(light_program, "t1"), 1);
+            glUniform1i(glGetUniformLocation(light_program, "t2"), 2);
+            glUniform1i(glGetUniformLocation(light_program, "t3"), 3);
+            
+            glUniform1f(glGetUniformLocation(light_program, "time"), cggurrentTime()*1000.0);
+            
+            glUniform1i(glGetUniformLocation(light_program, "t0_available"), 0);
+            glUniform1i(glGetUniformLocation(light_program, "t1_available"), 0);
+            glUniform1i(glGetUniformLocation(light_program, "t2_available"), 0);
+            glUniform1i(glGetUniformLocation(light_program, "t3_available"), 0);
+            
+            
+            if ((pMesh->scex_shader->extended_flags & 16) == 16)
+                return;
+            
+            //Bind all of the textures
+            int g;
+            for (g=0; g<pMesh->scex_shader->maps.chunkcount; g++)
+            {
+                int texIndex = [[[_texManager _textureLookupByID] objectForKey:[NSNumber numberWithLong:pMesh->scex_shader->read_maps[g].bitm.TagId]] intValue];
+                //[_texManager activateTextureOfIdent:pMesh->DefaultLightmapIndex subImage:pMesh->LightmapIndex useAlphas:YES];
+                
+                float u = pMesh->scex_shader->read_maps[g].uscale;
+                float v = pMesh->scex_shader->read_maps[g].vscale;
+                
+                short c       = pMesh->scex_shader->read_maps[g].colorFunction;
+                short a       = pMesh->scex_shader->read_maps[g].alphaFunction;
+                short uf      = pMesh->scex_shader->read_maps[g].uFunction;
+                short vf      = pMesh->scex_shader->read_maps[g].vFunction;
+                
+                if (g == 0)
+                {
+                    glActiveTexture(GL_TEXTURE0);
+                    glUniform2f(glGetUniformLocation(light_program, "t0_scale"), u,v);
+                    glUniform4i(glGetUniformLocation(light_program, "t0_option"), c,a,uf,vf);
+                    glUniform1i(glGetUniformLocation(light_program, "t0_available"), 1);
+                }
+                else if (g == 1)
+                {
+                    glActiveTexture(GL_TEXTURE1);
+                    glUniform2f(glGetUniformLocation(light_program, "t1_scale"), u,v);
+                    glUniform4i(glGetUniformLocation(light_program, "t1_option"), c,a,uf,vf);
+                    glUniform1i(glGetUniformLocation(light_program, "t1_available"), 1);
+                }
+                else if (g == 2)
+                {
+                    glActiveTexture(GL_TEXTURE2);
+                    glUniform2f(glGetUniformLocation(light_program, "t2_scale"), u,v);
+                    glUniform4i(glGetUniformLocation(light_program, "t2_option"), c,a,uf,vf);
+                    glUniform1i(glGetUniformLocation(light_program, "t2_available"), 1);
+                }
+                else if (g == 3)
+                {
+                    glActiveTexture(GL_TEXTURE3);
+                    glUniform2f(glGetUniformLocation(light_program, "t3_scale"), u,v);
+                    glUniform4i(glGetUniformLocation(light_program, "t3_option"), c,a,uf,vf);
+                    glUniform1i(glGetUniformLocation(light_program, "t3_available"), 1);
+                }
+                else
+                    continue;
+                
+                
+                glEnable(GL_TEXTURE_2D);
+                glBindTexture(GL_TEXTURE_2D, _texManager._glTextureTable[texIndex][0]);
+            }
+            
+            glClientActiveTexture(GL_TEXTURE0);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            
+            glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
+            glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
+            
+            glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+            
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            
+            glActiveTexture(GL_TEXTURE0);
+            glDisable(GL_TEXTURE_2D);
+            glActiveTexture(GL_TEXTURE1);
+            glDisable(GL_TEXTURE_2D);
+            glActiveTexture(GL_TEXTURE2);
+            glDisable(GL_TEXTURE_2D);
+            glActiveTexture(GL_TEXTURE3);
+            glDisable(GL_TEXTURE_2D);
+            
+            glDisable(GL_BLEND);
+            
+            texLoc = glGetUniformLocation(light_program, "scexShader");
+            glUniform1i(texLoc, 0);
+            glUseProgram(0);
+            return;
+        }
+        else if (pMesh->hasShader == 5)
+        {
+            GLuint program_object = light_program;
+            activateLightProgram();
+            GLint texLoc = glGetUniformLocation(program_object, "sglaShader");
+            glUniform1i(texLoc, 1);
+            
+            glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_TEXTURE_3D);
+            
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            
+            GLint viewport[4];
+            glGetIntegerv(GL_VIEWPORT,viewport);
+            glUniform1f(glGetUniformLocation(program_object, "FrameWidth"), viewport[2]);
+            glUniform1f(glGetUniformLocation(program_object, "FrameHeight"), viewport[3]);
+            glUniform1f(glGetUniformLocation(program_object, "textureWidth"), NextHighestPowerOf2(viewport[2]));
+            glUniform1f(glGetUniformLocation(program_object, "textureHeight"), NextHighestPowerOf2(viewport[3]));
+            
+            glUniform3f(glGetUniformLocation(program_object, "LightPos"), 0.0, 0.0, 4.0);
+            glUniform3f(glGetUniformLocation(program_object, "BaseColor"), 0.4, 0.4, 1.0);
+            glUniform1f(glGetUniformLocation(program_object, "Depth"), 0.1);
+            glUniform1f(glGetUniformLocation(program_object, "MixRatio"), 1);
+            glUniform1i(glGetUniformLocation(program_object, "EnvMap"), 2);
+            glUniform1i(glGetUniformLocation(program_object, "t0"), 0);
+            glUniform1i(glGetUniformLocation(program_object, "ignoreEnvMap"), 1);
+            glUniform1i(glGetUniformLocation(program_object, "RefractionMap"), 1);
+            
+            CopyFramebufferToTexture(frameBuffer_texture);
+            
+            glActiveTexture(GL_TEXTURE0);
+            [_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:YES];
+            
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, house_texture);
+            
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, frameBuffer_texture);
+            CopyFramebufferToTexture(frameBuffer_texture);
+            
+            glActiveTexture(GL_TEXTURE2);
+            glDisable(GL_TEXTURE_2D);
+            glActiveTexture(GL_TEXTURE3);
+            glDisable(GL_TEXTURE_2D);
+            
+            glActiveTexture(GL_TEXTURE0);
+            glColor4f(1.0, 1.0, 1.0, 0.8);
+         
+         
+            glEnable(GL_AUTO_NORMAL);
+            glEnable(GL_NORMALIZE);
+            
+            glClientActiveTexture(GL_TEXTURE0);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glEnableClientState(GL_NORMAL_ARRAY);
+            
+            
+            glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
+            glNormalPointer(GL_FLOAT, 56, pMesh->pVert[0].normal);
+            glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
+            
+            glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+            
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_NORMAL_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            
+            
+            glPopAttrib();
+            
+            glUniform1i(texLoc, 0);
+            glUniform1i(glGetUniformLocation(program_object, "ignoreEnvMap"), 0);
+            glUseProgram(0);
+            return;
+        }
+        else if (pMesh->hasShader == 6 && renderingWater)
+        {
+            reflectionIsRequired = YES;
+            GLuint program_object = light_program;
+            activateLightProgram();
+            GLint texLoc = glGetUniformLocation(program_object, "swatShader");
+            glUniform1i(texLoc, 1);
+            
+            glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_TEXTURE_3D);
+            
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            
+            GLint viewport[4];
+            glGetIntegerv(GL_VIEWPORT,viewport);
+            glUniform1f(glGetUniformLocation(program_object, "FrameWidth"), viewport[2]);
+            glUniform1f(glGetUniformLocation(program_object, "FrameHeight"), viewport[3]);
+            glUniform1f(glGetUniformLocation(program_object, "textureWidth"), NextHighestPowerOf2(viewport[2]));
+            glUniform1f(glGetUniformLocation(program_object, "textureHeight"), NextHighestPowerOf2(viewport[3]));
+            
+            glUniform3f(glGetUniformLocation(program_object, "LightPos"), 0.0, 0.0, 4.0);
+            glUniform3f(glGetUniformLocation(program_object, "BaseColor"), 0.4, 0.4, 1.0);
+            glUniform1f(glGetUniformLocation(program_object, "Depth"), 0.1);
+            glUniform1f(glGetUniformLocation(program_object, "MixRatio"), 1);
+            glUniform1i(glGetUniformLocation(program_object, "EnvMap"), 2);
+            glUniform1i(glGetUniformLocation(program_object, "t0"), 0);
+            glUniform1i(glGetUniformLocation(program_object, "ignoreEnvMap"), 1);
+            glUniform1i(glGetUniformLocation(program_object, "RefractionMap"), 1);
+            
+            glUniform4f(glGetUniformLocation(program_object, "specular"), 1.0, 1.0, 1.0, 1.0);
+            glUniform4f(glGetUniformLocation(program_object, "p_Color"), 1.0, 1.0, 1.0,0.8);
+            glUniform1f(glGetUniformLocation(light_program, "time"), cggurrentTime());
+            glUniform1i(glGetUniformLocation(program_object, "p_WaterNormalsTexture"), 0);
+            glUniform1i(glGetUniformLocation(program_object, "p_RefractionMap"), 1);
+            
+            //CopyFramebufferToTexture(frameBuffer_texture);
+    
+            reflectionHeight = pMesh->pVert[0].vertex_k[2];
+            
+            glEnable(GL_BLEND);
+            glColor4f((CGFloat)(pMesh->r), (CGFloat)(pMesh->g), (CGFloat)(pMesh->b), 0.5f);
+            
+            
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, water_normal);
+            
+            //glActiveTexture(GL_TEXTURE1);
+            //glBindTexture(GL_TEXTURE_2D, refraction_map);
+            
+            
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, reflect_texture);
+            //CopyFramebufferToTexture(frameBuffer_texture);
+            
+            
+            glActiveTexture(GL_TEXTURE2);
+            glDisable(GL_TEXTURE_2D);
+            glActiveTexture(GL_TEXTURE3);
+            glDisable(GL_TEXTURE_2D);
+            
+            glActiveTexture(GL_TEXTURE0);
+            glColor4f(1.0, 1.0, 1.0, 0.8);
+            
+            
+            glEnable(GL_AUTO_NORMAL);
+            glEnable(GL_NORMALIZE);
+            
+            glClientActiveTexture(GL_TEXTURE0);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glEnableClientState(GL_NORMAL_ARRAY);
+            
+            
+            glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
+            glNormalPointer(GL_FLOAT, 56, pMesh->pVert[0].normal);
+            glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
+            
+            glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+            
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_NORMAL_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            
+            
+            glPopAttrib();
+            
+            glUniform1i(texLoc, 0);
+            glUniform1i(glGetUniformLocation(program_object, "ignoreEnvMap"), 0);
+            glUseProgram(0);
+            return;
+        }*/
+        return;
+    }
+   
+
+	/*if (pMesh->sShaderIndex == -1)
 	{
-        NSLog(@"Missing shader!");
+        CSLog(@"Missing shader!");
 		//glColor3f(0.1f, 0.1f, 0.1f);
         glColor3f(1.0f, 1.0f, 1.0f);
 	}
@@ -7841,13 +10566,13 @@ static const GLfloat g_color_buffer_data[] = {
 		{
 			//glEnable(GL_TEXTURE_2D);
 		}
-        
+    
         if (useNewRenderer() != 2)
         {
             glDisable(GL_ALPHA_TEST);
             glDisable(GL_BLEND);
         }
-        
+    
         if (pMesh->baseMap != -1 && useNewRenderer() >= 1)
         {
            
@@ -7934,7 +10659,9 @@ static const GLfloat g_color_buffer_data[] = {
                 glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
                 glTexCoordPointer(2, GL_FLOAT, 20, pMesh->pLightmapVert[0].uv);
                 
+
                 glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+
                 
                 glDisableClientState(GL_VERTEX_ARRAY);
                 glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -8010,22 +10737,22 @@ if (useNewRenderer() != 1)
     
                     if ([render_meshc state])
                     {
-                                    if (useNewRenderer() == 3)
-                                    {
-                                        if (pMesh->isWaterShader)
-                                        {
-                                            glEnable(GL_BLEND);
-                                            glColor4f(1.0, 0, 0, 0.3f);
-                                        }
-                                        else
-                                        {
-                                            glColor4f(pMesh->r, pMesh->g, pMesh->b, 1.0);
-                                        }
-                                    }
-                                    else
-                                    {
-                                         glColor4f(pMesh->r, pMesh->g, pMesh->b, 1.0f);
-                                    }
+                        if (useNewRenderer() == 3)
+                        {
+                            if (pMesh->isWaterShader)
+                            {
+                                glEnable(GL_BLEND);
+                                glColor4f(1.0, 0, 0, 0.3f);
+                            }
+                            else
+                            {
+                                glColor4f(pMesh->r, pMesh->g, pMesh->b, 1.0);
+                            }
+                        }
+                        else
+                        {
+                             glColor4f(pMesh->r, pMesh->g, pMesh->b, 1.0f);
+                        }
                     }
     
                 //
@@ -8072,10 +10799,10 @@ if (useNewRenderer() != 1)
                         glActiveTextureARB(GL_TEXTURE0_ARB);
                     }
                 
-                
-                    
+    
                     glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
-                    
+
+    
                     if (showDetail)
                     {
                         glActiveTextureARB(GL_TEXTURE1_ARB);
@@ -8177,9 +10904,10 @@ if (useNewRenderer() != 1)
                 
                 
                 
-                
+
                 glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
-                
+  
+                        
                 if (showDetail)
                 {
                     if ([render_scaling state])
@@ -8213,8 +10941,8 @@ if (useNewRenderer() != 1)
                 
                 //No fog ;)
                 
-if (useNewRenderer() == 3 && [render_sun state])
-{
+            if (useNewRenderer() == 3 && [render_sun state])
+            {
                 //Third pass - brighten your day!
                 if (showDetail2 && pMesh->isWaterShader == NO)
                 {
@@ -8247,7 +10975,7 @@ if (useNewRenderer() == 3 && [render_sun state])
             if (![render_SP state])
                 return;
             
-            glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
             
    
             if (useNewRenderer() != 1)
@@ -8264,41 +10992,110 @@ if (useNewRenderer() == 3 && [render_sun state])
             glActiveTextureARB(GL_TEXTURE0_ARB);
             glEnable(GL_TEXTURE_2D);
             
+            
             if (useNewRenderer() >= 2)
                 [_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:YES];
             else
                 [_texManager activateTextureOfIdent:pMesh->DefaultBitmapIndex subImage:0 useAlphas:NO];
             
+            glUseProgram(0);
+            if (pMesh->isWaterShader && !renderingWater)
+                return;
             
-            if (pMesh->isWaterShader)
+            if (pMesh->isWaterShader && renderingWater)
             {
+                
+                
+                
+                //http://glsl.heroku.com/e#12907.0
+                
+                
                 glEnable(GL_BLEND);
                 glColor4f((CGFloat)(pMesh->r), (CGFloat)(pMesh->g), (CGFloat)(pMesh->b), 0.5f);
                 
-                glDisable(GL_FOG);
+               
+                //glDisable(GL_FOG);
+               
+                /*glMatrixMode(GL_TEXTURE);
+                glPushMatrix();
+                glScalef(64.0, 64.0, 0.0);
+                
+                // Bind our normal texture in Texture Unit 1
+                glActiveTextureARB(GL_TEXTURE1_ARB);
+                glBindTexture(GL_TEXTURE_2D, Water_Normal_Texture);
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+                glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+                glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+                
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                glTexEnvf(GL_TEXTURE_ENV, GL_BLEND, GL_MODULATE);
+                
+                GLint i;
+                */
+                /*
+                // Set our "Normal    TextureSampler" sampler to user Texture Unit 0
+                i = glGetUniformLocation(water_program, "bumpMap");
+                glUniform1i(i, 0);
+                
+                //i = glGetUniformLocation(water_program, "WaterLightmap");
+                //glUniform1i(i, 1);
+
+                //i = glGetUniformLocation(water_program, "time");
+                //glUniform1f(i, (getUptimeInMilliseconds()-startTime)/1000.0);
+                
+                i = glGetUniformLocation(water_program, "reflectMap");
+                glUniform1i(i, 0);
+                
+                i = glGetUniformLocation(water_program, "refractBuff");
+                glUniform1i(i, 0);
+                
+                i = glGetUniformLocation(water_program, "skyMap");
+                glUniform1i(i, 0);
+                
+                i = glGetUniformLocation(water_program, "eyePos");
+                glUniform3f(i, [_camera position][0], [_camera position][1], [_camera position][2]);
+                
+                i = glGetUniformLocation(water_program, "baseColor");
+                glUniform4f(i, 0.5,0.5,1.0,1.0);
+                
+                i = glGetUniformLocation(water_program, "ambientColor");
+                glUniform4f(i, 1.0,1.0,1.0,1.0);*/
             }
             
            
+ 
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        
-            glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
-            glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
-            
-            glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
-            
-            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);
-            
+                glVertexPointer(3, GL_FLOAT, 56, pMesh->pVert[0].vertex_k);
+                glTexCoordPointer(2, GL_FLOAT, 56, pMesh->pVert[0].uv);
                 
-            glDisable(GL_TEXTURE_2D);
-            glDisable(GL_BLEND);
+                glDrawElements(GL_TRIANGLES, (pMesh->IndexCount * 3), GL_UNSIGNED_SHORT, pMesh->pIndex);
+                
+                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                glDisableClientState(GL_VERTEX_ARRAY);
+                    
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_BLEND);
             
-            if (pMesh->isWaterShader)
+    
+            
+            if (pMesh->isWaterShader && renderingWater)
             {
+                
+                glMatrixMode(GL_TEXTURE);
+                glPopMatrix();
+                glMatrixMode(GL_MODELVIEW);
+                
+                glActiveTextureARB(GL_TEXTURE1_ARB);
+                glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+                glActiveTextureARB(GL_TEXTURE0_ARB);
+                
                 glDisable(GL_BLEND);
                 glEnable(GL_FOG);
+                
+                glUseProgram(0);
             }
 
         }
@@ -8358,6 +11155,8 @@ if (useNewRenderer() == 3 && [render_sun state])
 		glVertex3f(0.0f, 0.0f, 15.0f);
 		glVertex3f(0.0f, 0.0f, -15.0f);
 	glEnd();*/
+    
+    #ifdef IMMEDIATE_MODE
         glBegin(GL_LINES);
 		// Z
 		glColor3f(0,0,1);
@@ -8382,6 +11181,8 @@ if (useNewRenderer() == 3 && [render_sun state])
 	
 	
   glEnd();
+#endif
+    
 }
 - (void)resetMeshColors
 {
@@ -8424,12 +11225,29 @@ if (useNewRenderer() == 3 && [render_sun state])
 	return (float)sqrt(powf(d[0] - [_camera position][0],2) + powf(d[1] - [_camera position][1], 2) + powf(d[2] - [_camera position][2], 2));
 }
 
+int currentTime = 0, previousTime = 0;
+int frameCount;
+float fpsCount;
+
 - (void)renderAllMapObjects
 {
-	/*double time = mach_absolute_time();
-     NSLog(@"%fd", (mach_absolute_time()-time)/100000000.0);*/
+    glAlphaFunc(GL_GREATER, 0.5);
     
-   USEDEBUG NSLog(@"RENDERING MAP OBJECTS");
+    
+    glUniform1i(glGetUniformLocation(light_program, "scexShader"), 0);
+    glUniform1i(glGetUniformLocation(light_program, "sglaShader"), 0);
+    glUniform1i(glGetUniformLocation(light_program, "swatShader"), 0);
+    glUniform1i(glGetUniformLocation(light_program, "schiShader"), 0);
+
+    
+    glEnable(GL_NORMALIZE);
+    glDisable(GL_CULL_FACE);
+    //glCullFace(GL_FRONT);
+    
+	/*double time = mach_absolute_time();
+     CSLog(@"%fd", (mach_absolute_time()-time)/100000000.0);*/
+    
+   USEDEBUG CSLog(@"RENDERING MAP OBJECTS");
     bool nameBSP = false;
 	
 	int x, i, name = 1;
@@ -8445,19 +11263,48 @@ if (useNewRenderer() == 3 && [render_sun state])
 	player_spawn *spawns;
 	bipd_reference *bipd_refs;
     
+    int render_lod = 4;
+    
 	glInitNames();
 	glPushName(0);
     
-    
+#ifdef SHADERS
+    glUseProgram(0);
+#endif
 	
+    if (fastRendering)
+    {
+        render_lod = 0;
+        _LOD = 0;
+        glDisable( GL_ALPHA_TEST ) ;
+    }
+    else
+    {
+        if (useAlphaTesting) glEnable( GL_ALPHA_TEST ) ;
+        _LOD = 4;
+    }
+    
 	// This one does its own namings
-    USEDEBUG NSLog(@"Render netgames");
-    if ([render_netgame state])
+    USEDEBUG CSLog(@"Render netgames");
+    if (!fastRendering && [render_netgame state])
     {
     if (!nameBSP)
         [self renderNetgameFlags:&name];
     }
-	USEDEBUG NSLog(@"Load others");
+    
+#ifdef SHADERS
+    activateNormalProgram();
+    
+    GLint texLoc = glGetUniformLocation(normal_program, "baseTexture");
+    glUniform1i(texLoc, 0);
+    
+    texLoc = glGetUniformLocation(normal_program, "detailTexture");
+    glUniform1i(texLoc, 1);
+#endif
+
+    
+    
+	USEDEBUG CSLog(@"Load others");
 	bipd_refs = [_scenario bipd_references];
     vehi_refs = [_scenario vehi_references];
 	vehi_spawns = [_scenario vehi_spawns];
@@ -8489,52 +11336,56 @@ if ([paintDebug state])
 	glColor4f(0.0f,0.0f,0.0f,1.0f);
 	
     BOOL ignoreDrawing = FALSE;
-    //rendDistance = 50;
     
-    USEDEBUG NSLog(@"MP0");
+    if (fastRendering)
+        rendDistance = 300.0;
+    else
+        rendDistance = 3000000.0f;
+    
+    USEDEBUG CSLog(@"MP0");
     if (!ignoreDrawing)
     {
-        USEDEBUG NSLog(@"MP0.1");
+        USEDEBUG CSLog(@"MP0.1");
     if (TRUE)//useNewRenderer())
     {
-        USEDEBUG NSLog(@"MP0.2");
+        USEDEBUG CSLog(@"MP0.2");
         glEnableClientState(GL_VERTEX_ARRAY);
-        USEDEBUG NSLog(@"MP0.3");
+        USEDEBUG CSLog(@"MP0.3");
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        USEDEBUG NSLog(@"MP0.4");
+        USEDEBUG CSLog(@"MP0.4");
     }
         
-        if ([render_playerSpawns state])
+        if (!fastRendering && [render_playerSpawns state])
         {
 	for (x = 0; x < [_scenario player_spawn_count]; x++)
 	{
-        USEDEBUG NSLog(@"MP0.5 %d", x );
+        USEDEBUG CSLog(@"MP0.5 %d", x );
         if (!nameBSP)
         {
             // Lookup goes hur
             if (_lookup)
-                _lookup[name] = (long)(s_playerspawn * MAX_SCENARIO_OBJECTS + x);
+                _lookup[name] = (GLuint)(s_playerspawn * MAX_SCENARIO_OBJECTS + x);
             glLoadName(name);
             name++;
         }
-        USEDEBUG NSLog(@"MP0.6 %d", x );
-		if (spawns[x].bsp_index == activeBSPNumber)
-        {
+        USEDEBUG CSLog(@"MP0.6 %d", x );
+		//if (spawns[x].bsp_index == activeBSPNumber)
+        //{
              if (TRUE)//useNewRenderer())
             {
-                if (bipd && [bipd respondsToSelector:@selector(drawAtPoint:lod:isSelected:useAlphas:)])
+                if (bipd && [bipd respondsToSelector:@selector(drawAtPoint:lod:isSelected:useAlphas:withCollision:)])
                 {
                     
-                    USEDEBUG NSLog(@"MP0.7 %d", x );
+                    USEDEBUG CSLog(@"MP0.7 %d", x );
                     int type1 = spawns[x].type1;
           
-                    USEDEBUG NSLog(@"MP0.8 %d", x );
+                    USEDEBUG CSLog(@"MP0.8 %d", x );
                     int showType = [[renderGametype selectedItem] tag];
                     
                     if (showType == -1)
                         continue;
                     
-                    USEDEBUG NSLog(@"MP0.9 %d", x );
+                    USEDEBUG CSLog(@"MP0.9 %d", x );
                     //This visbility is a mess xD
                     BOOL visible = FALSE;
                     if (showType == 12 || showType == 15)
@@ -8566,7 +11417,7 @@ if ([paintDebug state])
                                 visible = TRUE;
                         }
                     }
-                    USEDEBUG NSLog(@"MP1.1 %d", x );
+                    USEDEBUG CSLog(@"MP1.1 %d", x );
                     int team = spawns[x].team_index;
                     if (type1 != 1  && !((type1 == 12 ||type1 == 15)&& showType == 1))
                     {
@@ -8610,24 +11461,24 @@ if ([paintDebug state])
                             }
                     }
                     
-                     USEDEBUG NSLog(@"MP1.2 %d", x );
+                     USEDEBUG CSLog(@"MP1.2 %d", x );
                     
                     
                     if (visible)
                     {
-                         USEDEBUG NSLog(@"MP1.3 %d", x );
+                         USEDEBUG CSLog(@"MP1.3 %d", x );
                         for (i = 0; i < 3; i++)
                             pos[i] = spawns[x].coord[i];
-                         USEDEBUG NSLog(@"MP1.4 %d", x );
+                         USEDEBUG CSLog(@"MP1.4 %d", x );
                         pos[3] = 0;
                         pos[4] = pos[5] = 0.0f;
-                         USEDEBUG NSLog(@"MP1.5 %d", x );
+                         USEDEBUG CSLog(@"MP1.5 %d", x );
                         distanceTo = [self distanceToObject:pos];
-                         USEDEBUG NSLog(@"MP1.6 %d", x );
+                         USEDEBUG CSLog(@"MP1.6 %d", x );
                         if (distanceTo < rendDistance || spawns[x].isSelected)
                         {
-                             USEDEBUG NSLog(@"MP1.7 %d", x );
-                            [bipd drawAtPoint:spawns[x].coord lod:5 isSelected:NO useAlphas:_useAlphas distance:distanceTo];
+                             USEDEBUG CSLog(@"MP1.7 %d", x );
+                            [bipd drawAtPoint:spawns[x].coord lod:4 isSelected:NO useAlphas:_useAlphas withCollision:nil];
                         }
                     }
                 }
@@ -8641,7 +11492,7 @@ if ([paintDebug state])
             {
                 [self renderPlayerSpawn:spawns[x].coord team:spawns[x].team_index isSelected:spawns[x].isSelected];
             }
-        }
+        //}
 	}
     }
     
@@ -8662,9 +11513,9 @@ if ([paintDebug state])
 	{
 		// Lookup goes hur
 		if (_lookup)
-			_lookup[name] = (long)(s_bsppoint * MAX_SCENARIO_OBJECTS + x);
+			_lookup[name] = (int32_t)(s_bsppoint * MAX_SCENARIO_OBJECTS + x);
 		glLoadName(name);
-		name++;
+	
 		[self renderPoint:bsp_points[x].coord isSelected:bsp_points[x].isSelected];
 	}
          */
@@ -8675,15 +11526,15 @@ if ([paintDebug state])
 	{
 		// Lookup goes hur
 		if (_lookup)
-			_lookup[name] = (long)(s_colpoint * MAX_SCENARIO_OBJECTS + x);
+			_lookup[name] = (int32_t)(s_colpoint * MAX_SCENARIO_OBJECTS + x);
 		glLoadName(name);
-		name++;
+
 		
 		pos[0]=[[mapBSP mesh] collision_verticies][x].x;
 		pos[1]=[[mapBSP mesh] collision_verticies][x].y;
 		pos[2]=[[mapBSP mesh] collision_verticies][x].z;
 		
-		//NSLog(@"%f", pos[0]);
+		//CSLog(@"%f", pos[0]);
 	
 		
 		
@@ -8696,8 +11547,8 @@ if ([paintDebug state])
     //END CODE
     //--------------------------------
     
-        USEDEBUG NSLog(@"Encounters");
-        if ([render_Encounters state])
+        USEDEBUG CSLog(@"Encounters");
+        if (NO)//!fastRendering && [render_Encounters state])
         {
     glColor4f(0.0f,0.0f,0.0f,1.0f);
 	for (i=0; i < [_scenario encounter_count]; i++)
@@ -8711,33 +11562,33 @@ if ([paintDebug state])
             {
                 // Lookup goes hur
                 if (_lookup)
-                    _lookup[name] = (long)(s_encounter * MAX_SCENARIO_OBJECTS + i);
+                    _lookup[name] = (GLuint)(s_encounter * MAX_SCENARIO_OBJECTS + i);
                 glLoadName(name);
                 name++;
             }
 			
-			if (encounter_spawns[x].bsp_index == activeBSPNumber)
+			//if (encounter_spawns[x].bsp_index == activeBSPNumber)
 				[self renderPlayerSpawn:encounter_spawns[x].coord team:1 isSelected:encounter_spawns[x].isSelected];
 		}
 	}
         }
 }
-USEDEBUG NSLog(@"MP1");
+USEDEBUG CSLog(@"MP1");
     
     
 if (drawObjects())
 {
-    USEDEBUG NSLog(@"MP2");
+    USEDEBUG CSLog(@"MP2");
     if (TRUE)//useNewRenderer())
     {
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glColor3f(1.0f,1.0f,1.0f);
     }
-    USEDEBUG NSLog(@"MP3");
+    USEDEBUG CSLog(@"MP3");
     glColor4f(1.0f,1.0f,1.0f,1.0f);
     
-    if ([render_itemSpawns state])
+    if (!fastRendering && [render_itemSpawns state])
     {
 	for (x = 0; x < [_scenario item_spawn_count]; x++)
 	{
@@ -8745,7 +11596,7 @@ if (drawObjects())
         if (!nameBSP)
         {
             if (_lookup)
-                _lookup[name] = (long)(s_item * MAX_SCENARIO_OBJECTS + x); 
+                _lookup[name] = (GLuint)(s_item * MAX_SCENARIO_OBJECTS + x);
             glLoadName(name);
             name++;
         }
@@ -8758,36 +11609,39 @@ if (drawObjects())
 			pos[3] = equipSpawns[x].yaw;
 			pos[4] = pos[5] = 0.0f;
 			distanceTo = [self distanceToObject:pos];
+            CollisionTag *coll_tag = [_mapfile tagForId:equipSpawns[x].collisionIdent];
 			if (distanceTo < rendDistance || equipSpawns[x].isSelected)
-				[[_mapfile tagForId:equipSpawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:equipSpawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
+				[[_mapfile tagForId:equipSpawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:equipSpawns[x].isSelected useAlphas:_useAlphas withCollision:coll_tag];
 		}
 	}
     }
-    USEDEBUG NSLog(@"MP4");
+    USEDEBUG CSLog(@"MP4");
 
-    if ([render_machines state])
+    if (!fastRendering &&  [render_machines state])
     {
 	for (x = 0; x < [_scenario mach_spawn_count]; x++)
 	{
         if (!nameBSP)
         {
 		if (_lookup)
-			_lookup[name] = (long)(s_machine * MAX_SCENARIO_OBJECTS + x);
+			_lookup[name] = (GLuint)(s_machine * MAX_SCENARIO_OBJECTS + x);
 		glLoadName(name);
 		name++;
         }
+        
 		if ([_mapfile isTag:[_scenario mach_references][mach_spawns[x].numid].machTag.TagId])
 		{
 			distanceTo = [self distanceToObject:pos];
-			
-			if ((distanceTo < rendDistance || mach_spawns[x].isSelected) && mach_spawns[x].desired_permutation == activeBSPNumber)
-				[[_mapfile tagForId:[_scenario mach_references][mach_spawns[x].numid].modelIdent] drawAtPoint:mach_spawns[x].coord lod:_LOD isSelected:mach_spawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
+			CollisionTag *coll_tag = [_mapfile tagForId:[_scenario mach_references][mach_spawns[x].numid].collisionIdent];
+            
+			if ((distanceTo < rendDistance || mach_spawns[x].isSelected))// && mach_spawns[x].desired_permutation == activeBSPNumber)
+				[[_mapfile tagForId:[_scenario mach_references][mach_spawns[x].numid].modelIdent] drawAtPoint:mach_spawns[x].coord lod:_LOD isSelected:mach_spawns[x].isSelected useAlphas:_useAlphas withCollision:coll_tag];
 		}
 	}
     }
     
-        USEDEBUG NSLog(@"MP5");
-    if ([render_vehicles state])
+        USEDEBUG CSLog(@"MP5");
+    if (!fastRendering && [render_vehicles state])
     {
 	for (x = 0; x < [_scenario vehicle_spawn_count]; x++)
 	{
@@ -8795,7 +11649,7 @@ if (drawObjects())
         {
 		// Lookup goes hur
 		if (_lookup)
-			_lookup[name] = (long)(s_vehicle * MAX_SCENARIO_OBJECTS + x);
+			_lookup[name] = (GLuint)(s_vehicle * MAX_SCENARIO_OBJECTS + x);
 		glLoadName(name);
 		name++;
         }
@@ -8831,51 +11685,61 @@ if (drawObjects())
                     continue;
                 }
             
-			//NSLog(@"%d", (int)vehi_spawns[x].modelIdent);
-			//NSLog(@"Vehi Model Ident: 0x%x", vehi_spawns[x].modelIdent);
+			//CSLog(@"%d", (int)vehi_spawns[x].modelIdent);
+			//CSLog(@"Vehi Model Ident: 0x%x", vehi_spawns[x].modelIdent);
 			for (i = 0; i < 3; i++)
 				pos[i] = vehi_spawns[x].coord[i];
 			for (i = 3; i < 6; i++)
 				pos[i] = vehi_spawns[x].rotation[i - 3];
             
 			distanceTo = [self distanceToObject:pos];
-			if ((distanceTo < rendDistance || vehi_spawns[x].isSelected) && vehi_spawns[x].desired_permutation == activeBSPNumber)
-				[[_mapfile tagForId:vehi_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:vehi_spawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
-                
+            CollisionTag *coll_tag = [_mapfile tagForId:vehi_spawns[x].collisionIdent];
+			if ((distanceTo < rendDistance || vehi_spawns[x].isSelected))// && vehi_spawns[x].desired_permutation == activeBSPNumber)
+				[[_mapfile tagForId:vehi_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:vehi_spawns[x].isSelected useAlphas:_useAlphas withCollision:coll_tag];
+
             }
 		}
 	}
     }
-USEDEBUG NSLog(@"MP6");
+USEDEBUG CSLog(@"MP6");
     
     if ([render_scen state])
     {
-	for (x = 0; x < [_scenario scenery_spawn_count]; x++)
-	{
-        if (!nameBSP)
-        {
-		// Lookup goes hur
-		if (_lookup)
-			_lookup[name] = (long)(s_scenery * MAX_SCENARIO_OBJECTS + x);
-		glLoadName(name);
-        
-		name++;
-        }
-        
-		if ([_mapfile isTag:scen_spawns[x].modelIdent])
-		{
-			for (i = 0; i < 3; i++)
-				pos[i] = scen_spawns[x].coord[i];
-			for (i = 3; i < 6; i++)
-				pos[i] = scen_spawns[x].rotation[i - 3];
-			distanceTo = [self distanceToObject:pos];
 
-			if ((distanceTo < rendDistance || scen_spawns[x].isSelected) && scen_spawns[x].desired_permutation == activeBSPNumber)
-				[[_mapfile tagForId:scen_spawns[x].modelIdent] drawAtPoint:pos lod:_LOD isSelected:scen_spawns[x].isSelected useAlphas:_useAlphas distance:distanceTo];
-		}
-	}
+        glEnable(GL_BLEND);
+        glDepthFunc(GL_LESS);
+        
+        //States
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+
+        
+        for (x = 0; x < [_scenario scenery_spawn_count]; x++)
+        {
+            if (!nameBSP)
+            {
+                if (_lookup)
+                    _lookup[name] = (GLuint)(s_scenery * MAX_SCENARIO_OBJECTS + x);
+                glLoadName(name);
+                name++;
+            }
+            
+            if ([_mapfile isTag:scen_spawns[x].modelIdent])
+            {
+                for (i = 0; i < 3; i++)
+                    pos[i] = scen_spawns[x].coord[i];
+                for (i = 3; i < 6; i++)
+                    pos[i] = scen_spawns[x].rotation[i - 3];
+
+                CollisionTag *coll_tag = [_mapfile tagForId:scen_spawns[x].collisionIdent];
+                ModelTag *tag = [_mapfile tagForId:scen_spawns[x].modelIdent];
+                [tag drawAtPoint:pos lod:_LOD isSelected:scen_spawns[x].isSelected useAlphas:_useAlphas withCollision:coll_tag];
+            }
+        }
+
     }
-USEDEBUG NSLog(@"MP7");
+USEDEBUG CSLog(@"MP7");
     
     
 
@@ -8887,12 +11751,20 @@ USEDEBUG NSLog(@"MP7");
         glDisable(GL_TEXTURE_2D);
         glDisable(GL_BLEND);
     }
-    USEDEBUG NSLog(@"MP11");
+    USEDEBUG CSLog(@"MP11");
 }
 
 
 }
+-(GLuint)normal_program
+{
+    return normal_program;
+}
 
+-(GLuint)light_program
+{
+    return light_program;
+}
 
 - (void)renderObject:(dynamic_object)obj
 {
@@ -8970,6 +11842,8 @@ USEDEBUG NSLog(@"MP7");
 	glRotatef(piradToDeg( playercoords[(player_number * 8) + 6]),0,0,1);
 	
 	float height = 0.6;
+    
+    #ifdef IMMEDIATE_MODE
 	glBegin(GL_QUADS);
 	{
 		glVertex3f(0.2f,0.2f,height);
@@ -9019,6 +11893,8 @@ USEDEBUG NSLog(@"MP7");
 		
 	}
 	glEnd();
+#endif
+    
 	glPopMatrix();
 	glEndList();
 }
@@ -9133,6 +12009,7 @@ USEDEBUG NSLog(@"MP7");
 
 - (void)renderCube:(float *)coord rotation:(float *)rotation color:(float *)color selected:(BOOL)selected
 {
+    #ifdef IMMEDIATE_MODE
 	glPushMatrix();
 	glTranslatef(coord[0], coord[1], coord[2]);
 	glRotatef(piradToDeg( rotation[0]),0,0,1);
@@ -9176,6 +12053,8 @@ USEDEBUG NSLog(@"MP7");
 	}
 	glEnd();
 	glPopMatrix();
+#endif
+    
 }
 
 
@@ -9223,13 +12102,15 @@ USEDEBUG NSLog(@"MP7");
              */
         }
         
-        
+        #ifdef IMMEDIATE_MODE
         GLUquadric *sphere=gluNewQuadric();
         gluQuadricDrawStyle( sphere, GLU_FILL);
         gluQuadricOrientation( sphere, GLU_OUTSIDE);
 
         gluSphere(sphere,[netgamesize floatValue],[spherequality integerValue],[spherequality integerValue]);
         gluDeleteQuadric ( sphere );
+        
+#endif
         glPopMatrix();
         return;
     }
@@ -9391,6 +12272,7 @@ USEDEBUG NSLog(@"MP7");
     if (isSelected)
         glColor3f(0.0f, 1.0f, 0.0f);
     
+    #ifdef IMMEDIATE_MODE
     GLUquadric *sphere=gluNewQuadric();
     gluQuadricDrawStyle( sphere, GLU_FILL);
     gluQuadricNormals( sphere, GLU_SMOOTH);
@@ -9399,7 +12281,9 @@ USEDEBUG NSLog(@"MP7");
     
     gluSphere(sphere,0.01,10,10);
     gluDeleteQuadric ( sphere );
+    #endif
     glPopMatrix();
+
     
     return;
     
@@ -9573,8 +12457,8 @@ USEDEBUG NSLog(@"MP7");
 		glLoadName(*name);
 		// Lookup goes hur
 		if (_lookup)
-			_lookup[*name] = (long)((s_netgame * MAX_SCENARIO_OBJECTS) + i);
-		*name += 1; // For some reason it won't increment when I go *name++;
+			_lookup[*name] = (GLuint)((s_netgame * MAX_SCENARIO_OBJECTS) + i);
+		(*name) += 1; // For some reason it won't increment when I go *name++;
         
         int showType = [[renderGametype selectedItem] tag];
         
@@ -9705,7 +12589,7 @@ USEDEBUG NSLog(@"MP7");
 			case teleporter_entrance:
 				color[0] = 1.0f; color[1] = 1.0f; color[2] = 0.2f;
                 
-                if ([teleporterLines state] && showType != 15)
+                if ([teleporterLines state] && showType != 15 && showType != -1)
                 {
                 BOOL found = false;
                 multiplayer_flags mp_exit;
@@ -9755,15 +12639,18 @@ USEDEBUG NSLog(@"MP7");
                     
                     
                 }
-                }
+                
 				[self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
+                    }
 				break;
 			case teleporter_exit:
 				color[0] = 0.2f; color[1] = 1.0f; color[2] = 1.0f;
                 
                 //mp_flags[i].team_index
-                
+                if ([teleporterLines state] && showType != 15 && showType != -1)
+                {
 				[self renderBox:mp_flags[i].coord rotation:rotation color:color selected:mp_flags[i].isSelected];
+                }
 				break;
 			case hill_flag:
                 if (showType == 4||showType == 12||showType == 13||showType == 14||showType == 15)
@@ -9891,7 +12778,7 @@ USEDEBUG NSLog(@"MP7");
 {
 	activeBSPNumber = [sender indexOfSelectedItem];
 	[mapBSP setActiveBsp:[sender indexOfSelectedItem]];
-	[self recenterCamera:self];
+	//[self recenterCamera:self];
 }
 - (IBAction)sliderChanged:(id)sender
 {
@@ -10131,6 +13018,31 @@ USEDEBUG NSLog(@"MP7");
 
 - (IBAction)buttonPressed:(id)sender
 {
+    if (sender == paint_tool_archon)
+    {
+        _mode = grass;
+		[self unpressButtons];
+		[paint_tool_archon setState:NSOnState];
+        
+        return;
+    }
+    else if (sender == selection_tool_archon)
+    {
+        _mode = newmode;
+		[self unpressButtons];
+		[selection_tool_archon setState:NSOnState];
+        
+        return;
+    }
+    else if (sender == structural_tool_archon)
+    {
+        _mode = structuremode;
+		[self unpressButtons];
+		[structural_tool_archon setState:NSOnState];
+        
+        return;
+    }
+    
 	if (sender == selectMode || sender == m_SelectMode)
 	{
 		_mode = select;
@@ -10318,7 +13230,7 @@ USEDEBUG NSLog(@"MP7");
 				*numid = [sender indexOfSelectedItem];
 				[_scenario scen_spawns][index].modelIdent = [_scenario baseModelIdent:[_scenario scen_references][*numid].scen_ref.TagId];
 				#ifdef __DEBUG__
-				NSLog([[_mapfile tagForId:[_scenario scen_spawns][index].modelIdent] tagName]);
+				CSLog([[_mapfile tagForId:[_scenario scen_spawns][index].modelIdent] tagName]);
 				#endif
 				break;
 			case s_item:
@@ -10326,16 +13238,16 @@ USEDEBUG NSLog(@"MP7");
 				[_scenario item_spawns][index].modelIdent = [_scenario itmcModelForId:[_scenario item_spawns][index].itmc.TagId];
 				break;
 			case s_machine:
-               // NSLog(@"%d", [sender indexOfSelectedItem]);
+               // CSLog(@"%d", [sender indexOfSelectedItem]);
 				[_scenario mach_spawns][index].numid = [sender indexOfSelectedItem];
 				break;
 			case s_vehicle:
-				NSLog(@"Change vehicle ref");
+				CSLog(@"Change vehicle ref");
 				numid = [_scenario vehi_spawns][index].numid;
 				
 				//Switch the types of vehicles
-				//long original_mt = [_scenario vehi_references][*numid].vehi_ref.TagId;
-				//long new_mt = [_scenario vehi_references][[sender indexOfSelectedItem]].vehi_ref.TagId;
+				//int32_t original_mt = [_scenario vehi_references][*numid].vehi_ref.TagId;
+				//int32_t new_mt = [_scenario vehi_references][[sender indexOfSelectedItem]].vehi_ref.TagId;
 				
 				//[_scenario vehi_references][*numid].vehi_ref.TagId = new_mt;
 				//[_scenario vehi_references][[sender indexOfSelectedItem]].vehi_ref.TagId = original_mt;
@@ -10366,6 +13278,12 @@ USEDEBUG NSLog(@"MP7");
 
 
 	}
+    
+    
+    //FORCE NEWMODE
+    _mode = newmode;
+    [self unpressButtons];
+    [newMode setState:NSOnState];
     
     //[self loadPrefs];
 }
@@ -10455,7 +13373,7 @@ USEDEBUG NSLog(@"MP7");
 - (IBAction)killKeys:(id)sender
 {
 	int i;
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < 7; i++)
 		move_keys_down[i].isDown = NO;
 }
 
@@ -10521,6 +13439,10 @@ USEDEBUG NSLog(@"MP7");
     [eyedropperMode setState:NSOffState];
     [lightmapMode setState:NSOffState];
     [newMode setState:NSOffState];
+    
+    [structural_tool_archon setState:NSOffState];
+    [selection_tool_archon setState:NSOffState];
+    [paint_tool_archon setState:NSOffState];
 }
 - (void)updateSpawnEditorInterface
 {
@@ -11114,9 +14036,9 @@ BOOL isPainting;
         }
         lastExtreme = Magnitude(l) + 10;
     
-   // NSLog(@"%f", Magnitude(l));
-     //NSLog(@"%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", afProjectionMatrix[0],afProjectionMatrix[1],afProjectionMatrix[2],afProjectionMatrix[3],afProjectionMatrix[4],afProjectionMatrix[5],afProjectionMatrix[6],afProjectionMatrix[7],afProjectionMatrix[8],afProjectionMatrix[9],afProjectionMatrix[10],afProjectionMatrix[11],afProjectionMatrix[12],afProjectionMatrix[13],afProjectionMatrix[14],afProjectionMatrix[15],afProjectionMatrix[16]);
-    //NSLog(@"%f", Magnitude(l));
+   // CSLog(@"%f", Magnitude(l));
+     //CSLog(@"%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", afProjectionMatrix[0],afProjectionMatrix[1],afProjectionMatrix[2],afProjectionMatrix[3],afProjectionMatrix[4],afProjectionMatrix[5],afProjectionMatrix[6],afProjectionMatrix[7],afProjectionMatrix[8],afProjectionMatrix[9],afProjectionMatrix[10],afProjectionMatrix[11],afProjectionMatrix[12],afProjectionMatrix[13],afProjectionMatrix[14],afProjectionMatrix[15],afProjectionMatrix[16]);
+    //CSLog(@"%f", Magnitude(l));
     
     
     
@@ -11187,7 +14109,7 @@ BOOL isPainting;
                 
                 if (pt1[0] == pt2[0] || pt1[1] == pt2[1])
                 {
-                   // NSLog(@"Continuing");
+                   // CSLog(@"Continuing");
                    // continue;
                 }
                 
@@ -11212,7 +14134,7 @@ BOOL isPainting;
                     float delta = (pt_int->x - vPosition.x)/(l.x/Magnitude(l));
                     
                     
-                    //NSLog(@"%f",  delta);
+                    //CSLog(@"%f",  delta);
                     
                    
                     if (delta < 0)
@@ -11291,7 +14213,7 @@ BOOL isPainting;
         {
           
             isPainting= NO;
-            //NSLog(@"%f %f %f", p.x, p.y, p.z);
+            //CSLog(@"%f %f %f", p.x, p.y, p.z);
             return selectedBSP;
         }
 
@@ -11304,6 +14226,18 @@ BOOL isPainting;
     return -1;
     
     
+}
+
+-(IBAction)toggleCollisionModels:(id)sender;
+{
+    if (renderCollisionModels)
+    {
+        renderCollisionModels = NO;
+    }
+    else
+    {
+        renderCollisionModels = YES;
+    }
 }
 
 - (void)trySelection:(NSPoint)downPoint shiftDown:(BOOL)shiftDown width:(NSNumber*)aw height:(NSNumber*)ah
@@ -11325,38 +14259,57 @@ BOOL isPainting;
 	//downPoint.x -= 25.0f;
 	//downPoint.y -= 71.0f;
 	
-	GLsizei bufferSize = (GLsizei) ([_scenario vehicle_spawn_count] + 
-									[_scenario scenery_spawn_count] + 
-									[_scenario item_spawn_count] + 
-									[_scenario multiplayer_flags_count] +
-									[_scenario player_spawn_count] +
-									[_scenario mach_spawn_count]+
-									[_scenario encounter_count]);
     
-    GLdouble some_non_genericvaluew = [aw floatValue];
-    GLdouble some_non_genericvalueh = [ah floatValue];
+    
+    //How many encounters are there REALLY?
+    long encounterCount = 0;
+    int i;
+    for (i=0; i < [_scenario encounter_count]; i++)
+	{
+        encounterCount += [_scenario encounters][i].start_locs_count;
+    }
+    
+	GLsizei bufferSize = (GLsizei) ([_scenario vehicle_spawn_count] +  //CHECK
+									[_scenario scenery_spawn_count] + //CHECK
+									[_scenario item_spawn_count] +  //CHECK
+									[_scenario multiplayer_flags_count] +
+									[_scenario player_spawn_count] +        //CHECK
+									[_scenario mach_spawn_count]+ //CHECK
+									encounterCount);    //CHECK
+    
+    bufferSize+=5000;
+    
+    //NSLog(@"Buffer size: %ld", bufferSize);
+    GLdouble some_non_genericvaluew = [aw doubleValue];
+    GLdouble some_non_genericvalueh = [ah doubleValue];
 
-	bufferSize += 50;
+
 	
 	GLuint nameBuf[bufferSize];
 	GLuint tmpLookup[bufferSize];
+    
 	GLint viewport[4];
 	GLuint hits;
-	unsigned int i, j, z1, z2;
+	unsigned int  j, z1, z2;
 	
 	if (!selections)
 		selections = [[NSMutableArray alloc] init]; // Three times too big for meh.
 	
+    
+    
 	// Lookup is our name lookup table for the hits we get.
 	_lookup = (GLuint *)tmpLookup;
+    
+    
 	
-	
+    
 	glGetIntegerv(GL_VIEWPORT,viewport);
 	glSelectBuffer(bufferSize,nameBuf);
 	//glMatrixMode(GL_PROJECTION);
     
 	glRenderMode(GL_SELECT);
 	glMatrixMode(GL_PROJECTION);
+    
     
     
 	glPushMatrix();
@@ -11369,33 +14322,39 @@ BOOL isPainting;
     
 	glColor4f(1.0f,1.0f,1.0f,1.0f);
     
+   
     needsReshape = YES;
     
 	// This kick starts names
 	[self renderAllMapObjects];
 	
 	
-	
 	//[self reshape];
 	hits = glRenderMode(GL_RENDER);
 
+    
 	GLuint names, *ptr = (GLuint *)nameBuf;
+    
+    
 	unsigned int type;
 	BOOL hasFound = FALSE;
 	
 	if (hits == 0 || !shiftDown)
 	{
-		[self deselectAllObjects];
+        [self deselectAllObjects];
 	}
     
     glPopMatrix();
     
+    //return;
+    
 	/*
-	type = (long)(tableVal / 10000);
+	type = (int32_t)(tableVal / 10000);
 	index = (tableVal % 10000);
 	*/
     
-   // NSLog(@"HIT: %d", hits);
+   // CSLog(@"HIT: %d", hits);
+    
     
     
     
@@ -11416,12 +14375,16 @@ BOOL isPainting;
         z2 = (float)*ptr/0x7fffffff;
         ptr++;
         
+        //Calculate the distance for the object to the camera
+        
+        
         if (z2 < closestDistance)
         {
             for ( j = 0; j < names; j++)
 			{
                 if (*ptr >= bufferSize)
                     break;
+                
                 
                 type = (unsigned int)(_lookup[*ptr] / MAX_SCENARIO_OBJECTS);
                 if (type == _selectType || _selectType == s_all)
@@ -11450,10 +14413,10 @@ BOOL isPainting;
             {
                 
                 unsigned int index;
-                long mapIndex;
+                int32_t mapIndex;
                 BOOL overrideString;
                 
-                type = (long)(tableVal / MAX_SCENARIO_OBJECTS);
+                type = (int32_t)(tableVal / MAX_SCENARIO_OBJECTS);
                 index = (tableVal % MAX_SCENARIO_OBJECTS);
                 
                 /*
@@ -11519,7 +14482,7 @@ BOOL isPainting;
    
     if (foundObject)
     {
-        //NSLog(@"Found!");
+        //CSLog(@"Found!");
         [self processSelection:(unsigned int)_lookup[*closestPtr]];
     }
     
@@ -11592,8 +14555,8 @@ BOOL isPainting;
 		[_scenario item_spawns][x].isSelected = NO;
 	for (x = 0; x < [_scenario player_spawn_count]; x++)
 		[_scenario spawns][x].isSelected = NO;
-	for (x = 0; x < [_scenario encounter_count]; x++)
-		[_scenario encounters][x].start_locs[0].isSelected = NO;
+	//for (x = 0; x < [_scenario encounter_count]; x++)
+	//	[_scenario encounters][x].start_locs[0].isSelected = NO;
 	for (x = 0; x < [_scenario multiplayer_flags_count]; x++)
 		[_scenario netgame_flags][x].isSelected = NO;
 	for (x = 0; x < [_scenario mach_spawn_count]; x++)
@@ -11602,7 +14565,7 @@ BOOL isPainting;
 		playercoords[(x * 8) + 4] = 0.0;
 	
 	
-	
+	/*
 	if (editable)
 	{
 		for (x = 0; x < [[mapBSP mesh] coll_count]; x++)
@@ -11611,6 +14574,8 @@ BOOL isPainting;
 		for (x = 0; x < bsp_point_count; x++)
 			bsp_points[x].isSelected = NO;
 	}
+     */
+    
 	
 	[selectText setStringValue:[[NSNumber numberWithInt:0] stringValue]];
 	[selectedName setStringValue:@""];
@@ -11640,7 +14605,7 @@ BOOL isPainting;
 		type = (unsigned int)(nameLookup / MAX_SCENARIO_OBJECTS);
 		index = (unsigned int)(nameLookup % MAX_SCENARIO_OBJECTS);
 		
-		long *pointer = [[sender toolTip] longLongValue];
+		int32_t *pointer = [[sender toolTip] int32_tlongValue];
         (*pointer) = (short)[sender indexOfItem:[sender selectedItem]];
     }
 }
@@ -11661,19 +14626,19 @@ BOOL isPainting;
         NSString *str = [sender toolTip];
         int d = (int)[[str substringFromIndex:[str rangeOfString:@"|"].location+1] intValue];
         
-        long *pointer = [[str substringToIndex:[str rangeOfString:@"|"].location] longLongValue];
+        int32_t *pointer = [[str substringToIndex:[str rangeOfString:@"|"].location] int32_tlongValue];
         short cVal = *pointer;
         
         //((sel>>(31-val)) & 1)
         
         if (cVal & (int)pow(2, (31-d)))
         {
-            NSLog(@"Removing %ld %d %d", pointer, cVal, d);
+            CSLog(@"Removing %ld %d %d", pointer, cVal, d);
             (*pointer) = (int)cVal & ~ (int)pow(2, (31-d));
         }
         else
         {
-            NSLog(@"Adding %ld %d %d", pointer, cVal, d);
+            CSLog(@"Adding %ld %d %d", pointer, cVal, d);
             (*pointer) = (int)cVal | (int)pow(2, (31-d)); //Add a value
         }
     }
@@ -11756,7 +14721,7 @@ char *int2bin(int a, char *buffer, int buf_size) {
             NSArray *kdata = [data objectForKey:kData];
             [button addItemsWithTitles:kdata];
             
-            NSLog(@"%@: %d", text, [[data objectForKey:kSelection] intValue]);
+            CSLog(@"%@: %d", text, [[data objectForKey:kSelection] intValue]);
         
             if ([[data objectForKey:kSelection] intValue] > 0 && [[data objectForKey:kSelection] intValue] < [kdata count])
                 [button selectItemAtIndex:[[data objectForKey:kSelection] intValue]];
@@ -11781,7 +14746,7 @@ char *int2bin(int a, char *buffer, int buf_size) {
             
 
       
-            //NSLog(@"%@: %d %d %d %d", text, val, sel, sel&val, ((sel>>(31-val)) & 1));
+            //CSLog(@"%@: %d %d %d %d", text, val, sel, sel&val, ((sel>>(31-val)) & 1));
             
             
         
@@ -11824,10 +14789,10 @@ char *int2bin(int a, char *buffer, int buf_size) {
 	[spawne setAlphaValue:1.0];
 	
 	unsigned int type, index;
-	long mapIndex;
+	int32_t mapIndex;
 	BOOL overrideString;
 	
-	type = (long)(tableVal / MAX_SCENARIO_OBJECTS);
+	type = (int32_t)(tableVal / MAX_SCENARIO_OBJECTS);
 	index = (tableVal % MAX_SCENARIO_OBJECTS);
 	
 	_selectFocus = tableVal;
@@ -11839,7 +14804,7 @@ char *int2bin(int a, char *buffer, int buf_size) {
 	
 	[_spawnEditor loadFocusedItemData:_selectFocus];
 	
-    //NSLog(@"%d", type);
+    //CSLog(@"%d", type);
 	switch (type)
 	{
 		case s_scenery:
@@ -12079,7 +15044,7 @@ char *int2bin(int a, char *buffer, int buf_size) {
 			if (_selectType == s_all || _selectType == s_item)
 			{
                 #ifdef MACVERSION
-                NSLog(@"%ld", [_scenario item_spawns][index].bitmask32);
+                CSLog(@"%ld", [_scenario item_spawns][index].bitmask32);
                 NSArray *gametypeList = @[@"None", @"CTF", @"Slayer", @"Oddball", @"King of the Hill", @"Race", @"Terminator", @"Stub", @"Ignored 1", @"Ignored 2", @"Ignored 3", @"Ignored 4", @"All Games", @"All except CTF", @"All except Race and CTF"];
                 NSArray *settings = @[@{kName:@"Levitate", kType:kPopup, kData:@[@"No", @"Yes"], kSelection:[NSNumber numberWithShort:[_scenario item_spawns][index].bitmask32], kPointer:[NSNumber numberWithLong:&([_scenario item_spawns][index].bitmask32)]},
                                       @{kName:@"Gametype 1", kType:kPopup, kData:gametypeList, kSelection:[NSNumber numberWithShort:[_scenario item_spawns][index].type1], kPointer:[NSNumber numberWithLong:&([_scenario item_spawns][index].type1)]},
@@ -12111,7 +15076,7 @@ char *int2bin(int a, char *buffer, int buf_size) {
 		case s_bsppoint:
 			if (_selectType == s_all || _selectType == s_item)
 			{
-                NSLog(@"BSP POINT");
+                CSLog(@"BSP POINT");
 				bsp_points[index].isSelected = YES;
 				
 				//LIVE
@@ -12153,9 +15118,9 @@ char *int2bin(int a, char *buffer, int buf_size) {
 }
 - (void)fillSelectionInfo
 {
-	int type = (long)(_selectFocus / MAX_SCENARIO_OBJECTS);
+	int type = (int32_t)(_selectFocus / MAX_SCENARIO_OBJECTS);
 	int index = (_selectFocus % MAX_SCENARIO_OBJECTS);
-	long mapIndex;
+	int32_t mapIndex;
 	
 	switch (type)
 	{
@@ -12809,8 +15774,204 @@ char *int2bin(int a, char *buffer, int buf_size) {
 *	End miscellaneous functions
 *
 */
+
+
+
+
+
+
+
+
+
+//Tag editing
+- (id)outlineView:(NSOutlineView *)outlineView child:(NSInteger)index ofItem:(id)item
+{
+    if (item == nil)
+        return [list_of_tag_types objectAtIndex:index];
+    else
+    {
+        if ([list_of_tag_types containsObject:item])
+        {
+            return [[list_of_tag_subgroups objectForKey:item] objectAtIndex:index];
+        }
+    }
+    return nil;
+}
+
+- (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
+{
+    if (item == nil || [list_of_tag_types containsObject:item])
+        return YES;
+    return NO;
+}
+
+- (NSInteger)outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
+{
+    if (item == nil)
+        return [list_of_tag_types count];
+    else
+    {
+        if ([list_of_tag_types containsObject:item])
+        {
+            return [[list_of_tag_subgroups objectForKey:item] count];
+        }
+    }
+    return 0;
+}
+
+- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+{
+    if (item == nil)
+        return @"bloodgulch";
+    else if ([list_of_tag_types containsObject:item])
+        return item;
+    else
+        return [item objectAtIndex:0];
+}
+
+-(IBAction)rowClicked:(id)sender
+{
+    NSLog(@"Row clicked");
+    
+}
+
+-(NSArray*)parseXMLTag:(NSString*)string
+{
+    //NSRange *next_end = [string rangeOfString:@""];
+}
+
+-(void)addDataType:(struct DataType)type withMapOffset:(uint32_t)base
+{
+    float dataHeight = 23;
+    float nameWidth = 250;
+    float floatWidth = 80;
+    float swapWidth = 250;
+    float border = 5;
+    float x = border;
+    
+    NSTextField *label = [[NSTextField alloc] initWithFrame:NSMakeRect(x, globalYCoordinate, nameWidth, dataHeight)];
+    [label setStringValue:[NSString stringWithCString:type.name encoding:NSMacOSRomanStringEncoding]];
+    [label setAlignment:NSRightTextAlignment];
+    [label setDrawsBackground:NO];
+    [label setBezeled:NO];
+    [label setSelectable:NO];
+    [tagClipView addSubview:label];
+    
+    x+=(border+nameWidth);
+    
+    if (strcmp(type.format->name, "float") == 0)
+    {
+        NSTextField *value_field = [[NSTextField alloc] initWithFrame:NSMakeRect(x, globalYCoordinate, floatWidth, dataHeight)];
+        
+        //Whats the float value for this object?
+        float float_value;
+        memcpy(&float_value, [_mapfile globalMemory]+base+type.offset, 4);
+        [value_field setStringValue:[NSString stringWithFormat:@"%f", float_value]];
+        [tagClipView addSubview:value_field];
+    }
+    else if (strcmp(type.format->name, "dependency") == 0)
+    {
+        NSPopUpButton *type_field = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(x, globalYCoordinate, floatWidth, dataHeight)];
+        x+=(border+floatWidth);
+        NSPopUpButton *value_field = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(x, globalYCoordinate, swapWidth, dataHeight)];
+        
+        //Populate "type" with all the plugins
+        int m;
+        for (m=0; m < [list_of_tag_types count]; m++)
+        {
+            [type_field addItemWithTitle:[list_of_tag_types objectAtIndex:m]];
+        }
+        
+        // class, string offset, zeros, id. All 32-bit
+        //Whats the float value for this object?
+        uint32 tagId;
+        memcpy(&tagId, [_mapfile globalMemory]+base+type.offset+12, 4);
+    
+        char *tag_type = malloc(5);
+        memset(tag_type, 0, 5);
+        memcpy(tag_type, [_mapfile globalMemory]+base+type.offset, 4);
+        
+        NSString *tagClassHigh = [[NSString alloc] initWithCString:tag_type encoding:NSMacOSRomanStringEncoding];
+        NSMutableString *reversedString = [NSMutableString string];
+        NSInteger charIndex = [tagClassHigh length];
+        while (charIndex > 0) {
+            charIndex--;
+            NSRange subStrRange = NSMakeRange(charIndex, 1);
+            [reversedString appendString:[tagClassHigh substringWithRange:subStrRange]];
+        }
+
+        [type_field selectItem:[type_field itemWithTitle:reversedString]];
+        [value_field addItemWithTitle:@"None"];
+        
+        HaloMap *linkedTag = [_mapfile tagForId:tagId];
+        if (linkedTag)
+        {
+            [value_field selectItem:[type_field itemWithTitle:[linkedTag tagName]]];
+            //[value_field setTitle:[linkedTag tagName]];
+        }
+        
+        [tagClipView addSubview:value_field];
+        [tagClipView addSubview:type_field];
+    }
+    
+    globalYCoordinate+=dataHeight+border;
+    [[tagClipView superview] setFrame:NSMakeRect(border, border, [[tagClipView superview] bounds].size.width, globalYCoordinate)];
     
     
+    
+    //NSLog(@"%s %s", type.name, );
+}
+
+-(void)outlineViewSelectionDidChange:(NSNotification*)notification
+{
+    id selectedItem = [tag_listing itemAtRow:[tag_listing selectedRow]];
+    if ([list_of_tag_types containsObject:selectedItem])
+    {
+        [tag_listing selectRowIndexes:nil byExtendingSelection:NO];
+    }
+    else
+    {
+        [tagClipView setSubviews:[NSArray array]];
+        MapTag *selected_tag = [_mapfile tagForId:[[selectedItem lastObject] longValue]];
+        
+        char *tag_type = malloc(5);
+        memset(tag_type, 0, 5);
+        memcpy(tag_type, [selected_tag tagClassHigh], 4);
+        
+        NSString *tagClassHigh = [[NSString alloc] initWithCString:tag_type encoding:NSASCIIStringEncoding];
+        NSMutableString *reversedString = [NSMutableString string];
+        NSInteger charIndex = [tagClassHigh length];
+        while (charIndex > 0) {
+            charIndex--;
+            NSRange subStrRange = NSMakeRange(charIndex, 1);
+            [reversedString appendString:[tagClassHigh substringWithRange:subStrRange]];
+        }
+        
+        //Do we have a plugin related to this class?
+        char *cstr = [reversedString cStringUsingEncoding:NSASCIIStringEncoding];
+        
+        int v;
+        for (v=0; v < know_types->count; v++)
+        {
+            if (memcmp(know_types->tags[v].class, cstr, 4) == 0)
+            {
+                //Build the interface for this tag
+                float x = 0;
+                globalYCoordinate = 0;
+                
+                int a;
+                for (a=0; a < know_types->tags[v].count; a++)
+                {
+                    [self addDataType:know_types->tags[v].types[a] withMapOffset:[selected_tag offsetInMap]];
+                }
+                
+                break;
+            }
+        }
+       
+    }
+}
+
 @synthesize pointsItem;
 @synthesize wireframeItem;
 @synthesize shadedTrisItem;
@@ -12860,7 +16021,7 @@ char *int2bin(int a, char *buffer, int buf_size) {
 @synthesize s_spawnEditWindowButton;
 @synthesize _spawnEditor;
 @synthesize prefs;
-@synthesize shouldDraw;
+//@synthesize shouldDraw;
 @synthesize FullScreen;
 @synthesize first;
 @synthesize _useAlphas;
@@ -12885,7 +16046,6 @@ char *int2bin(int a, char *buffer, int buf_size) {
 @synthesize _mode;
 @synthesize selee;
 @synthesize selections;
-@synthesize _lookup;
 @synthesize _selectType;
 @synthesize _selectFocus;
 @synthesize s_acceleration;

@@ -146,7 +146,7 @@ void ClusterFit::Compress3( void* block )
 		Vec4 part0 = VEC4_CONST( 0.0f );
 		for( int i = 0; i < count; ++i )
 		{
-			// second cluster [i,j) is half along
+			// second cluster [i,j) is half aint32_t
 			Vec4 part1 = ( i == 0 ) ? m_points_weights[0] : VEC4_CONST( 0.0f );
 			int jmin = ( i == 0 ) ? 1 : i;
 			for( int j = jmin;; )
@@ -277,11 +277,11 @@ void ClusterFit::Compress4( void* block )
 		Vec4 part0 = VEC4_CONST( 0.0f );
 		for( int i = 0; i < count; ++i )
 		{
-			// second cluster [i,j) is one third along
+			// second cluster [i,j) is one third aint32_t
 			Vec4 part1 = VEC4_CONST( 0.0f );
 			for( int j = i;; )
 			{
-				// third cluster [j,k) is two thirds along
+				// third cluster [j,k) is two thirds aint32_t
 				Vec4 part2 = ( j == 0 ) ? m_points_weights[0] : VEC4_CONST( 0.0f );
 				int kmin = ( j == 0 ) ? 1 : j;
 				for( int k = kmin;; )

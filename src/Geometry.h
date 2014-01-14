@@ -20,27 +20,42 @@
 	int vertexOffset;
 	
 	GLuint *textures;
-	
+    
 	HaloMap *_mapfile;
 	ModelTag *parent;
 	
 	TextureManager *_texManager;
 	
 	reflexive partsref;
+    int *base_indicies;
+    int *detail_indicies;
 	part *parts;
 	geometry me;
 	
     BOOL drawingSetup;
+    BOOL doneSetup;
     
     GLuint cubeVBO;
 	GLuint cubeIBO;
     
     int indexCount_R;
     
-    float* normals;
-    float* vertex_array;
-    short* index_array;
-    float* texture_uv;
+    GLuint geometryList;
+    GLfloat* normals;
+    GLfloat* vertex_array;
+    GLshort* index_array;
+    GLfloat* texture_uv;
+    
+    GLuint geometryVAO;
+    GLuint m_Buffers[4];
+    
+    GLuint vertexVBO;
+    GLuint indexVBO;
+    GLuint normalVBO;
+    GLuint textureVBO;
+    
+    GLuint *vbo_vertices;
+    GLuint *vbo_indicies;
     
 	BOOL texturesLoaded;
 }

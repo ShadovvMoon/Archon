@@ -12,3 +12,9 @@
 #define MACVERSION 1
 #define RENDERINGALLOWED 1
 #define WINDOWS 1
+
+#ifdef __DEBUG__
+#define CSLog(args...) NSLog(args)
+#else
+#define CSLog(args...) 
+#endif

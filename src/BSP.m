@@ -25,7 +25,7 @@
 - (void)dealloc
 {
 	#ifdef __DEBUG__
-	NSLog(@"Deallocating BSP Manager!");
+	CSLog(@"Deallocating BSP Manager!");
 	#endif
 	
 	free(m_pBspInfo);
@@ -34,6 +34,7 @@
 }
 - (void)destroyObjects
 {
+    NSLog(@"DESTROYING BSP?");
 	[m_pBsp removeAllObjects];
 	[m_pBsp release];
 	
@@ -41,14 +42,14 @@
 	
 	[_texManager release];
 }
-- (void)loadVisibleBspInfo:(reflexive)BspChunk version:(unsigned long)version
+- (void)loadVisibleBspInfo:(reflexive)BspChunk version:(uint32_t)version
 {
 	#ifdef __DEBUG__
-	NSLog(@"Loading BSP Info!");
+	CSLog(@"Loading BSP Info!");
 	#endif
 	
-	unsigned long hdr;
-	unsigned long offset;
+	uint32_t hdr;
+	uint32_t offset;
 	int i;
 	m_Version = version;
 	if (BspChunk.chunkcount > 0)
@@ -57,27 +58,28 @@
 		m_pBsp = [[NSMutableArray alloc] initWithCapacity:BspChunk.chunkcount];
 		[_mapfile seekToAddress:BspChunk.offset];
 		#ifdef __DEBUG__
-		NSLog(@"BSP Chunk offset: 0x%x", BspChunk.offset);
+		CSLog(@"BSP Chunk offset: 0x%x", BspChunk.offset);
 		#endif
 		for (i = 0; i < BspChunk.chunkcount; i++)
 		{
 			#ifdef __DEBUG__
-			NSLog(@"Loading BSP number: %i", i);
+			CSLog(@"Loading BSP number: %i", i);
 			//[_mapfile seekToAddress:BspChunk.location_in_mapfile];
-			NSLog(@"BSP Chunk %i is located at: 0x%x", i, BspChunk.location_in_mapfile);
+			CSLog(@"BSP Chunk %i is located at: 0x%x", i, BspChunk.location_in_mapfile);
 			#endif
  			m_pBspInfo[i] = [self readBspInfo];
 			tempBsp = [[BspMesh alloc] initWithMapAndBsp:_mapfile bsp_class:self texManager:_texManager bsp_magic:m_pBspInfo[i].Magic];
-			[tempBsp retain];
 			
 			// In bob's words, "Read in the scenario BSP Info"
 			offset = [_mapfile currentOffset];
 			[_mapfile seekToAddress:m_pBspInfo[i].BspStart];
-			[_mapfile readLong:&hdr];
+			[_mapfile readint32_t:&hdr];
 			hdr -= m_pBspInfo[i].Magic;
 			[tempBsp LoadVisibleBsp:hdr version:version];
 			
 			[_mapfile seekToAddress:offset];
+            
+            NSLog(@"Adding bsp");
 			[m_pBsp addObject:tempBsp];
 			[tempBsp release];
 		}
@@ -85,7 +87,7 @@
 	else
 	{
 		#ifdef __DEBUG__
-		NSLog(@"Somethings up..");
+		CSLog(@"Somethings up..");
 		#endif
 	}
 	#ifdef __DEBUG__
@@ -126,9 +128,9 @@
 	[_mapfile readFloat:&retVert.vertex_k[0]];
 	[_mapfile readFloat:&retVert.vertex_k[1]];
 	[_mapfile readFloat:&retVert.vertex_k[2]];
-	[_mapfile readLong:&retVert.comp_normal];
-	[_mapfile readLong:&retVert.comp_binormal];
-	[_mapfile readLong:&retVert.comp_tangent];
+	[_mapfile readint32_t:&retVert.comp_normal];
+	[_mapfile readint32_t:&retVert.comp_binormal];
+	[_mapfile readint32_t:&retVert.comp_tangent];
 	[_mapfile readFloat:&retVert.uv[0]];
 	[_mapfile readFloat:&retVert.uv[1]];
 	return retVert;
@@ -156,10 +158,10 @@
 {
 	vert retHeader;
 
-	[_mapfile readLong:&retHeader.x];
-	[_mapfile readLong:&retHeader.y];
-	[_mapfile readLong:&retHeader.z];
-	[_mapfile readLong:&retHeader.edge];
+	[_mapfile readint32_t:&retHeader.x];
+	[_mapfile readint32_t:&retHeader.y];
+	[_mapfile readint32_t:&retHeader.z];
+	[_mapfile readint32_t:&retHeader.edge];
 	
 	return retHeader;
 }
@@ -168,9 +170,9 @@
 	MATERIAL_SUBMESH_HEADER retHeader;
 	retHeader.ShaderTag = [_mapfile readReference]; // I think I may have to do this differently since it uses a bsp magic
 	
-	[_mapfile readLong:&retHeader.UnkZero2];
-	[_mapfile readLong:&retHeader.VertIndexOffset];
-	[_mapfile readLong:&retHeader.VertIndexCount];
+	[_mapfile readint32_t:&retHeader.UnkZero2];
+	[_mapfile readint32_t:&retHeader.VertIndexOffset];
+	[_mapfile readint32_t:&retHeader.VertIndexCount];
 	
 	// Loop Fun Time!
 	int i;
@@ -179,7 +181,7 @@
 	for (i = 0; i < 3; i++)
 		[_mapfile readFloat:&retHeader.AmbientColor[i]];
 		
-	[_mapfile readLong:&retHeader.DistLightCount];
+	[_mapfile readint32_t:&retHeader.DistLightCount];
 	
 	for (i = 0; i < 6; i++)
 		[_mapfile readFloat:&retHeader.DistLight1[i]];
@@ -196,28 +198,28 @@
 	for (i = 0; i < 4; i++)
 		[_mapfile readFloat:&retHeader.Plane[i]];
 		
-	[_mapfile readLong:&retHeader.UnkFlag2]; 
-	[_mapfile readLong:&retHeader.UnkCount1];
-	[_mapfile readLong:&retHeader.VertexCount1];
-	[_mapfile readLong:&retHeader.UnkZero4]; //Vertex offset
-	[_mapfile readLong:&retHeader.VertexOffset];
-	[_mapfile readLong:&retHeader.Vert_Reflexive];
-	[_mapfile readLong:&retHeader.UnkAlways3];
-	[_mapfile readLong:&retHeader.VertexCount2];
-	[_mapfile readLong:&retHeader.UnkZero9];
-	[_mapfile readLong:&retHeader.UnkLightmapOffset];
-	[_mapfile readLong:&retHeader.CompVert_Reflexive];
-	[_mapfile readLong:&retHeader.UnkZero5[0]];
-	[_mapfile readLong:&retHeader.UnkZero5[1]];
-	[_mapfile readLong:&retHeader.SomeOffset1];
-	[_mapfile readLong:&retHeader.PcVertexDataOffset];
-	[_mapfile readLong:&retHeader.UnkZero6];
-	[_mapfile readLong:&retHeader.CompVertBufferSize];
-	[_mapfile readLong:&retHeader.UnkZero7];
-	[_mapfile readLong:&retHeader.SomeOffset2];
-	[_mapfile readLong:&retHeader.VertexDataOffset];
-	[_mapfile readLong:&retHeader.UnkZero8];
-	//[_mapfile readLong:&retHeader.VertexDataOffset];
+	[_mapfile readint32_t:&retHeader.UnkFlag2]; 
+	[_mapfile readint32_t:&retHeader.UnkCount1];
+	[_mapfile readint32_t:&retHeader.VertexCount1];
+	[_mapfile readint32_t:&retHeader.UnkZero4]; //Vertex offset
+	[_mapfile readint32_t:&retHeader.VertexOffset];
+	[_mapfile readint32_t:&retHeader.Vert_Reflexive];
+	[_mapfile readint32_t:&retHeader.UnkAlways3];
+	[_mapfile readint32_t:&retHeader.VertexCount2];
+	[_mapfile readint32_t:&retHeader.UnkZero9];
+	[_mapfile readint32_t:&retHeader.UnkLightmapOffset];
+	[_mapfile readint32_t:&retHeader.CompVert_Reflexive];
+	[_mapfile readint32_t:&retHeader.UnkZero5[0]];
+	[_mapfile readint32_t:&retHeader.UnkZero5[1]];
+	[_mapfile readint32_t:&retHeader.SomeOffset1];
+	[_mapfile readint32_t:&retHeader.PcVertexDataOffset];
+	[_mapfile readint32_t:&retHeader.UnkZero6];
+	[_mapfile readint32_t:&retHeader.CompVertBufferSize];
+	[_mapfile readint32_t:&retHeader.UnkZero7];
+	[_mapfile readint32_t:&retHeader.SomeOffset2];
+	[_mapfile readint32_t:&retHeader.VertexDataOffset];
+	[_mapfile readint32_t:&retHeader.UnkZero8];
+	//[_mapfile readint32_t:&retHeader.VertexDataOffset];
 	return retHeader;
 }
 - (SCENARIO_BSP_INFO)readBspInfo
@@ -225,20 +227,20 @@
 	// Need to do a thing for multi BSPs here
 	// Next prototype will be: - (SCENARIO_BSP_INFO *)readBspInfo:(int)bspCount
 	SCENARIO_BSP_INFO scenInfo;
-	[_mapfile readLong:&scenInfo.BspStart];
-	[_mapfile readLong:&scenInfo.BspSize];
-	[_mapfile readLong:&scenInfo.Magic];
-	[_mapfile readLong:&scenInfo.Zero1];
+	[_mapfile readint32_t:&scenInfo.BspStart];
+	[_mapfile readint32_t:&scenInfo.BspSize];
+	[_mapfile readint32_t:&scenInfo.Magic];
+	[_mapfile readint32_t:&scenInfo.Zero1];
 	[_mapfile readBlockOfData:scenInfo.bsptag size_of_buffer:4];
-	[_mapfile readLong:&scenInfo.NamePtr];
-	[_mapfile readLong:&scenInfo.unknown2];
-	[_mapfile readLong:&scenInfo.TagId];
+	[_mapfile readint32_t:&scenInfo.NamePtr];
+	[_mapfile readint32_t:&scenInfo.unknown2];
+	[_mapfile readint32_t:&scenInfo.TagId];
 	scenInfo.Magic -= scenInfo.BspStart;
 	
 	#ifdef __DEBUG__
-	NSLog(@"BSP Magic: 0x%x", scenInfo.Magic);
-	NSLog(@"BSP Start: 0x%x", scenInfo.BspStart);
-	NSLog(@"BSP Size: 0x%x", scenInfo.BspSize);
+	CSLog(@"BSP Magic: 0x%x", scenInfo.Magic);
+	CSLog(@"BSP Start: 0x%x", scenInfo.BspStart);
+	CSLog(@"BSP Size: 0x%x", scenInfo.BspSize);
 	#endif
 	
 	return scenInfo;
@@ -249,32 +251,71 @@
 	return [m_pBsp count];
 }
 
+-(void)loadAllBsps
+{
+    int i;
+    for (i=0; i < [m_pBsp count]; i++)
+    {
+        [[m_pBsp objectAtIndex:i] LoadPcSubmeshTextures];
+    }
+}
+-(int)bspCount
+{
+    return [m_pBsp count];
+}
+-(int)activeBSP
+{
+    return m_ActiveBsp;
+}
+- (SUBMESH_INFO *)GetBsp:(int)bsp PCSubmesh:(int)mesh_index
+{
+    SUBMESH_INFO *pMesh = NULL;
+    pMesh = [[self getBsp:bsp] m_pMesh:mesh_index];
+    return pMesh;
+}
+- (uint32_t)GetBspSubmeshCount:(int)bsp
+{
+    if (m_pBsp)
+    if ([m_pBsp respondsToSelector:@selector(objectAtIndex:)])
+    if ([[self getBsp:bsp] respondsToSelector:@selector(m_SubMeshCount)])
+    {
+        //NSLog(@"Getting submesh count %d %d", [[self getActiveBsp] m_SubMeshCount], m_ActiveBsp);
+        return [[self getBsp:bsp] m_SubMeshCount];
+    }
+	else
+        return 0;
+}
+    
+- (BspMesh *)getBsp:(int)bsp;
+{
+    return [m_pBsp objectAtIndex:bsp];
+}
+    
 -(void)updateTextures
 {
     [[m_pBsp objectAtIndex:m_ActiveBsp] LoadPcSubmeshTextures];
 }
 
-- (void)setActiveBsp:(unsigned long)bsp
+- (void)setActiveBsp:(uint32_t)bsp
 {
-	#ifdef __DEBUG__
-	NSLog(@"Setting active BSP!");
-	#endif
-	NSLog(@"Set active bsp");
-	//if (m_ActiveBsp != bsp)
-	//{
 		[[m_pBsp objectAtIndex:bsp] LoadPcSubmeshTextures];
 		m_ActiveBsp = bsp;
-	//}
-    NSLog(@"Bsp loaded");
+
 }
 - (BspMesh *)getActiveBsp;
 {
 	return [m_pBsp objectAtIndex:m_ActiveBsp];
 }
-- (unsigned long)GetActiveBspSubmeshCount
+- (uint32_t)GetActiveBspSubmeshCount
 {
+   
 	if (m_pBsp)
-		return [[self getActiveBsp] m_SubMeshCount];
+        if ([m_pBsp respondsToSelector:@selector(objectAtIndex:)])
+            if ([[self getActiveBsp] respondsToSelector:@selector(m_SubMeshCount)])
+            {
+                //NSLog(@"Getting submesh count %d %d", [[self getActiveBsp] m_SubMeshCount], m_ActiveBsp);
+                return [[self getActiveBsp] m_SubMeshCount];
+            }
 	else
 		return 0;
 }

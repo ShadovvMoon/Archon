@@ -12,7 +12,7 @@
 #import "TextureManager.h"
 
 @implementation BspMesh
-- (id)initWithMapAndBsp:(HaloMap *)map bsp_class:(BSP *)bsp_class texManager:(TextureManager *)texManager bsp_magic:(unsigned long)bsp_magic
+- (id)initWithMapAndBsp:(HaloMap *)map bsp_class:(BSP *)bsp_class texManager:(TextureManager *)texManager bsp_magic:(uint32_t)bsp_magic
 {
 	if ((self = [super init]) != nil)
 	{
@@ -75,24 +75,24 @@
 {
 	
 }
-- (SUBMESH_INFO *)m_pMesh:(long)index
+- (SUBMESH_INFO *)m_pMesh:(int32_t)index
 {
 	return &m_pMesh[index];
 }
-- (unsigned long)m_SubMeshCount
+- (uint32_t)m_SubMeshCount
 {
 	return m_SubMeshCount;
 }
-- (void)LoadVisibleBsp:(unsigned long)BspHeaderOffset version:(unsigned long)version
+- (void)LoadVisibleBsp:(uint32_t)BspHeaderOffset version:(uint32_t)version
 {
 	[_mapfile seekToAddress:BspHeaderOffset];
 	m_BspHeader.LightmapsTag = [_mapfile readReference];
-	NSLog(@"Lightmap tag stuff: ID:[0x%x], %@ name:[%@]", m_BspHeader.LightmapsTag.TagId, [NSString stringWithCString:[[_mapfile tagForId:m_BspHeader.LightmapsTag.TagId] tagClassHigh] encoding:NSMacOSRomanStringEncoding], [[_mapfile tagForId:m_BspHeader.LightmapsTag.TagId] tagName]);
-	[_mapfile skipBytes:(0x25 * sizeof(long))];
+	//NSLog(@"Lightmap tag stuff: ID:[0x%x], %@ name:[%@]", m_BspHeader.LightmapsTag.TagId, [NSString stringWithCString:[[_mapfile tagForId:m_BspHeader.LightmapsTag.TagId] tagClassHigh] encoding:NSMacOSRomanStringEncoding], [[_mapfile tagForId:m_BspHeader.LightmapsTag.TagId] tagName]);
+	[_mapfile skipBytes:(0x25 * sizeof(int32_t))];
 	m_BspHeader.Shaders = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.CollBspHeader = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.Nodes = [_mapfile readBspReflexive:_bspMagic];
-	[_mapfile skipBytes:(6 * sizeof(long))];
+	[_mapfile skipBytes:(6 * sizeof(int32_t))];
 	m_BspHeader.Leaves = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.LeafSurfaces = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.SubmeshTriIndices = [_mapfile readBspReflexive:_bspMagic];
@@ -101,8 +101,8 @@
 	m_BspHeader.Chunk11 = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.Chunk12 = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.Clusters = [_mapfile readBspReflexive:_bspMagic];
-	[_mapfile readLong:&m_BspHeader.ClusterDataSize];
-	[_mapfile readLong:&m_BspHeader.unk11];
+	[_mapfile readint32_t:&m_BspHeader.ClusterDataSize];
+	[_mapfile readint32_t:&m_BspHeader.unk11];
 	m_BspHeader.Chunk14 = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.ClusterPortals = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.Chunk16a = [_mapfile readBspReflexive:_bspMagic];
@@ -120,30 +120,30 @@
 	m_BspHeader.Chunk24 = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.BackgroundSound = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.SoundEnvironment = [_mapfile readBspReflexive:_bspMagic];
-	[_mapfile readLong:&m_BspHeader.SoundPASDataSize];
-	[_mapfile readLong:&m_BspHeader.unk12];
+	[_mapfile readint32_t:&m_BspHeader.SoundPASDataSize];
+	[_mapfile readint32_t:&m_BspHeader.unk12];
 	m_BspHeader.Chunk25 = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.Chunk26 = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.Chunk27 = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.Markers = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.DetailObjects = [_mapfile readBspReflexive:_bspMagic];
 	m_BspHeader.RuntimeDecals = [_mapfile readBspReflexive:_bspMagic];
-	[_mapfile skipBytes:(9 * sizeof(unsigned long))];
+	[_mapfile skipBytes:(9 * sizeof(uint32_t))];
     
     
-	 NSLog(@"LM1");
 	[self LoadMaterialMeshHeaders];
-     NSLog(@"LM2");
 	[self LoadCollisionMeshHeaders];
-     NSLog(@"LM3");
 	[self LoadPcSubmeshes];
-     NSLog(@"LM4");
 }
 - (void)LoadPcSubmeshes
 {
 	int i, v, x;
 	SUBMESH_INFO *pPcSubMesh;
 	[self ResetBoundingBox];
+    
+    int vertex_number = 0;
+    int indexSize = 0;
+    
 	for (i =0; i < m_SubMeshCount; i++)
 	{
 		pPcSubMesh = &m_pMesh[i];
@@ -155,7 +155,7 @@
 		pPcSubMesh->pVert = malloc(pPcSubMesh->VertCount * sizeof(UNCOMPRESSED_BSP_VERT));
 		pPcSubMesh->pCompVert = malloc(pPcSubMesh->VertCount * sizeof(COMPRESSED_BSP_VERT));
 		pPcSubMesh->pLightmapVert = malloc(pPcSubMesh->VertCount * sizeof(UNCOMPRESSED_LIGHTMAP_VERT));
-		
+        
 		[_mapfile seekToAddress:pPcSubMesh->header.PcVertexDataOffset];
 		//NSLog(@"%d", pPcSubMesh->header.PcVertexDataOffset);
 		for (v = 0; v < pPcSubMesh->VertCount; v++)
@@ -170,19 +170,163 @@
 		// In bob's words, "Update the map extents for analysis
 		for (x = 0; x < pPcSubMesh->VertCount; x++)
 			[self UpdateBoundingBox:i pCoord:pPcSubMesh->pVert[x].vertex_k version:7];
-		
-		
-	
-		//[_mapfile bitmTagForShaderId:pPcSubMesh->header.ShaderTag.TagId]
-		
-
 		pPcSubMesh->RenderTextureIndex = [_mapfile bitmTagForShaderId:pPcSubMesh->header.ShaderTag.TagId];
 	}
+    
+    
+    
+    
 }
 
+    -(void)setupDrawing
+    {
+        if (alreadySetup)
+        return;
+        alreadySetup = YES;
+    #define INDEX_BUFFER 0
+    #define POS_VB 1
+    #define NORMAL_VB 2
+    #define TEXCOORD_VB 3
+    #define LIGHT_VB 4
+        
+        int i, v, x;
+        SUBMESH_INFO *pPcSubMesh;
+        [self ResetBoundingBox];
+        
+        int vertex_number = 0;
+        int indexSize = 0;
+        for (i =0; i < m_SubMeshCount; i++)
+        {
+            pPcSubMesh = &m_pMesh[i];
+            pPcSubMesh->VertCount = pPcSubMesh->header.VertexCount1;
+            pPcSubMesh->IndexCount = pPcSubMesh->header.VertIndexCount;
+            vertex_number+=pPcSubMesh->VertCount;
+            indexSize+=pPcSubMesh->IndexCount*3;
+        }
+        
+        vertex_array    = (GLfloat*)malloc(vertex_number * 3 * sizeof(GLfloat));
+        index_array     = (GLint*)malloc(indexSize * sizeof(GLint));
+        texture_uv      = (GLfloat*)malloc(vertex_number * 2 * sizeof(GLfloat));
+        light_uv        = (GLfloat*)malloc(vertex_number * 2 * sizeof(GLfloat));
+        normals         = (GLfloat*)malloc(vertex_number * 3 * sizeof(GLfloat));
+        
+        //Populate the arrays
+        int currentIndex = 0;
+        int currentVertex = 0;
+        int currentNormal = 0;
+        int currentUV = 0;
+        int currentLMUV = 0;
+        for (i =0; i < m_SubMeshCount; i++)
+        {
+            pPcSubMesh = &m_pMesh[i];
+            for (v = 0; v < pPcSubMesh->IndexCount; v++)
+            {
+                if (pPcSubMesh->pIndex[v].tri_ind[0] >= 0)
+                    index_array[currentIndex]   = currentVertex/3 + pPcSubMesh->pIndex[v].tri_ind[0];
+                else
+                    index_array[currentIndex]   = 0;
+                
+                if (pPcSubMesh->pIndex[v].tri_ind[1] >= 0)
+                    index_array[currentIndex+1] = currentVertex/3 + pPcSubMesh->pIndex[v].tri_ind[1];
+                else
+                    index_array[currentIndex+1] = 0;
+                
+                
+                if (pPcSubMesh->pIndex[v].tri_ind[2] >= 0)
+                    index_array[currentIndex+2] = currentVertex/3 + pPcSubMesh->pIndex[v].tri_ind[2];
+                else
+                    index_array[currentIndex+2] = 0;
+                
+                currentIndex+=3;
+            }
+            
+            for (v = 0; v < pPcSubMesh->VertCount; v++)
+            {
+                vertex_array[currentVertex]   = pPcSubMesh->pVert[v].vertex_k[0];
+                vertex_array[currentVertex+1] = pPcSubMesh->pVert[v].vertex_k[1];
+                vertex_array[currentVertex+2] = pPcSubMesh->pVert[v].vertex_k[2];
+                currentVertex+=3;
+            }
+            
+            for (v = 0; v < pPcSubMesh->VertCount; v++)
+            {
+                normals[currentNormal]   = pPcSubMesh->pVert[v].normal[0];
+                normals[currentNormal+1] = pPcSubMesh->pVert[v].normal[1];
+                normals[currentNormal+2] = pPcSubMesh->pVert[v].normal[2];
+                currentNormal+=3;
+            }
+            for (v = 0; v < pPcSubMesh->VertCount; v++)
+            {
+                texture_uv[currentUV]   = pPcSubMesh->pVert[v].uv[0];
+                texture_uv[currentUV+1] = pPcSubMesh->pVert[v].uv[1];
+                currentUV+=2;
+            }
+            for (v = 0; v < pPcSubMesh->VertCount; v++)
+            {
+                light_uv[currentLMUV]   = pPcSubMesh->pLightmapVert[v].uv[0];
+                light_uv[currentLMUV+1] = pPcSubMesh->pLightmapVert[v].uv[1];
+                currentLMUV+=2;
+            }
+        }
+        
+        //Move the meshes into one big VAO
+        GLuint texCoord_buffer;
+        texCoord_buffer         = glGetAttribLocation(currentNormalProgram(), "texCoord_buffer");
+        GLuint texCoord_buffer2;
+        texCoord_buffer2        = glGetAttribLocation(currentLightProgram(), "texCoord_buffer");
+        
+        GLuint texCoord_buffer_light;
+        texCoord_buffer_light   = glGetAttribLocation(currentNormalProgram(), "texCoord_buffer_light");
+        
+        GLuint normals_buffer;
+        normals_buffer   = glGetAttribLocation(currentLightProgram(), "normals_buffer");
+        
+        
+        glGenVertexArraysAPPLE(1, &geometryVAO);
+        glBindVertexArrayAPPLE(geometryVAO);
+        
+        // Create the buffers for the vertices atttributes
+        glGenBuffers(5, m_Buffers);
+        
+        //Shift these to vertex buffers
+        glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[POS_VB]);
+        glBufferData(GL_ARRAY_BUFFER, vertex_number * 3 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+        GLvoid* my_vertex_pointer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        memcpy(my_vertex_pointer, vertex_array, vertex_number * 3 * sizeof(GLfloat));
+        glUnmapBuffer(GL_ARRAY_BUFFER);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[TEXCOORD_VB]);
+        glBufferData(GL_ARRAY_BUFFER, vertex_number * 2 * sizeof(GLfloat), &texture_uv[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(texCoord_buffer);
+        glVertexAttribPointer(texCoord_buffer, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(texCoord_buffer2);
+        glVertexAttribPointer(texCoord_buffer2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[NORMAL_VB]);
+        glBufferData(GL_ARRAY_BUFFER, vertex_number * 3 * sizeof(GLfloat), &normals[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(normals_buffer);
+        glVertexAttribPointer(normals_buffer, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Buffers[INDEX_BUFFER]);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize * sizeof(GLint), &index_array[0], GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, m_Buffers[LIGHT_VB]);
+        glBufferData(GL_ARRAY_BUFFER, vertex_number * 2 * sizeof(GLfloat), &light_uv[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(texCoord_buffer_light);
+        glVertexAttribPointer(texCoord_buffer_light, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        glBindVertexArrayAPPLE(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        
+    }
 
-
-
+-(GLuint)geometryVAO
+{
+    return geometryVAO;
+}
+    
 -(void)writePcSubmeshes
 {
 	int i, v, x;
@@ -216,7 +360,7 @@
     
     NSLog(@"Saving collision data.");
     
-    unsigned long offset;
+    uint32_t offset;
     int j;
     int cv=0;
     for (i = 0; i < m_BspHeader.CollBspHeader.chunkcount; i++)
@@ -265,7 +409,7 @@
     }
     else
     {
-        NSLog(@"Loading submeshes");
+
     }
 	
 	USEDEBUG NSLog(@"SUbmeshe3s: %d", m_SubMeshCount);
@@ -286,24 +430,23 @@
             m_pMesh[i].isWaterShader = NO;
             if ([[NSString stringWithCString: m_pMesh[i].header.ShaderTag.tag length:4] isEqualToString:@"vnes"])
             {
-                USEDEBUG NSLog(@"vnes");
                 m_pMesh[i].DefaultBitmapIndex = [[_mapfile bitmTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] idOfTag];
                 [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
                 
                 senv *shader = (senv *)malloc(sizeof(senv));
                 [_mapfile loadShader:shader forID:m_pMesh[i].header.ShaderTag.TagId];
-            
+                
                 //Colour of it
                 
                 
                 //BASE MAP
 				m_pMesh[i].baseMap = shader->baseMapBitm.TagId;
 				[_texManager loadTextureOfIdent:m_pMesh[i].baseMap subImage:0];
- 
+                
                 m_pMesh[i].primaryMap = shader->primaryMapBitm.TagId;
                 m_pMesh[i].primaryMapScale = shader->primaryMapScale;
                 [_texManager loadTextureOfIdent:m_pMesh[i].primaryMap subImage:0];
-            
+                
                 
                 //SECONDARY DETAIL MAP
                 m_pMesh[i].secondaryMap = shader->secondaryMapBitm.TagId;
@@ -320,12 +463,13 @@
             }
             else if ([[NSString stringWithCString: m_pMesh[i].header.ShaderTag.tag length:4] isEqualToString:@"algs"])
             {
+                m_pMesh[i].hasShader = 5;
                 
                 NSMutableArray *bitms = [_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId];
                 if (!bitms)
                     continue;
                 
-               USEDEBUG  NSLog(@"algs %d", [bitms count]);
+                USEDEBUG  NSLog(@"algs %d", [bitms count]);
                 if ([bitms count] > 2)
                     m_pMesh[i].DefaultBitmapIndex = [[bitms objectAtIndex:2] idOfTag];
                 else if ([bitms count] > 1)
@@ -337,9 +481,15 @@
                 [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0];
                 
                 m_pMesh[i].baseMap = -1;// m_pMesh[i].DefaultBitmapIndex;
+                
+                /*
+                
+                 */
             }
             else if ([[NSString stringWithCString: m_pMesh[i].header.ShaderTag.tag length:4] isEqualToString:@"taws"])
             {
+                m_pMesh[i].hasShader = 6;
+                
                 m_pMesh[i].DefaultBitmapIndex = [[[_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] objectAtIndex:0] idOfTag];
                 [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0 removeAlpha:YES];
                 
@@ -355,6 +505,25 @@
                 m_pMesh[i].baseMap = -1;// m_pMesh[i].DefaultBitmapIndex;
                 m_pMesh[i].isWaterShader = YES;
             }
+            else if ([[NSString stringWithCString: m_pMesh[i].header.ShaderTag.tag length:4] isEqualToString:@"xecs"])
+            {
+                scex *shader = (scex *)malloc(sizeof(scex));
+                [_mapfile loadSCEX:shader forID:m_pMesh[i].header.ShaderTag.TagId];
+                
+                m_pMesh[i].scex_shader = shader;
+                m_pMesh[i].hasShader = 4;
+                
+                int g;
+                for (g=0; g < (m_pMesh[i].scex_shader->maps.chunkcount + ((scex*)m_pMesh[i].scex_shader)->maps2.chunkcount); g++)
+                {
+                    //CSLog(@"%d %ld", g, parts[x].scexshader->read_maps[g].bitm.TagId);
+                    
+                    [_texManager loadTextureOfIdent:m_pMesh[i].scex_shader->read_maps[g].bitm.TagId subImage:0 removeAlpha:NO];
+                }
+                
+                
+                m_pMesh[i].DefaultBitmapIndex = -1;
+            }
             else
             {
                 USEDEBUG NSLog(@"other");
@@ -364,6 +533,19 @@
                 [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0 removeAlpha:YES];
                 
                 m_pMesh[i].baseMap = -1;// m_pMesh[i].DefaultBitmapIndex;
+                
+                /*
+                USEDEBUG NSLog(@"other");
+                //Lets alpha out the black using our smexy techniques
+                
+                m_pMesh[i].DefaultBitmapIndex = [[[_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] objectAtIndex:0] idOfTag];
+                
+                #ifdef __DEBUG__
+                NSLog(@"Shader: %.4s %@", [[[_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] objectAtIndex:0] tagClassHigh], [[[_mapfile bitmsTagForShaderId:m_pMesh[i].header.ShaderTag.TagId] objectAtIndex:0] tagName]);
+                [_texManager loadTextureOfIdent:m_pMesh[i].DefaultBitmapIndex subImage:0 removeAlpha:YES];
+#endif
+                
+                m_pMesh[i].baseMap = -1;// m_pMesh[i].DefaultBitmapIndex;*/
             }
 			
 		}
@@ -737,17 +919,13 @@ float *newPt(float x, float y, float z)
 			if (!pla)
 			{
 				
-                unsigned long offset;
+                uint32_t offset;
                 int x, i, j, hdr_count;
                 
                 m_pCollisions = malloc(sizeof(BSP_COLLISION) * m_BspHeader.CollBspHeader.chunkcount);
                 
                 
                 //EXTEND THIS CLASS TO READ THE FULL BSP
-                
-                
-                NSLog(@"offset %d", m_BspHeader.CollBspHeader.offset);
-                
                 [_mapfile seekToAddress:m_BspHeader.CollBspHeader.offset];
                 int col_mesh_count = 0;
                 int node3dcount = 0;
@@ -819,7 +997,7 @@ float *newPt(float x, float y, float z)
                         [_mapfile seekToAddress:offset];
                         
                         
-                        long x;
+                        int32_t x;
                         
                         
                         [_mapfile readFloat:&(coll_verts[hdr_count].x)];
@@ -955,7 +1133,7 @@ float *newPt(float x, float y, float z)
 			}
 			else
 			{
-				unsigned long offset;
+				uint32_t offset;
 				int x, i, j, hdr_count;
 				
 				m_pCollisions = malloc(sizeof(BSP_COLLISION) * m_BspHeader.CollBspHeader.chunkcount);
@@ -981,15 +1159,15 @@ float *newPt(float x, float y, float z)
 						[_mapfile seekToAddress:offset];
 						
 						
-						long x;
+						int32_t x;
 						
 						
 						
-						[_mapfile readLong:&(coll_verts[hdr_count].x)];
+						[_mapfile readint32_t:&(coll_verts[hdr_count].x)];
 						
-						[_mapfile readLong:&coll_verts[hdr_count].z];
-						[_mapfile readLong:&coll_verts[hdr_count].edge];
-						[_mapfile readLong:&coll_verts[hdr_count].y];
+						[_mapfile readint32_t:&coll_verts[hdr_count].z];
+						[_mapfile readint32_t:&coll_verts[hdr_count].edge];
+						[_mapfile readint32_t:&coll_verts[hdr_count].y];
 						
 						
 						
@@ -1065,7 +1243,7 @@ float *newPt(float x, float y, float z)
 
 - (void)LoadMaterialMeshHeaders
 {
-	unsigned long offset;
+	uint32_t offset;
 	int x, i, j, hdr_count;
 	
     USEDEBUG NSLog(@"NUMBER OF LIGHTMAPS %d %d %d", sizeof(BSP_LIGHTMAP) * m_BspHeader.SubmeshHeader.chunkcount, sizeof(short), m_BspHeader.SubmeshHeader.offset);
@@ -1084,7 +1262,7 @@ float *newPt(float x, float y, float z)
         USEDEBUG NSLog(@"LIGHTMAP INDEX %d %d %d", (int)(m_pLightmaps[x].LightmapIndex), (int)(m_pLightmaps[x].LightmapIndex -1 ), sizeof(m_pLightmaps[x].LightmapIndex));
         
         
-		[_mapfile skipBytes:(4 * sizeof(unsigned long))];
+		[_mapfile skipBytes:(4 * sizeof(uint32_t))];
         
         
 		m_pLightmaps[x].Material = [_mapfile readBspReflexive:_bspMagic];
@@ -1139,7 +1317,7 @@ float *newPt(float x, float y, float z)
 		*center_z = (m_Centroid[2]/m_CentroidCount);
 	}
 }
-- (void)UpdateBoundingBox:(int)mesh_index pCoord:(float *)pCoord version:(unsigned long)version
+- (void)UpdateBoundingBox:(int)mesh_index pCoord:(float *)pCoord version:(uint32_t)version
 {
   if((mesh_index >= 0)&&(mesh_index <m_SubMeshCount))
   {
@@ -1180,19 +1358,19 @@ float *newPt(float x, float y, float z)
   m_Centroid[1] = 0;
   m_Centroid[2] = 0;
   m_CentroidCount = 0;
-  #ifdef __DEBUG__
-  NSLog(@"Bounding box reset!");
-  #endif
+
 }
 - (void)ExportPcMeshToObj:(NSString *)path
 {
+    NSLog(@"Exporting pc mesh");
+    
 	FILE *outFile;
 	NSString *str;
 	int i, x, j;
 	float vertex[3];
-	long face[3];
+	int32_t face[3];
 	
-	outFile = fopen([path cString],"wb+");
+	outFile = fopen([path cString],"wrb+");
 	if (!outFile)
 	{
 	}

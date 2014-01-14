@@ -2252,7 +2252,7 @@ PFNGLPATHSTRINGNVPROC __glewPathStringNV = NULL;
 PFNGLPATHSUBCOMMANDSNVPROC __glewPathSubCommandsNV = NULL;
 PFNGLPATHSUBCOORDSNVPROC __glewPathSubCoordsNV = NULL;
 PFNGLPATHTEXGENNVPROC __glewPathTexGenNV = NULL;
-PFNGLPOINTALONGPATHNVPROC __glewPointAlongPathNV = NULL;
+PFNGLPOINTAint32_tPATHNVPROC __glewPointAint32_tPathNV = NULL;
 PFNGLSTENCILFILLPATHINSTANCEDNVPROC __glewStencilFillPathInstancedNV = NULL;
 PFNGLSTENCILFILLPATHNVPROC __glewStencilFillPathNV = NULL;
 PFNGLSTENCILSTROKEPATHINSTANCEDNVPROC __glewStencilStrokePathInstancedNV = NULL;
@@ -7922,7 +7922,7 @@ static GLboolean _glewInit_GL_NV_path_rendering (GLEW_CONTEXT_ARG_DEF_INIT)
   r = ((glPathSubCommandsNV = (PFNGLPATHSUBCOMMANDSNVPROC)glewGetProcAddress((const GLubyte*)"glPathSubCommandsNV")) == NULL) || r;
   r = ((glPathSubCoordsNV = (PFNGLPATHSUBCOORDSNVPROC)glewGetProcAddress((const GLubyte*)"glPathSubCoordsNV")) == NULL) || r;
   r = ((glPathTexGenNV = (PFNGLPATHTEXGENNVPROC)glewGetProcAddress((const GLubyte*)"glPathTexGenNV")) == NULL) || r;
-  r = ((glPointAlongPathNV = (PFNGLPOINTALONGPATHNVPROC)glewGetProcAddress((const GLubyte*)"glPointAlongPathNV")) == NULL) || r;
+  r = ((glPointAint32_tPathNV = (PFNGLPOINTAint32_tPATHNVPROC)glewGetProcAddress((const GLubyte*)"glPointAint32_tPathNV")) == NULL) || r;
   r = ((glStencilFillPathInstancedNV = (PFNGLSTENCILFILLPATHINSTANCEDNVPROC)glewGetProcAddress((const GLubyte*)"glStencilFillPathInstancedNV")) == NULL) || r;
   r = ((glStencilFillPathNV = (PFNGLSTENCILFILLPATHNVPROC)glewGetProcAddress((const GLubyte*)"glStencilFillPathNV")) == NULL) || r;
   r = ((glStencilStrokePathInstancedNV = (PFNGLSTENCILSTROKEPATHINSTANCEDNVPROC)glewGetProcAddress((const GLubyte*)"glStencilStrokePathInstancedNV")) == NULL) || r;

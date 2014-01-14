@@ -11,17 +11,17 @@
 	
 	viewingDirection = SubtractTwoVectors(camPos,objPos);
 	
-	NSLog(@"Viewing Direction: x: [%f], y:[%f], z:[%f]", viewingDirection.x, viewingDirection.y, viewingDirection.z);
+	CSLog(@"Viewing Direction: x: [%f], y:[%f], z:[%f]", viewingDirection.x, viewingDirection.y, viewingDirection.z);
 	
 	rightVector = Cross(upVector,viewingDirection);
 	
-	//NSLog(@"Normal: x: [%f], y:[%f], z:[%f]", rightVector.x, rightVector.y, rightVector.z);
+	//CSLog(@"Normal: x: [%f], y:[%f], z:[%f]", rightVector.x, rightVector.y, rightVector.z);
 	
 	rightVector = Normalize(viewingDirection);
 	
-	//NSLog(@"Normal: x: [%f], y:[%f], z:[%f]", rightVector.x, rightVector.y, rightVector.z);
+	//CSLog(@"Normal: x: [%f], y:[%f], z:[%f]", rightVector.x, rightVector.y, rightVector.z);
 	
-	NSLog(@"Cam x:[%f], y:[%f]; obj x:[%f], y[%f];", [_camera position][0], [_camera position][1], coord[0], coord[1]);
+	CSLog(@"Cam x:[%f], y:[%f]; obj x:[%f], y[%f];", [_camera position][0], [_camera position][1], coord[0], coord[1]);
 	
 	
 	// Dollying
@@ -41,7 +41,7 @@
 	
 	// Now lets add sum left / right translation
 	theta = atanf(rightVector.y/rightVector.z);
-	NSLog(@"Theta: %f", theta);
+	CSLog(@"Theta: %f", theta);
 	
 	coord[0] += rightVector.x;
 	coord[1] += rightVector.y;
@@ -54,7 +54,7 @@
 {
 	float theta, distance, x, y;
 	CVector3 toVect;
-	NSLog(@"Obj position: x: %f, y: %f, z: %f", coord[0], coord[1], coord[2]);
+	CSLog(@"Obj position: x: %f, y: %f, z: %f", coord[0], coord[1], coord[2]);
 	
 	// Here is our direction vector.
 	toVect.x = [_camera position][0] - coord[0];
@@ -83,8 +83,8 @@
 	//coord[1] = [_camera position][1] + y;
 
 	// We have our orientation, so lets move this baby left / right on screen
-	NSLog(@"Cam x:[%f], y:[%f]; obj x:[%f], y[%f];", [_camera position][0], [_camera position][1], coord[0], coord[1]);
-	NSLog(@"Distance: [%f], theta: [%f], pi: [%f]", distance, theta, pi);
+	CSLog(@"Cam x:[%f], y:[%f]; obj x:[%f], y[%f];", [_camera position][0], [_camera position][1], coord[0], coord[1]);
+	CSLog(@"Distance: [%f], theta: [%f], pi: [%f]", distance, theta, pi);
 }
 - (void)old_calculateTranslation:(float *)coord move:(float *)move
 {
@@ -95,9 +95,9 @@
 	float cX, cY;
 	
 	
-	//NSLog(@"Distance to point: %f", distanceTo);
-	//NSLog(@"Position of Obj: x:[%f], y:[%f], z:[%f];", coord[0], coord[1], coord[2]);
-	//NSLog(@"Position of Cam: x:[%f], y:[%f], z:[%f];", [_camera position][0], [_camera position][1], [_camera position][2]);
+	//CSLog(@"Distance to point: %f", distanceTo);
+	//CSLog(@"Position of Obj: x:[%f], y:[%f], z:[%f];", coord[0], coord[1], coord[2]);
+	//CSLog(@"Position of Cam: x:[%f], y:[%f], z:[%f];", [_camera position][0], [_camera position][1], [_camera position][2]);
 	/*if ((coord[0] - [_camera position][0]) < 0)
 		move[0] *= -1;
 	if ((coord[1] - [_camera position][1]) < 0)
@@ -107,7 +107,7 @@
 	o_pX = (coord[0] - [_camera position][0]);
 	o_pY = (coord[1] - [_camera position][1]);
 	
-	NSLog(@"Position of obj on axes: x:[%f], y:[%f]", o_pX, o_pY);
+	CSLog(@"Position of obj on axes: x:[%f], y:[%f]", o_pX, o_pY);
 	
 	hypotnuse = sqrt(powf(o_pX, 2) + powf(o_pY, 2));
 	
@@ -191,11 +191,11 @@
 	
 	//theta = fabsf(theta * 180);
 	
-	NSLog(@"Theta: %f", theta);*/
+	CSLog(@"Theta: %f", theta);*/
 	
 	//float u = ([_camera position][2] - coord[2])/([_camera position][2] - 
 	
-	NSLog(@"Adjusted Position of obj on axes: x:[%f], y:[%f]", o_pX, o_pY);
+	CSLog(@"Adjusted Position of obj on axes: x:[%f], y:[%f]", o_pX, o_pY);
 	
 	coord[0] = (o_pX + [_camera position][0]);
 	coord[1] = (o_pY + [_camera position][1]);
@@ -213,7 +213,7 @@
 	/*
 		reflexive *tmpreflex = (reflexive *)_reflexLookup[7];
 	
-		NSLog(@"Vehicle offset: %x, table lookup offset: %x", header.Vehicle.offset, tmpreflex->offset);
+		CSLog(@"Vehicle offset: %x, table lookup offset: %x", header.Vehicle.offset, tmpreflex->offset);
 	*/
 	
 	int i, x, n, sizeChange,
@@ -225,7 +225,7 @@
 			*p_spawns_buf,
 			*mp_flags_buf,
 			*mp_equip_buf;
-	long negativeOffset;
+	int32_t negativeOffset;
 	char *newScnr;
 	reflexive *tmpReflex, *nextReflex;
 	
@@ -234,11 +234,11 @@
 	
 	sizeChange = 0;
 	
-	/*	NSLogs
+	/*	CSLogs
 			
-			//NSLog(@"Reflexive[%d], located at: %x, points to offset: [0x%x]", i, tmpReflex->location_in_mapfile, tmpReflex->offset);
-			//NSLog(@"new chunk count: %d, old chunk count: %d", tmpReflex->newChunkCount, tmpReflex->chunkcount);
-			//NSLog(@"sizechange: %x", (tmpReflex->newChunkCount * tmpReflex->chunkSize));
+			//CSLog(@"Reflexive[%d], located at: %x, points to offset: [0x%x]", i, tmpReflex->location_in_mapfile, tmpReflex->offset);
+			//CSLog(@"new chunk count: %d, old chunk count: %d", tmpReflex->newChunkCount, tmpReflex->chunkcount);
+			//CSLog(@"sizechange: %x", (tmpReflex->newChunkCount * tmpReflex->chunkSize));
 	*/
 	
 	/*
@@ -250,7 +250,7 @@
 			we construct a new scenario pointer (*newScnr) which we'll have point to malloc(scnr_size + sizeChange);
 			Then we proceed to fill this with, first, our scenario header.
 			
-			\\\\ The Scenario header is ALWAYS 0x5B0 long and ends with the skybox tag ref. \\\\
+			\\\\ The Scenario header is ALWAYS 0x5B0 int32_t and ends with the skybox tag ref. \\\\
 			\\\\ There are 79 reflexives that we keep track of in our scenario defs, many of which may need to be updated on a rebuild. \\\\
 		}
 	*/
@@ -281,14 +281,14 @@
 		{
 			OffsetTable[x] = ((tmpReflex->offset * 100) + i);
 			x++;
-			NSLog(@"Tag [%d], offset [%x]", x, tmpReflex->offset);
+			CSLog(@"Tag [%d], offset [%x]", x, tmpReflex->offset);
 			/*
 				Here I am creating the buffers for us to use in copying any sort of swordedit-modified data
 			*/
 			switch (i)
 			{
 				case 3: // Scenery spawns
-					NSLog(@"New chunk count: %d", tmpReflex->newChunkCount);
+					CSLog(@"New chunk count: %d", tmpReflex->newChunkCount);
 					scen_buf = (char *)malloc(tmpReflex->newChunkCount * SCENERY_SPAWN_CHUNK);
 					for (n = 0; n < tmpReflex->newChunkCount; n++)
 					{
@@ -344,7 +344,7 @@
 		}
 	}
 	
-	NSLog(@"Hey again!");
+	CSLog(@"Hey again!");
 	
 	qsort(OffsetTable, x, sizeof(int), compare);
 	
@@ -389,7 +389,7 @@
 		
 		ALL of the reflexives here are clean. That is, they aren't errant pointers so we don't have to run any more checks on them.
 	*/
-	NSLog(@"x: %d", x);
+	CSLog(@"x: %d", x);
 	for (i = 0; i < x; i++)
 	{
 		index = (int)(OffsetTable[i] % 100);
@@ -400,7 +400,7 @@
 		
 		// We do our fun stuff in hur
 		
-		NSLog(@"Sorted index: [%d], _reflexLookup index: [%d], offset: [%x]", i, index, pointerOffset);
+		CSLog(@"Sorted index: [%d], _reflexLookup index: [%d], offset: [%x]", i, index, pointerOffset);
 		
 		switch (index)
 		{
@@ -420,7 +420,7 @@
 				memcpy(&newScnr[tmpReflex->offset], mp_equip_buf, (MP_EQUIP_CHUNK * tmpReflex->newChunkCount));
 				break;*/
 			default: 
-				//NSLog(@"Refleixve offset: %x, and size of chunks: %x", tmpReflex->offset, (nextReflex->offset - tmpReflex->offset));
+				//CSLog(@"Refleixve offset: %x, and size of chunks: %x", tmpReflex->offset, (nextReflex->offset - tmpReflex->offset));
 				if (i < (x - 1))
 					memcpy(&newScnr[tmpReflex->offset], &scnr[tmpReflex->oldOffset], (nextReflex->offset - tmpReflex->offset));
 				else // Copy the rest foo
@@ -464,7 +464,7 @@
 		bufIndex,
 		posCounter = 0;
 	char	*newScnr;
-	long	negativeOffset,
+	int32_t	negativeOffset,
 			cacashit,
 			*hack;
 	
@@ -533,7 +533,7 @@
 					bufIndex = (n * SCENERY_SPAWN_CHUNK);
 					if ([_mapfile isPPC])
 					{
-						hack = (long *)&scen_spawns[n];
+						hack = (int32_t *)&scen_spawns[n];
 						*hack = EndianSwap32(*hack);
 						scen_spawns[n].flag = EndianSwap16(scen_spawns[n].flag);
 						scen_spawns[n].numid = EndianSwap16(scen_spawns[n].numid);
@@ -561,7 +561,7 @@
 					
 					if ([_mapfile isPPC])
 					{
-						hack = (long *)&vehi_spawns[n];
+						hack = (int32_t *)&vehi_spawns[n];
 						*hack = EndianSwap32(*hack);
 						vehi_spawns[n].flag = EndianSwap16(vehi_spawns[n].flag);
 						vehi_spawns[n].numid = EndianSwap16(vehi_spawns[n].numid);
@@ -583,30 +583,30 @@
 					bufIndex = (n * PLAYER_SPAWN_CHUNK);
 					if ([_mapfile isPPC])
 					{
-						hack = (long *)&spawns[n].team_index;
+						hack = (int32_t *)&spawns[n].team_index;
 						*hack = EndianSwap32(*hack);
 						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
 						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
-						hack = (long *)&spawns[n].type1;
+						hack = (int32_t *)&spawns[n].type1;
 						*hack = EndianSwap32(*hack);
 						spawns[n].type1 = EndianSwap16(spawns[n].type1);
 						spawns[n].type2 = EndianSwap16(spawns[n].type2);
-						hack = (long *)&spawns[n].type3;
+						hack = (int32_t *)&spawns[n].type3;
 						spawns[n].type3 = EndianSwap16(spawns[n].type3);
 						spawns[n].type4 = EndianSwap16(spawns[n].type4);
 					}
 					memcpy(&newScnr[tmpReflex->offset + bufIndex], &spawns[n], PLAYER_SPAWN_CHUNK);
 					if ([_mapfile isPPC])
 					{
-						hack = (long *)&spawns[n].team_index;
+						hack = (int32_t *)&spawns[n].team_index;
 						*hack = EndianSwap32(*hack);
 						spawns[n].team_index = EndianSwap16(spawns[n].team_index);
 						spawns[n].bsp_index = EndianSwap16(spawns[n].bsp_index);
-						hack = (long *)&spawns[n].type1;
+						hack = (int32_t *)&spawns[n].type1;
 						*hack = EndianSwap32(*hack);
 						spawns[n].type1 = EndianSwap16(spawns[n].type1);
 						spawns[n].type2 = EndianSwap16(spawns[n].type2);
-						hack = (long *)&spawns[n].type3;
+						hack = (int32_t *)&spawns[n].type3;
 						spawns[n].type3 = EndianSwap16(spawns[n].type3);
 						spawns[n].type4 = EndianSwap16(spawns[n].type4);
 					}
@@ -620,7 +620,7 @@
 					if ([_mapfile isPPC])
 					{
 						// Flip the byte order
-						hack = (long *)&mp_flags[n].type;
+						hack = (int32_t *)&mp_flags[n].type;
 						*hack = EndianSwap32(*hack);
 						mp_flags[n].type = EndianSwap16(mp_flags[n].type);
 						mp_flags[n].team_index = EndianSwap16(mp_flags[n].team_index);
@@ -680,7 +680,7 @@
 	
 	
 	#ifdef __DEBUG__
-	NSLog(@"Address of bsp offset: 0x%x", (header.StructBsp.offset - resolvedOffset));
+	CSLog(@"Address of bsp offset: 0x%x", (header.StructBsp.offset - resolvedOffset));
 	#endif
 	
 	/* Consistency write! */
@@ -689,7 +689,7 @@
 	memcpy(&newScnr[tmpReflex->offset],&scnr[tmpReflex->offset],(([self tagLength] - tmpReflex->offset) - (header.StructBsp.chunkcount * 0x20)));
 	
 	#ifdef __DEBUG__
-	NSLog(@"Final reflexive data: [offset][0x%x] :: [chunkcount][%d]", tmpReflex->offset, tmpReflex->chunkcount);
+	CSLog(@"Final reflexive data: [offset][0x%x] :: [chunkcount][%d]", tmpReflex->offset, tmpReflex->chunkcount);
 	#endif
 	
 	memcpy(&newScnr[header.StructBsp.offset - resolvedOffset],&scnr[header.StructBsp.offset - resolvedOffset],(0x20 * header.StructBsp.chunkcount));

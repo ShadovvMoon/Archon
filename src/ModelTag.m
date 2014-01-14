@@ -24,14 +24,21 @@ CVector3 NewCVector3(float x,float y,float z);
 @implementation ModelTag
 - (id)initWithMapFile:(HaloMap *)map texManager:(TextureManager *)texManager
 {
-	if ((self = [super initWithDataFromFile:map]) != nil)
+    return [self initWithMapFile:map texManager:texManager usingData:nil];
+}
+- (id)initWithMapFile:(HaloMap *)map texManager:(TextureManager *)texManager usingData:(NSData*)data
+{
+    if (!data)
+        self = [super initWithDataFromFile:map];
+    else
+        self = [super initWithData:data withMapfile:map];
+    
+	if (self != nil)
 	{
 		int i, x, j, currentOffset;
-		long ID;
 		Geometry *tmpGeo;
 		
 		_mapfile = [map retain];
-		
 		_texManager = [texManager retain];
 		
 		[_mapfile seekToAddress:resolvedOffset + 48];
@@ -42,22 +49,25 @@ CVector3 NewCVector3(float x,float y,float z);
 		regionRef = [_mapfile readReflexive];
 		reflexive geometryRef = [_mapfile readReflexive];
 		reflexive shaderRef = [_mapfile readReflexive];
-		
 		[_mapfile seekToAddress:regionRef.offset];
 		
 		numRegions = regionRef.chunkcount;
 		
+        BOOL skip = NO;
+        if (skip)
+        {
+            numRegions = 0;
+            regionRef.chunkcount = 0;
+        }
+        
 		regions = (MODEL_REGION *)malloc(regionRef.chunkcount * sizeof(MODEL_REGION));
-		
 		for (i = 0; i < regionRef.chunkcount; i++)
 		{
 			[_mapfile readBlockOfData:&regions[i].Name size_of_buffer:64];
 			
 			regions[i].Permutations = [_mapfile readReflexive];
-			
 			currentOffset = [_mapfile currentOffset];
 			
-            
 			regions[i].modPermutations = (MODEL_REGION_PERMUTATION *)malloc(regions[i].Permutations.chunkcount * sizeof(MODEL_REGION_PERMUTATION));
             [_mapfile seekToAddress:regions[i].Permutations.offset];
 			for (x = 0; x < regions[i].Permutations.chunkcount; x++)
@@ -67,30 +77,47 @@ CVector3 NewCVector3(float x,float y,float z);
 				for (j = 0; j < 5; j++)
                 {
 					[_mapfile readShort:&regions[i].modPermutations[x].LOD_MeshIndex[j]];
-                    //NSLog(@"%@ %d %d %d %d",  [[NSString alloc] initWithCString:regions[i].modPermutations[x].Name  encoding:NSMacOSRomanStringEncoding], i,x, j, (short)regions[i].modPermutations[x].LOD_MeshIndex[j]);
+                    //CSLog(@"%@ %d %d %d %d",  [[NSString alloc] initWithCString:regions[i].modPermutations[x].Name  encoding:NSMacOSRomanStringEncoding], i,x, j, (short)regions[i].modPermutations[x].LOD_MeshIndex[j]);
                 }
 				[_mapfile readBlockOfData:&regions[i].modPermutations[x].Reserved size_of_buffer:14];
 			}
 			[_mapfile seekToAddress:currentOffset];
 		}
+        
 		/* -sword */
 		
 		[_mapfile seekToAddress:geometryRef.offset];
 		
+        if (skip)
+        {
+            geometryRef.chunkcount = 0;
+        }
+        
+        
 		subModels = [[NSMutableArray alloc] initWithCapacity:geometryRef.chunkcount];
 		
-        //NSLog(@"Geometry: %ld", geometryRef.chunkcount);
+        //CSLog(@"Geometry: %ld", geometryRef.chunkcount);
+      
 		for (i = 0; i < geometryRef.chunkcount; i++)
 		{
-            //NSLog(@"Building geometry chunk %d", i);
+            //CSLog(@"Building geometry chunk %d", i);
 			[_mapfile seekToAddress:(geometryRef.offset + (i * 48))];
+            
 			tmpGeo = [[Geometry alloc] initWithMap:_mapfile parent:self];
+            
+            if (tmpGeo)
 			[subModels addObject:tmpGeo];
+            
 			//[tmpGeo release]; //LEAK?
 		}
 		
 		[_mapfile seekToAddress:shaderRef.offset];
 		
+        if (skip)
+        {
+            shaderRef.chunkcount= 0;
+        }
+
 		shaders = [[NSMutableArray alloc] initWithCapacity:shaderRef.chunkcount];
 		shaderTypes = [[NSMutableArray alloc] initWithCapacity:shaderRef.chunkcount];
 		
@@ -98,7 +125,9 @@ CVector3 NewCVector3(float x,float y,float z);
 		{
             TAG_REFERENCE ref = [_mapfile readReference];
 			
-            //NSLog(@"ADDING SHADER: %@", [[NSString alloc] initWithCString:ref.tag length:4]);
+            #ifdef __DEBUG__
+            CSLog(@"ADDING SHADER: %@ 0x%lx", [[NSString alloc] initWithCString:ref.tag length:4], ref.TagId);
+#endif
             
             [shaderTypes addObject:[[NSString alloc] initWithCString:ref.tag length:4]];
             [shaders addObject:[NSNumber numberWithLong:ref.TagId]];
@@ -305,7 +334,7 @@ CVector3 NewCVector3(float x,float y,float z);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glColor4f(1.0f,1.0f,1.0f, 1.0f);
     
-    [self drawAtPoint:pt lod:4 isSelected:NO useAlphas:YES distance:0.0f];
+    [self drawAtPoint:pt lod:4 isSelected:NO useAlphas:YES];
     
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -342,122 +371,87 @@ CVector3 NewCVector3(float x,float y,float z);
 
 }
 
-- (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas
+
+-(void)disableOcclusion
 {
-    [self drawAtPoint:point lod:lod isSelected:isSelected useAlphas:useAlphas distance:0.0];
+    disableOcclusion = YES;
 }
 
-
-- (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas distance:(float)dist
+- (void)drawAtPoint:(float *)point lod:(int)lod isSelected:(BOOL)isSelected useAlphas:(BOOL)useAlphas withCollision:(CollisionTag*)tag
 {
 	int i, x;
-	
-    USEDEBUG NSLog(@"DAP 0");
-    
 	if (bb == NULL)
 		[self determineBoundingBox];
 	
+    if (!disableOcclusion)
+    {
+        id render_view = [[[NSDocumentController sharedDocumentController] currentDocument] renderView];
+        float *camera_position = [render_view getCameraPos];
+        float *camera_view = [render_view getCameraView];
+        
+        float ppvx = camera_view[0] - camera_position[0];
+        float ppvy = camera_view[1] - camera_position[1];
+        float ppvz = camera_view[2] - camera_position[2];
+        
+        float ax = point[0];
+        float ay = point[1];
+        float az = point[2];
+        
+        GLfloat px = camera_position[0]; //camera x
+        GLfloat py = camera_position[1]; //camera y
+        GLfloat pz = camera_position[2]; //camera z
+        
+        float back = -0.5*tan((135/180.0) * M_PI);
+        GLfloat bx = px - back*ppvx;
+        GLfloat by = py - back*ppvy;
+        GLfloat bz = pz - back*ppvz;
+        
+        float d = ppvx*px + ppvy*py + ppvz*pz;
+        
+        float ux = ax-bx;
+        float uy = ay-by;
+        float uz = az-bz;
+        
+        float mue = (ppvx*bx + ppvy*by + ppvz*bz - d)/(-(ppvx*ux+ppvy*uy+ppvz*uz));
+        if (mue <= 0)
+        {
+            return;
+        }
+    }
     
-    USEDEBUG NSLog(@"DAP 1");
 	glPushMatrix();
     glTranslatef(point[0],point[1],point[2]);
-    USEDEBUG NSLog(@"DAP 2");
-    if (isSelected)
-    {
-        if (TRUE)//useNewRenderer())
-        {
-            glDisableClientState(GL_VERTEX_ARRAY);
-            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-            
-            glDisable(GL_TEXTURE_2D);
-            glDisable(GL_BLEND);
-        }
-        
-        float lineLength = 1000.0f/2;
-        
-        glLineWidth(1.0f);
-        glColor4f(5.0f,5.0f,5.0f, 1.0f);
-        glBegin(GL_LINES);
-        {
-            glVertex3f(-lineLength,0.0f,0.0f);
-            glVertex3f(lineLength,0.0f,0.0f);
-            glVertex3f(0.0f,-lineLength,0.0f);
-            glVertex3f(0.0f,lineLength,0.0f);
-            glVertex3f(0.0f,0.0f,-lineLength);
-            glVertex3f(0.0f,0.0f,lineLength);
-        }
-        glEnd();
-        
-        
-        if (TRUE)//useNewRenderer())
-        {
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        }
-        
-    }
-    USEDEBUG NSLog(@"DAP 3");
-    
-    /* Perform rotation */
-    glRotatef(point[5] * (57.29577951), 1, 0, 0);
-    glRotatef(-point[4] * (57.29577951), 0, 1, 0);
-    glRotatef(point[3] * (57.29577951), 0, 0, 1);
-    
-    USEDEBUG NSLog(@"DAP 4");
-    if (bb->max[2]-bb->min[2]<= 0.001)
-    {
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        
-        glColor4f(1.0f, 0.0f, 0.0f, 0.5f);
-        
-        GLUquadric *sphere=gluNewQuadric();
-        gluQuadricDrawStyle( sphere, GLU_FILL);
-        gluQuadricNormals( sphere, GLU_SMOOTH);
-        gluQuadricOrientation( sphere, GLU_OUTSIDE);
-        gluQuadricTexture( sphere, GL_TRUE);
-        
-        gluSphere(sphere,0.05f,10,10);
-        gluDeleteQuadric ( sphere );
-        
-        glDisable(GL_BLEND);
-        
-        glColor3f(1.0f,1.0f,1.0f);
-        glBegin(GL_LINES);
-        {
-            glVertex3f(0.5f,0.0f,0.0f);
-            glVertex3f(0.3f,0.2f,0.0f);
-            glVertex3f(0.5f,0.0f,0.0f);
-            glVertex3f(0.3f,-0.2f,0.0f);
-        }
-        glEnd();
-        
-    }
-    
-    USEDEBUG NSLog(@"DAP 5");
-    
-    
+    glRotatef(point[5] * (57.3), 1.0, 0.0, 0.0);
+    glRotatef(-point[4] * (57.3), 0.0, 1.0, 0.0);
+    glRotatef(point[3] * (57.3), 0.0, 0.0, 1.0);
+    //glScalef(3.0, 3.0, 3.0);
     
     //--------------------------------
     //The copyright for the following code is owned by Samuel Colbran (Samuco).
     //The copyright for other smaller segments that are not identified by these comments are also owned by Samuel Colbran (Samuco).
     //--------------------------------
-    USEDEBUG NSLog(@"DAP 6");
     if (isSelected)
     {
-         if (TRUE)//useNewRenderer())
+        //Turn off all the textures
+        glActiveTexture(GL_TEXTURE0);
+        glDisable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE1);
+        glDisable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE2);
+        glDisable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE3);
+        glDisable(GL_TEXTURE_2D);
+        
+        if (TRUE)//useNewRenderer())
         {
-            USEDEBUG NSLog(@"DAP 7");
             glDisableClientState(GL_VERTEX_ARRAY);
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
             
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_BLEND);
-            USEDEBUG NSLog(@"DAP 8");
         }
         
         glColor4f(1.0f,1.0f,0.0f,1.0f);
-        USEDEBUG NSLog(@"DAP 9");
         if (renderV)
         {
                 if (![renderV isAboveGround:point])
@@ -468,12 +462,8 @@ CVector3 NewCVector3(float x,float y,float z);
         }
         else
             glColor4f(1.0f,1.0f,0.0f,1.0f);
-        USEDEBUG NSLog(@"DAP 10");
-        //isAboveGround
-       
+
         [self drawBoundingBox];
-        USEDEBUG NSLog(@"DAP 11");
-        
         if (renderV)
             glColor4f(1.0f,1.0f,0.0f,1.0f);
         
@@ -482,83 +472,59 @@ CVector3 NewCVector3(float x,float y,float z);
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         }
-        USEDEBUG NSLog(@"DAP 12");
-        
-        
     }
- 
-    USEDEBUG NSLog(@"DAP 13");
-    int z;
+
+    //glUniform3f(global_positionData, point[0],point[1],point[2]);
+    //glUniform3f(global_rotationData, point[3],point[4],point[5]);
+    
+    int index;
     for (i = 0; i < numRegions; i++)
     {
-        USEDEBUG NSLog(@"DAP 14 %d", i);
         for (x = 0; x < regions[i].Permutations.chunkcount; x++)
         {
-            
-            USEDEBUG NSLog(@"DAP 15 %d", x);
-      
-               // NSLog([NSString stringWithCString:regions[i].modPermutations[x].Name encoding:NSUTF8StringEncoding]);
-            
             int g = regions[i].modPermutations[x].Flags[0];
-            if ((g & 0xFF) == 1)
+            if ((g & 0xFF) != 1)
             {
-                USEDEBUG NSLog(@"DAP 16 %d", x);
-                //NSLog([NSString stringWithCString:regions[i].modPermutations[x].Name encoding:NSUTF8StringEncoding]);
-                //continue;
-            }
-            else
-            {
-                USEDEBUG NSLog(@"DAP 17 %d", x);
-                int index;
-                //if (dist < 10.0)
-                    index = regions[i].modPermutations[x].LOD_MeshIndex[4];
-                //else
-                //  index = regions[i].modPermutations[x].LOD_MeshIndex[0];
-                
-                USEDEBUG NSLog(@"DAP 18 %d", x);
+                index = regions[i].modPermutations[x].LOD_MeshIndex[lod];
                 if (index>=[subModels count])
                 {
                     continue;
                 }
-                USEDEBUG NSLog(@"DAP 19 %d", x);
+                
                 id model = [subModels objectAtIndex:index];
                 if (model)
-                {
-                    USEDEBUG NSLog(@"DAP 20 %d", x);
-    #ifdef fasterRendering
-                    glBegin(GL_TRIANGLE_STRIP);
-    #endif
-                    USEDEBUG NSLog(@"DAP 21 %d", x);
-                    [model drawIntoView:useAlphas distance:dist];
-    #ifdef fasterRendering
-                    glEnd();
-                    USEDEBUG NSLog(@"DAP 22 %d", x);
-    #endif
-                }
-                else
-                {
-                    NSLog(@"NO MODEL?");
-                }
+                    [model drawIntoView:useAlphas];
             }
-            
         }
     }
-    USEDEBUG NSLog(@"DAP 23");
-    //END CODE
-    
-    glColor4f(1.0f,1.0f,1.0f, 1.0f);
-    USEDEBUG NSLog(@"DAP 24");
+    glBindVertexArrayAPPLE(0);
 	glPopMatrix();
-    USEDEBUG NSLog(@"DAP 25");
+    
+    if (isSelected || renderCollisionModels)
+    {
+        //Again
+        //Turn off all the textures
+        glActiveTexture(GL_TEXTURE0);
+        glDisable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE1);
+        glDisable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE2);
+        glDisable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE3);
+        glDisable(GL_TEXTURE_2D);
+        
+        if (tag && [tag respondsToSelector:@selector(drawAtPoint:withModel:)])
+            [tag drawAtPoint:point withModel:self];
+    }
 }
 
 - (void)loadAllBitmaps
 {
-    if (!loaded)
-	[subModels makeObjectsPerformSelector:@selector(loadBitmaps)];
-    loaded=TRUE;
+    //if (!loaded)
+        [subModels makeObjectsPerformSelector:@selector(loadBitmaps)];
+    //loaded=TRUE;
 }
-- (long)shaderIdentForIndex:(int)index
+- (int32_t)shaderIdentForIndex:(int)index
 {
 	return [[shaders objectAtIndex:index] longValue];
 }
@@ -568,9 +534,11 @@ CVector3 NewCVector3(float x,float y,float z);
 }
 - (void)drawBoundingBox
 {
+    glUseProgram(0);
     glFlush();
+    glDisable(GL_TEXTURE_2D);
     glLineWidth(1.0f);
-    //glColor4f(1.0f,1.0f,0.0f, 5.0f);
+    glColor4f(1.0f,1.0f,0.0f, 1.0f);
 	glBegin(GL_LINES);
 	    glVertex3f(bb->max[0],bb->max[1],bb->max[2]);
 	    glVertex3f(bb->max[0],bb->max[1],bb->min[2]);
@@ -609,37 +577,38 @@ CVector3 NewCVector3(float x,float y,float z);
 	    glVertex3f(bb->max[0],bb->min[1],bb->min[2]);
 		
 		// Now to try some other stuffs! Bwahaha!
-		//[self drawAxes:TRUE];
+		[self drawAxes:TRUE];
 	glEnd();
-   
+    
+    if (!legacyMode)
+        activateNormalProgram();
 }
 - (void)drawAxes:(BOOL)withPointerArrow
 {
 	// Draw 3 dimensional axes.
 	glLineWidth(2.0f);
-		// x
-		glColor3f(1.0f,0.0f,0.0f);
-		glVertex3f(0.0f,0.0f,0.0f);
-	    glVertex3f(50.0f,0.0f,0.0f);
-		// y
-		glColor3f(0.0f,1.0f,0.0f);
-		glVertex3f(0.0f,0.0f,0.0f);
-		glVertex3f(0.0f,50.0f,0.0f);
-		// z
-		glColor3f(0.0f,0.0f,1.0f);
-		glVertex3f(0.0f,0.0f,0.0f);
-		glVertex3f(0.0f,0.0f,50.0f);
-		
-		if (withPointerArrow)
-		{
-			// pointer arrow
-			glColor3f(1.0f,1.0f,1.0f);
-			glVertex3f(0.5f + bb->max[0],0.0f,0.0f);
-			glVertex3f(0.3f + bb->max[0],0.2f,0.0f);
-			glVertex3f(0.5f + bb->max [0],0.0f,0.0f);
-			glVertex3f(0.3f + bb->max[0],-0.2f,0.0f);
-		}
-    glEnd();
+    // x
+    glColor3f(1.0f,1.0f,1.0f);
+    glVertex3f(-50.0f,0.0f,0.0f);
+    glVertex3f(50.0f,0.0f,0.0f);
+    // y
+    glColor3f(1.0f,1.0f,1.0f);
+    glVertex3f(0.0f,-50.0f,0.0f);
+    glVertex3f(0.0f,50.0f,0.0f);
+    // z
+    glColor3f(1.0f,1.0f,1.0f);
+    glVertex3f(0.0f,0.0f,-50.0f);
+    glVertex3f(0.0f,0.0f,50.0f);
+    
+    if (withPointerArrow)
+    {
+        // pointer arrow
+        glColor3f(1.0f,1.0f,1.0f);
+        glVertex3f(0.5f + bb->max[0],0.0f,0.0f);
+        glVertex3f(0.3f + bb->max[0],0.2f,0.0f);
+        glVertex3f(0.5f + bb->max [0],0.0f,0.0f);
+        glVertex3f(0.3f + bb->max[0],-0.2f,0.0f);
+    }
 }
 - (TextureManager *)_texManager
 {
@@ -647,6 +616,7 @@ CVector3 NewCVector3(float x,float y,float z);
 }
 - (void)renderPartyTriangle
 {
+    #ifdef IMMEDIATE_MODE
 	glBegin( GL_TRIANGLES );              // Draw a triangle
 		glColor3f( 1.0f, 0.0f, 0.0f );        // Set color to red
 		glVertex3f(  0.0f,  1.0f, 0.0f );     // Top of front
@@ -676,10 +646,10 @@ CVector3 NewCVector3(float x,float y,float z);
 		glColor3f( 0.0f, 1.0f, 0.0f );        // Green
 		glVertex3f( -1.0f, -1.0f, 1.0f );     // Right of left side
 	glEnd();  // Done with triangle
-
+#endif
+    
 }
 @synthesize _mapfile;
-@synthesize _texManager;
 @synthesize subModels;
 @synthesize shaders;
 @synthesize u_scale;
