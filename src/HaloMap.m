@@ -487,7 +487,7 @@ int comp(const int32_t *a, const int32_t *b)
         tagFastArray[i] = [tempTag idOfTag];
         //[tagIdArray addObject:[NSNumber numberWithLong:[tempTag idOfTag]]];
     
-		if (memcmp([tempTag tagClassHigh], (isPPC ? "scnr" : "rncs"), 4) == 0)
+		if (i == (indexHead.starting_id & 0xFFFF))
 		{
 			[self skipBytes:IndexTagSize];
 			scenario_offset = [self currentOffset];
