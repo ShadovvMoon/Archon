@@ -39,9 +39,6 @@
 		mapName = @"";
 		bitmapFilePath = [bitmaps retain];
         
-        // Quick hack
-        isPPC = NO;
-        
         globalMapSize = [map_data length];
         map_memory = malloc(globalMapSize);
         memcpy(map_memory, [map_data bytes], globalMapSize);
@@ -60,9 +57,9 @@
 	return self;
 }
 - (void)destroy
-{	
+{
 	[self closeMap];
-
+    
 	[tagArray removeAllObjects];
 	[tagLookupDict removeAllObjects];
 	[itmcList removeAllObjects];
@@ -98,29 +95,21 @@
 }
 - (void)dealloc
 {
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	CSLog(@"Mapfile deallocating!");
-	#endif
+#endif
 	
 	[super dealloc];
 }
-- (BOOL)checkIsPPC
-{
-    return NO;
-#ifdef MACVERSION
-	return (CFByteOrderGetCurrent() == CFByteOrderBigEndian);
-#endif
-   return NO;
-}
 /*
-	@function loadMap, the actual map-loading function for the HaloMap class.
-	
-	Returns in the following manner:
-		0 = successful load
-		1 = lol dongs?
-		2 = The map name is invalid
-		3 = Could not open map
-*/
+ @function loadMap, the actual map-loading function for the HaloMap class.
+ 
+ Returns in the following manner:
+ 0 = successful load
+ 1 = lol dongs?
+ 2 = The map name is invalid
+ 3 = Could not open map
+ */
 
 -(ModelTag*)bipd
 {
@@ -137,11 +126,11 @@
 int comp(const int32_t *a, const int32_t *b)
 {
     if (*a == *b)
-        return 0;
+    return 0;
     else if (*a < *b)
-        return -1;
+    return -1;
     else
-        return 1;
+    return 1;
 }
 -(void)setVertexSize:(float)size
 {
@@ -178,8 +167,6 @@ int comp(const int32_t *a, const int32_t *b)
 }
 -(int)readMap
 {
-    // Quick hack
-	isPPC = NO;
 	
 	// Use this for computing the tag location, mmk?
 	if (mapName == nil)
@@ -216,7 +203,7 @@ int comp(const int32_t *a, const int32_t *b)
 - (int)loadMap
 {
     if (!dataReading && mapFile == NULL)
-        return 2;
+    return 2;
     
     //CSLog(bitmapFilePath);
 	
@@ -231,13 +218,11 @@ int comp(const int32_t *a, const int32_t *b)
 	//#endif
 	
 	/* LETS SEE WHAT DIS IS */
-	isPPC = [self checkIsPPC];
 	/* SO IS IT PPC OR NOT?! */
 	
 	// Reload the map header
 	[self readint32_tAtAddress:&mapHeader.map_id address:0x0];
 	
-	BOOL tmpPPC = isPPC;
 	
 	int super_mode = 0;
     int32_t mapLocation;
@@ -245,10 +230,8 @@ int comp(const int32_t *a, const int32_t *b)
 	if (mapHeader.map_id == 0x18309 || mapHeader.map_id == 50028 || mapHeader.map_id == 0x0 || super_mode)
 	{
 		mapHeader.version = 0x06000000;
-		isPPC = NO;
 		[self readBlockOfDataAtAddress:&mapHeader.builddate size_of_buffer:0x20 address:0x2C8]; // Map seeked to 0x2C4 now.
 		[self readBlockOfDataAtAddress:&mapHeader.name size_of_buffer:0x20 address:0x58C];
-		isPPC = tmpPPC;
 		[self readint32_tAtAddress:&mapHeader.map_length address:0x5E8];
 		[self readint32_t:&mapHeader.offsetToIndex];
 		mapHeader.maptype = 0x01000000;
@@ -261,7 +244,7 @@ int comp(const int32_t *a, const int32_t *b)
         
         mapLocation = [self currentOffset];
         
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"INDEX OFFSET LOCATION 0x%lx", mapLocation);
 #endif
         
@@ -272,27 +255,23 @@ int comp(const int32_t *a, const int32_t *b)
         {
             [self skipBytes:396];
             
-            isPPC = NO;
             [self readBlockOfData:&mapHeader.name size_of_buffer:0x20];
             [self readBlockOfData:&mapHeader.builddate size_of_buffer:0x20];
-            isPPC = tmpPPC;
             [self readint32_t:&mapHeader.maptype];
             
         }
         else //Halo 1
         {
             [self skipBytes:8];
-        
-            isPPC = NO;
+            
             [self readBlockOfData:&mapHeader.name size_of_buffer:0x20];
             [self readBlockOfData:&mapHeader.builddate size_of_buffer:0x20];
-            isPPC = tmpPPC;
             [self readint32_t:&mapHeader.maptype];
         }
         
 	}
 	
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	CSLog(@"File Header Version: 0x%x", mapHeader.version);
 	CSLog(@"File Length: 0x%x", mapHeader.map_length);
 	CSLog(@"Offset To Index: 0x%x", mapHeader.offsetToIndex);
@@ -301,7 +280,7 @@ int comp(const int32_t *a, const int32_t *b)
     
 	CSLog(@"File Name: %s \n", (char *)mapHeader.name);
 	CSLog(@"Build Date: %s \n", (char *)mapHeader.builddate);
-	#endif
+#endif
     
     if (mapHeader.version == 8) //Halo 2
     {
@@ -323,13 +302,13 @@ int comp(const int32_t *a, const int32_t *b)
         
         mapLocation = [self currentOffset];
         
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"TAG COUNT COUNT 0x%lx", mapLocation);
 #endif
         
         [self readint32_t:&indexHead.tagcount];
         
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"TAG COUNT %ld", indexHead.tagcount);
 #endif
         
@@ -338,7 +317,7 @@ int comp(const int32_t *a, const int32_t *b)
         
         mapLocation = [self currentOffset];
         
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"INDEX COUNT 0x%lx", mapLocation);
 #endif
         
@@ -349,16 +328,16 @@ int comp(const int32_t *a, const int32_t *b)
     }
 	
     /*
-    CSLog(@"Offset To Index: 0x%x", mapHeader.offsetToIndex);
-	CSLog(@"Tag count: %d", indexHead.tagcount);
-	CSLog(@"Tag starting id: 0x%x", indexHead.starting_id);
-    CSLog(@"Tag starting: %d", indexHead.tagstart);
-    */
+     CSLog(@"Offset To Index: 0x%x", mapHeader.offsetToIndex);
+     CSLog(@"Tag count: %d", indexHead.tagcount);
+     CSLog(@"Tag starting id: 0x%x", indexHead.starting_id);
+     CSLog(@"Tag starting: %d", indexHead.tagstart);
+     */
     
     
 	_magic = (indexHead.indexMagic - (mapHeader.offsetToIndex + 40));
 	
-	#ifdef __DEBUG__
+#ifdef __DEBUG__
 	CSLog(@"Magic: [0x%x]", _magic);
     CSLog(@"Index Offset: [0x%x]", mapHeader.offsetToIndex);
     
@@ -372,7 +351,7 @@ int comp(const int32_t *a, const int32_t *b)
     
     
 	printf("\n");
-	#endif
+#endif
     
     
 	//0x1400000
@@ -392,17 +371,17 @@ int comp(const int32_t *a, const int32_t *b)
         newOffset = someOffset;
     }
     
-
+    
     [self seekToAddress:newOffset];
     
-    #ifdef __DEBUG__
+#ifdef __DEBUG__
     CSLog(@"NEW OFFSET 0x%lx", newOffset);
 #endif
     
 	// Now lets create and load our tag arrays
     originalTagCount = indexHead.tagcount;
     
-    #ifdef __DEBUG__
+#ifdef __DEBUG__
     CSLog(@"Capacity3 %ld 0x%lx", indexHead.tagcount);
     
 #endif
@@ -410,7 +389,7 @@ int comp(const int32_t *a, const int32_t *b)
 	tagArray = [[NSMutableArray alloc] initWithCapacity:indexHead.tagcount];
 	tagLookupDict = [[NSMutableDictionary alloc] initWithCapacity:indexHead.tagcount];
     
-    #ifdef __DEBUG__
+#ifdef __DEBUG__
 	CSLog(@"Capacity2");
 #endif
     
@@ -422,23 +401,23 @@ int comp(const int32_t *a, const int32_t *b)
 	MapTag *tempTag;
 	
 	int i,
-		vehi_count = 0,
-		scen_count = 0,
-		itmc_count = 0,
-		mach_count = 0,
-		mod2_count = 0,
-        coll_count = 0,
-		bitm_count = 0,
-		nextOffset,
-		scenario_offset,
-		globals_offset,
-		itmc_counter = 0,
-		scen_counter = 0,
-		mod2_counter = 0,
-        coll_counter = 0,
-		bitm_counter = 0,
-		mach_counter = 0;
-		
+    vehi_count = 0,
+    scen_count = 0,
+    itmc_count = 0,
+    mach_count = 0,
+    mod2_count = 0,
+    coll_count = 0,
+    bitm_count = 0,
+    nextOffset,
+    scenario_offset,
+    globals_offset,
+    itmc_counter = 0,
+    scen_counter = 0,
+    mod2_counter = 0,
+    coll_counter = 0,
+    bitm_counter = 0,
+    mach_counter = 0;
+    
 	NSMutableArray *mach_offsets = [[NSMutableArray alloc] init];
 	plugins = [[NSMutableArray alloc] init];
     //tagIdArray = [[NSMutableArray alloc] init];
@@ -457,12 +436,12 @@ int comp(const int32_t *a, const int32_t *b)
 		tempTag = [[MapTag alloc] initWithDataFromFile:self];
 		nextOffset = [self currentOffset];
 		
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"%d/%ld %.4s %@ 0x%lx 0x%lx 0x%lx", i, indexHead.tagcount, [tempTag tagClassHigh], [tempTag tagName], [tempTag offsetInMap], tagLocation, [self _magic]);
 #endif
         
 		//CSLog(@"Tag name: %@, id: 0x%x, offset in map: 0x%x offset in mapfile: 0x%x  %@", [tempTag tagName], [tempTag idOfTag], [tempTag offsetInMap],[self currentOffset], [NSString stringWithCString:[tempTag tagClassHigh] encoding:NSMacOSRomanStringEncoding]);
-	
+        
 		if (i != 0)//Surely theres a better methid?
         {
             
@@ -473,20 +452,20 @@ int comp(const int32_t *a, const int32_t *b)
                 //[[tagArray objectAtIndex:(i -1)] setTagLength:([[tagArray objectAtIndex:(i - 1)] offsetInMap]-[tempTag offsetInMap])];
             }
             else
-                [[tagArray objectAtIndex:(i -1)] setTagLength:([tempTag offsetInMap] - [[tagArray objectAtIndex:(i - 1)] offsetInMap])];
+            [[tagArray objectAtIndex:(i -1)] setTagLength:([tempTag offsetInMap] - [[tagArray objectAtIndex:(i - 1)] offsetInMap])];
 		}
         
-      
+        
         memcpy(cleaned, [tempTag tagClassHigh], 4);
         
         NSString *cleanedStr = [NSString stringWithCString:cleaned encoding:NSMacOSRomanStringEncoding];
         
         if (cleanedStr)
-            [plugins addObject:cleanedStr];
+        [plugins addObject:cleanedStr];
         
         tagFastArray[i] = [tempTag idOfTag];
         //[tagIdArray addObject:[NSNumber numberWithLong:[tempTag idOfTag]]];
-    
+        
 		if (i == (indexHead.starting_id & 0xFFFF))
 		{
 			[self skipBytes:IndexTagSize];
@@ -496,7 +475,7 @@ int comp(const int32_t *a, const int32_t *b)
             scnrTag = [tagArray count]-1;
 			[self seekToAddress:nextOffset];
 		}
-		else if (memcmp([tempTag tagClassHigh], (isPPC ? "matg" : "gtam"), 4) == 0)
+		else if (memcmp([tempTag tagClassHigh], "gtam", 4) == 0)
 		{
 			//CSLog(@"GLOBALS ARRAY");
 			[self skipBytes:IndexTagSize];
@@ -506,15 +485,15 @@ int comp(const int32_t *a, const int32_t *b)
 			[self seekToAddress:nextOffset];
 		}
         /*
-        else if (memcmp([tempTag tagClassHigh], (isPPC ? "bipd" : "dpib"), 4) == 0)
-		{
-            [self skipBytes:IndexTagSize];
-			scenario_offset = [self currentOffset];
-			// I'll load the scenario later
-			[tagArray addObject:tempTag];
-			[self seekToAddress:nextOffset];
-        }*/
-		else if (memcmp([tempTag tagClassHigh], (isPPC ? "mod2" : "2dom"), 4) == 0)
+         else if (memcmp([tempTag tagClassHigh], (isPPC ? "bipd" : "dpib"), 4) == 0)
+         {
+         [self skipBytes:IndexTagSize];
+         scenario_offset = [self currentOffset];
+         // I'll load the scenario later
+         [tagArray addObject:tempTag];
+         [self seekToAddress:nextOffset];
+         }*/
+		else if (memcmp([tempTag tagClassHigh], "2dom", 4) == 0)
 		{
 			[self skipBytes:IndexTagSize];
 			ModelTag *tempModel = [[ModelTag alloc] initWithMapFile:self texManager:_texManager];
@@ -522,7 +501,7 @@ int comp(const int32_t *a, const int32_t *b)
 			mod2_count++;
 			[self seekToAddress:nextOffset];
 		}
-        else if (memcmp([tempTag tagClassHigh], (isPPC ? "coll" : "lloc"), 4) == 0)
+        else if (memcmp([tempTag tagClassHigh], "lloc", 4) == 0)
 		{
 			[self skipBytes:IndexTagSize];
 			CollisionTag *tempModel = [[CollisionTag alloc] initWithMapFile:self];
@@ -530,28 +509,28 @@ int comp(const int32_t *a, const int32_t *b)
 			coll_count++;
 			[self seekToAddress:nextOffset];
 		}
-		else if (memcmp([tempTag tagClassHigh], (isPPC ? "bitm" : "mtib"), 4) == 0)
+		else if (memcmp([tempTag tagClassHigh], "mtib", 4) == 0)
 		{
 			[self skipBytes:IndexTagSize];
             
 			BitmapTag *tempBitmap = [[BitmapTag alloc] initWithMapFiles:self
-														bitmap:bitmapsFile
-														ppc:isPPC];
+                                                                 bitmap:bitmapsFile
+                                                                    ppc:NO];
             
             
-    
-                [tagArray addObject:tempBitmap];
-                [tempBitmap release];
-                    
-                // Increment our counter
-                bitm_count++;
-          
+            
+            [tagArray addObject:tempBitmap];
+            [tempBitmap release];
+            
+            // Increment our counter
+            bitm_count++;
+            
 			
 			
 			
 			[self seekToAddress:nextOffset];
 		}
-		else if (memcmp([tempTag tagClassHigh], (isPPC ? "mach" : "hcam"), 4) == 0)
+		else if (memcmp([tempTag tagClassHigh], "hcam", 4) == 0)
 		{
 			mach_count++;
 			[tagArray addObject:tempTag];
@@ -562,15 +541,15 @@ int comp(const int32_t *a, const int32_t *b)
 		}
 		else
 		{
-			if (memcmp([tempTag tagClassHigh], (isPPC ? "vehi" : "ihev"), 4) == 0)
+			if (memcmp([tempTag tagClassHigh], "ihev", 4) == 0)
 			{
 				vehi_count++;
 			}
-			else if (memcmp([tempTag tagClassHigh], (isPPC ? "scen" : "necs"), 4) == 0)
+			else if (memcmp([tempTag tagClassHigh], "necs", 4) == 0)
 			{
 				scen_count++;
 			}
-			else if (memcmp([tempTag tagClassHigh], (isPPC ? "itmc" : "cmti"), 4) == 0)
+			else if (memcmp([tempTag tagClassHigh], "cmti", 4) == 0)
 			{
 				itmc_count++;
 			}
@@ -586,14 +565,14 @@ int comp(const int32_t *a, const int32_t *b)
 		
 		// Now we release our temporary tag
 		if (r)
-			[tempTag release];
+        [tempTag release];
 	}
-
+    
     //Sort the array. Used for rapid tag extraction.
     qsort(tagFastArray, indexHead.tagcount, sizeof(int32_t), comp);
     tagArraySize = indexHead.tagcount;
     
-    #ifdef __DEBUG__
+#ifdef __DEBUG__
     CSLog(@"Capacity1");
 #endif
     
@@ -614,8 +593,8 @@ int comp(const int32_t *a, const int32_t *b)
 	machLookupDict = [[NSMutableDictionary alloc] initWithCapacity:itmc_count];
 	NSMutableArray* bipdList = [[NSMutableArray alloc] initWithCapacity:itmc_count];
 	/*
-		Second pass here to create some arrays
-	*/
+     Second pass here to create some arrays
+     */
 	[self seekToAddress:(mapHeader.offsetToIndex + 0x28)];
     CSLog(@"Loaded tag array");
     
@@ -627,32 +606,32 @@ int comp(const int32_t *a, const int32_t *b)
         
 		tempTag = [[MapTag alloc] initWithDataFromFile:self];
 		
-		if (memcmp([tempTag tagClassHigh],(isPPC ? "itmc" : "cmti"),4) == 0)
+		if (memcmp([tempTag tagClassHigh],"cmti",4) == 0)
 		{
 			[itmcLookupDict setObject:[NSNumber numberWithLong:[tempTag idOfTag]] forKey:[NSNumber numberWithInt:itmc_counter]];
 			[itmcList addObject:[tempTag tagName]];
 			itmc_counter++;
 		}
-		else if (memcmp([tempTag tagClassHigh],(isPPC ? "mach" : "hcam"),4) == 0)
+		else if (memcmp([tempTag tagClassHigh],"hcam",4) == 0)
 		{
 			[machLookupDict setObject:[NSNumber numberWithLong:[tempTag idOfTag]] forKey:[NSNumber numberWithInt:mach_counter]];
 			[machList addObject:[tempTag tagName]];
 			mach_counter++;
 			r=0;
 		}
-        else if (memcmp([tempTag tagClassHigh], (isPPC ? "bipd" : "dpib"), 4) == 0)
+        else if (memcmp([tempTag tagClassHigh], "dpib", 4) == 0)
         {
             [tempTag retain];
             [bipdList addObject:tempTag];
         }
-		else if (memcmp([tempTag tagClassHigh], (isPPC ? "scen" : "necs"), 4) == 0)
+		else if (memcmp([tempTag tagClassHigh], "necs", 4) == 0)
 		{
 			[scenLookupDict setObject:[NSNumber numberWithLong:[tempTag idOfTag]] forKey:[NSNumber numberWithInt:scen_counter]];
 			[scenNameLookupDict setObject:[NSNumber numberWithLong:[tempTag idOfTag]] forKey:[tempTag tagName]];
 			[scenList addObject:[tempTag tagName]];
 			scen_counter++;
 		}
-		else if (memcmp([tempTag tagClassHigh], (isPPC ? "mod2" : "2dom"), 4) == 0)
+		else if (memcmp([tempTag tagClassHigh], "2dom", 4) == 0)
 		{
             NSNumber *idOfTag = [NSNumber numberWithLong:(long)[tempTag idOfTag]];
             NSNumber *key = [NSNumber numberWithInt:mod2_counter];
@@ -661,7 +640,7 @@ int comp(const int32_t *a, const int32_t *b)
 			[modTagList addObject:[tempTag tagName]];
 			mod2_counter++;
 		}
-        else if (memcmp([tempTag tagClassHigh], (isPPC ? "coll" : "lloc"), 4) == 0)
+        else if (memcmp([tempTag tagClassHigh], "lloc", 4) == 0)
 		{
             NSNumber *idOfTag = [NSNumber numberWithLong:(long)[tempTag idOfTag]];
             NSNumber *key = [NSNumber numberWithInt:mod2_counter];
@@ -670,14 +649,14 @@ int comp(const int32_t *a, const int32_t *b)
 			//[modTagList addObject:[tempTag tagName]];
 			coll_counter++;
 		}
-		else if (memcmp([tempTag tagClassHigh], (isPPC ? "bitm" : "mtib"), 4) == 0)
+		else if (memcmp([tempTag tagClassHigh], "mtib", 4) == 0)
 		{
 			[bitmTagLookupDict setObject:[NSNumber numberWithLong:[tempTag idOfTag]] forKey:[NSNumber numberWithInt:bitm_counter]];
 			[bitmTagList addObject:[tempTag tagName]];
 			
             if (i < [tagArray count])
             {
-                #ifdef __DEBUG__
+#ifdef __DEBUG__
                 CSLog(@"BITMAP %@ %ld", [[tagArray objectAtIndex:i] tagName], tagOffset);
 #endif
                 
@@ -688,11 +667,11 @@ int comp(const int32_t *a, const int32_t *b)
 		}
 		
 		if (r)
-			[tempTag release];
+        [tempTag release];
 	}
     CSLog(@"Loaded tags");
     
-
+    
     //Third pass
     int32_t current = [self currentOffset];
     int g;
@@ -700,7 +679,7 @@ int comp(const int32_t *a, const int32_t *b)
 	{
 		tempTag = [bipdList objectAtIndex:g];
 		
-        if (memcmp([tempTag tagClassHigh], (isPPC ? "bipd" : "dpib"), 4) == 0)
+        if (memcmp([tempTag tagClassHigh], "dpib", 4) == 0)
         {
             
             int32_t modelOffset =  [tempTag offsetInMap] + 0x28;
@@ -711,7 +690,7 @@ int comp(const int32_t *a, const int32_t *b)
             ModelTag*tag = (ModelTag *)[self tagForId:ref.TagId];
             
             if ([tag respondsToSelector:@selector(loadAllBitmaps)])
-                [tag loadAllBitmaps];
+            [tag loadAllBitmaps];
             
             bipd = tag; //0x28
             [bipd retain];
@@ -733,13 +712,13 @@ int comp(const int32_t *a, const int32_t *b)
     USEDEBUG CSLog(@"Tag count: %d", [tagArray count]);
     USEDEBUG CSLog(@"%d", [[tagArray objectAtIndex:scnrTag] tagLength]);
 	[mapScenario setTagLength:[[tagArray objectAtIndex:scnrTag] tagLength]];
-
+    
 #ifdef __DEBUG__
 	if ([mapScenario loadScenario])
-		CSLog(@"Scenario Loaded!");
-	#else
+    CSLog(@"Scenario Loaded!");
+#else
 	[mapScenario loadScenario];
-	#endif
+#endif
 	[mapScenario pairModelsWithSpawn];
 	[tagArray replaceObjectAtIndex:0 withObject:mapScenario];
 	CSLog(@"Loaded bitmaps");
@@ -758,7 +737,7 @@ int comp(const int32_t *a, const int32_t *b)
 		int response = NSRunAlertPanel(@"Machines detected", @"Swordedit has detected machinery tags which are not referenced in the scenario. Would you like to rebuild references?", @"No", @"OK", nil);
 		if (response != NSOKButton)
 		{
-		
+            
 			[mapScenario resetMachineReferences];
 			
 			CSLog(@"CREATING MACHINE REFERENCES");
@@ -790,13 +769,13 @@ int comp(const int32_t *a, const int32_t *b)
 	
 	
 	/*CSLog(@"BSPs are loaded!");
-	printf("\n");
-	
-	CSLog(@"Scenery spawn count: %d", [mapScenario scenery_spawn_count]);
-	CSLog(@"Vehicle spawn count: %d", [mapScenario vehicle_spawn_count]);
-	CSLog(@"Item spawn count: %d", [mapScenario item_spawn_count]);
-	CSLog(@"Player spawn count: %d", [mapScenario player_spawn_count]);
-	CSLog(@"Machine spawn count: %d", [mapScenario mach_spawn_count]);*/
+     printf("\n");
+     
+     CSLog(@"Scenery spawn count: %d", [mapScenario scenery_spawn_count]);
+     CSLog(@"Vehicle spawn count: %d", [mapScenario vehicle_spawn_count]);
+     CSLog(@"Item spawn count: %d", [mapScenario item_spawn_count]);
+     CSLog(@"Player spawn count: %d", [mapScenario player_spawn_count]);
+     CSLog(@"Machine spawn count: %d", [mapScenario mach_spawn_count]);*/
     
     
 	//CSLog([machLookupDict description]);
@@ -819,59 +798,59 @@ int comp(const int32_t *a, const int32_t *b)
     else
     {
         
-    
-    //New object images
-    //Generate a 128x128 image for this object.
-    [[NSFileManager defaultManager] removeItemAtPath:@"/tmp/Archon/scen" error:nil];
-    [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/Archon/scen" withIntermediateDirectories:YES attributes:Nil error:nil];
-    [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/Archon/vehi" withIntermediateDirectories:YES attributes:Nil error:nil];
-    [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/Archon/mach" withIntermediateDirectories:YES attributes:Nil error:nil];
-    
-    int m;
-    for (m=0; m < [mapScenario scen_ref_count]; m++)
-    {
-        NSString *name = [[self tagForId:[mapScenario scen_references][m].scen_ref.TagId] tagName];
-        int32_t modelIdent = [mapScenario baseModelIdent:[mapScenario scen_references][m].scen_ref.TagId];
-        ModelTag *model = [self tagForId:modelIdent];
         
-        if ([model respondsToSelector:@selector(generateImage:)])
-        [model generateImage:[NSString stringWithFormat:@"/tmp/Archon/scen/%@.tiff", name]];
-    }
-    
-    for (m=0; m < [mapScenario vehi_ref_count]; m++)
-    {
-        NSString *name = [[self tagForId:[mapScenario vehi_references][m].vehi_ref.TagId] tagName];
-        int32_t modelIdent = [mapScenario baseModelIdent:[mapScenario vehi_references][m].vehi_ref.TagId];
-        ModelTag *model = [self tagForId:modelIdent];
+        //New object images
+        //Generate a 128x128 image for this object.
+        [[NSFileManager defaultManager] removeItemAtPath:@"/tmp/Archon/scen" error:nil];
+        [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/Archon/scen" withIntermediateDirectories:YES attributes:Nil error:nil];
+        [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/Archon/vehi" withIntermediateDirectories:YES attributes:Nil error:nil];
+        [[NSFileManager defaultManager] createDirectoryAtPath:@"/tmp/Archon/mach" withIntermediateDirectories:YES attributes:Nil error:nil];
         
-        if ([model respondsToSelector:@selector(generateImage:)])
-        [model generateImage:[NSString stringWithFormat:@"/tmp/Archon/vehi/%@.tiff", name]];
-    }
-    
-    for (m=0; m < [mapScenario mach_ref_count]; m++)
-    {
-        NSString *name = [[self tagForId:[mapScenario mach_references][m].machTag.TagId] tagName];
-        int32_t modelIdent = [mapScenario baseModelIdent:[mapScenario mach_references][m].machTag.TagId];
-        ModelTag *model = [self tagForId:modelIdent];
+        int m;
+        for (m=0; m < [mapScenario scen_ref_count]; m++)
+        {
+            NSString *name = [[self tagForId:[mapScenario scen_references][m].scen_ref.TagId] tagName];
+            int32_t modelIdent = [mapScenario baseModelIdent:[mapScenario scen_references][m].scen_ref.TagId];
+            ModelTag *model = [self tagForId:modelIdent];
+            
+            if ([model respondsToSelector:@selector(generateImage:)])
+            [model generateImage:[NSString stringWithFormat:@"/tmp/Archon/scen/%@.tiff", name]];
+        }
         
-        if ([model respondsToSelector:@selector(generateImage:)])
-        [model generateImage:[NSString stringWithFormat:@"/tmp/Archon/mach/%@.tiff", name]];
-    }
-    
-    [renderV updateObjectTable];
-    CSLog(@"Generated images");
-    
+        for (m=0; m < [mapScenario vehi_ref_count]; m++)
+        {
+            NSString *name = [[self tagForId:[mapScenario vehi_references][m].vehi_ref.TagId] tagName];
+            int32_t modelIdent = [mapScenario baseModelIdent:[mapScenario vehi_references][m].vehi_ref.TagId];
+            ModelTag *model = [self tagForId:modelIdent];
+            
+            if ([model respondsToSelector:@selector(generateImage:)])
+            [model generateImage:[NSString stringWithFormat:@"/tmp/Archon/vehi/%@.tiff", name]];
+        }
+        
+        for (m=0; m < [mapScenario mach_ref_count]; m++)
+        {
+            NSString *name = [[self tagForId:[mapScenario mach_references][m].machTag.TagId] tagName];
+            int32_t modelIdent = [mapScenario baseModelIdent:[mapScenario mach_references][m].machTag.TagId];
+            ModelTag *model = [self tagForId:modelIdent];
+            
+            if ([model respondsToSelector:@selector(generateImage:)])
+            [model generateImage:[NSString stringWithFormat:@"/tmp/Archon/mach/%@.tiff", name]];
+        }
+        
+        [renderV updateObjectTable];
+        CSLog(@"Generated images");
+        
     }
 	//CSLog(@"LOGGING THE TARG INFO");
 	//CSLog([tagArray description]);
-
+    
     CSLog(@"Finished reading");
 	return 0;
 }
 
 -(void)rebuildTagArrayToPath:(NSString*)filename withDataAtIndexes:(int32_t*)insertEnd lengths:(int32_t*)dataLength offsets:(int)tagdatacount flipped:(BOOL)isFlipped isChangingData:(BOOL)changingIndex
 {
-    #ifdef __DEBUG__
+#ifdef __DEBUG__
     CSLog(@"REBUILDING TAG ARRAY");
     CSLog(@"%ld %d", indexHead.tagcount, [tagArray count]);
 #endif
@@ -887,12 +866,12 @@ int comp(const int32_t *a, const int32_t *b)
         mapSize+=dataLength[g];
         
         if (globalScenarioOffset > insertEnd[g])
-            globalScenarioOffset += dataLength[g];
+        globalScenarioOffset += dataLength[g];
         
         
         total_new_data+=dataLength[g];
     }
-
+    
     [self writeint32_tAtAddress:(int32_t*)(&mapSize) address:0x8];
     
     //Increase metadata size
@@ -901,24 +880,24 @@ int comp(const int32_t *a, const int32_t *b)
         int32_t metaSize;
         [self readint32_tAtAddress:&metaSize address:20];
         
-            int g;
-            for (g=0; g < tagdatacount; g++)
-            {
-                metaSize+=dataLength[g];
-            }
-            
+        int g;
+        for (g=0; g < tagdatacount; g++)
+        {
+            metaSize+=dataLength[g];
+        }
+        
         [self writeint32_tAtAddress:(int32_t*)(&metaSize) address:20];
     }
     
     
     int i;
     int itemtagLength = 32;
-
+    
     //------------------------------------------------------------------------------------------
     // Updates the index offsets if any data is written before them. Also updates the tag totals
     //------------------------------------------------------------------------------------------
-
-    #ifdef __DEBUG__
+    
+#ifdef __DEBUG__
     CSLog(@"Writing new tag count");
 #endif
     
@@ -926,14 +905,14 @@ int comp(const int32_t *a, const int32_t *b)
     
     int32_t offsetToIndex;
     [self readint32_tAtAddress:&offsetToIndex address:0x10];
-        
+    
     int32_t oldIndexOffset = offsetToIndex;
     
     
     if (!isFlipped)
     {
         
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"Original offset 0x%lx", offsetToIndex);
 #endif
         
@@ -946,7 +925,7 @@ int comp(const int32_t *a, const int32_t *b)
                 [self writeint32_tAtAddress:(int32_t*)(&offsetToIndex) address:0x10];
             }
         }
-
+        
         mapHeader.offsetToIndex = offsetToIndex;
         
         int32_t newData = 0;
@@ -955,7 +934,7 @@ int comp(const int32_t *a, const int32_t *b)
             newData+=dataLength[g];
         }
         
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"Total new data: %ld", newData);
         CSLog(@"New offset 0x%lx", offsetToIndex);
 #endif
@@ -967,9 +946,9 @@ int comp(const int32_t *a, const int32_t *b)
         int32_t newCount = [tagArray count];
         [self writeint32_tAtAddress:(int32_t*)(&newCount) address:mapHeader.offsetToIndex+12];
         
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"Tags offset %ld 0x%lx", newCount, mapHeader.offsetToIndex+12);
-    #endif
+#endif
         
         indexHead.tagcount = newCount;
     }
@@ -977,7 +956,7 @@ int comp(const int32_t *a, const int32_t *b)
     //Loop through all of the tags and update
     int32_t newOffset = indexHead.indexMagic + mapHeader.offsetToIndex - 0x40440000;
     [self seekToAddress:newOffset];
-
+    
     int32_t tagEnd = newOffset + [tagArray count]*itemtagLength;
     
     //NSMutableArray *alreadyUpdated = [[NSMutableArray alloc] initWithCapacity:3000];
@@ -996,16 +975,16 @@ int comp(const int32_t *a, const int32_t *b)
 #endif
             
             magicChanged = YES;
-
+            
             _magic = (indexHead.indexMagic - (mapHeader.offsetToIndex + 40));
             //[mapScenario updateReflexiveOffsetsWithOldMagic:oldMagic];
         }
     }
-
+    
     //------------------------------------------------------------------------------------------
     // Loops through the tags in the mapfile and updates the offsets. No need! Magic may be changed
     //------------------------------------------------------------------------------------------
-
+    
     
     if (!magicChanged)
     {
@@ -1026,7 +1005,7 @@ int comp(const int32_t *a, const int32_t *b)
             
             //Update the string offset
             [self readint32_tAtAddress:&originalOffset address:newOffset+i*itemtagLength+16];
-
+            
             int g;
             for (g=0; g< tagdatacount; g++)
             {
@@ -1036,7 +1015,7 @@ int comp(const int32_t *a, const int32_t *b)
                     [self writeint32_tAtAddress:(int32_t*)(&originalOffset) address:newOffset+i*itemtagLength+16];
                 }
             }
-
+            
             //Update the next offset
             [self seekToAddress:newOffset+i*itemtagLength+20];
             [self readint32_t:&originalOffset2];
@@ -1060,9 +1039,9 @@ int comp(const int32_t *a, const int32_t *b)
     //Update the tag arrays
     if (!isFlipped)
     {
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"Updating tag array");
-        #endif
+#endif
         
         for (i = 0; i < oldTagCount; i++)
         {
@@ -1092,24 +1071,24 @@ int comp(const int32_t *a, const int32_t *b)
     if (!magicChanged)
     {
         
-        #ifdef MEMORY_READING
-            char *mapdata = malloc(globalMapSize);
-            memcpy(mapdata, map_memory, globalMapSize);
+#ifdef MEMORY_READING
+        char *mapdata = malloc(globalMapSize);
+        memcpy(mapdata, map_memory, globalMapSize);
         
-            int32_t size = globalMapSize;
-        #else
-            fseek(mapFile, 0L, SEEK_END);
-            int32_t size = ftell(mapFile);
-            char *mapdata = malloc(size);
-            fseek(mapFile, 0L, SEEK_SET);
-            fread(mapdata, size, 1, mapFile);
-        #endif
+        int32_t size = globalMapSize;
+#else
+        fseek(mapFile, 0L, SEEK_END);
+        int32_t size = ftell(mapFile);
+        char *mapdata = malloc(size);
+        fseek(mapFile, 0L, SEEK_SET);
+        fread(mapdata, size, 1, mapFile);
+#endif
         
         int32_t tempValue, prevValue = 0;
         
-        #ifdef __DEBUG__
+#ifdef __DEBUG__
         CSLog(@"Fix reflexive offsets");
-        #endif
+#endif
         
         for (i = 0; i < [tagArray count]; i++)
         {
@@ -1163,28 +1142,28 @@ int comp(const int32_t *a, const int32_t *b)
                                     if (zeroes == 0)
                                     {
                                         memset(&mapdata[location], 0, 4);
-
-                                        /*
-                                        NSNumber *location_number = [NSNumber numberWithLong:location];
-                                        if ([alreadyUpdated containsObject:location_number])
-                                        {
-                                            prevValue = tempValue;
-                                            continue;
-                                        }
                                         
-                                        [alreadyUpdated addObject:location_number];
-                                        */
+                                        /*
+                                         NSNumber *location_number = [NSNumber numberWithLong:location];
+                                         if ([alreadyUpdated containsObject:location_number])
+                                         {
+                                         prevValue = tempValue;
+                                         continue;
+                                         }
+                                         
+                                         [alreadyUpdated addObject:location_number];
+                                         */
                                         //CSLog(@"Updating reflexive 0x%lx 0x%lx", location, pos);
-
+                                        
                                         int32_t newOffsetint32_t=tempValue;
                                         int g;
                                         for (g=0; g< tagdatacount; g++)
                                         {
                                             if (newOffsetint32_t-[self magic] >= insertEnd[g])
                                             {
-                                                #ifdef __DEBUG__
+#ifdef __DEBUG__
                                                 CSLog(@"Updating reflexive at 0x%lx from 0x%lx to 0x%lx", location, newOffsetint32_t-[self magic], newOffsetint32_t-[self magic]+dataLength[g]);
-                                                #endif
+#endif
                                                 
                                                 newOffsetint32_t+=dataLength[g];
                                                 
@@ -1214,159 +1193,159 @@ int comp(const int32_t *a, const int32_t *b)
         }
         
         free(mapdata);
-            
-     }
+        
+    }
     
     
     
     if (changingIndex)
     {
-    
         
-    #ifdef MEMORY_READING
+        
+#ifdef MEMORY_READING
         char *mapdata_new = malloc(globalMapSize);
         memcpy(mapdata_new, map_memory, globalMapSize);
         
         int32_t mapSize = globalMapSize;
-    #else
+#else
         fseek(mapFile, 0L, SEEK_END);
         int32_t mapSize = ftell(mapFile);
         char *mapdata_new = malloc(mapSize);
         fseek(mapFile, 0L, SEEK_SET);
         fread(mapdata_new, mapSize, 1, mapFile);
-    #endif
-    
-    int32_t vertexSize = [self indexHead].vertex_size;
-    int32_t vertexOffset = [self indexHead].vertex_offset;
-    
-    for (i = 0; i < [tagArray count]; i++)
-	{
-        MapTag *mapstag = [tagArray objectAtIndex:i];
+#endif
         
-        int32_t offsetInMap = [mapstag offsetInMap];
-        int32_t tagLength = [mapstag tagLength];
+        int32_t vertexSize = [self indexHead].vertex_size;
+        int32_t vertexOffset = [self indexHead].vertex_offset;
         
-        if (memcmp([mapstag tagClassHigh], "2dom", 4) == 0)
+        for (i = 0; i < [tagArray count]; i++)
         {
-#ifdef __DEBUG__
-            CSLog(@"Updating model data %@ 0x%lx 0x%lx", [mapstag tagName], [mapstag offsetInMap], [mapstag offsetInIndex]-32);
-#endif
+            MapTag *mapstag = [tagArray objectAtIndex:i];
             
-            //modelData
-            int32_t initial = ([mapstag offsetInMap]+48+4+4+140+12);
+            int32_t offsetInMap = [mapstag offsetInMap];
+            int32_t tagLength = [mapstag tagLength];
             
-#ifdef __DEBUG__
-            CSLog(@"Count offset 0x%lx", initial);
-#endif
-            
-            if (initial < 0 || initial >= mapSize) { continue; }
-            
-            int32_t chunk_count = 0;
-            memcpy(&chunk_count, &mapdata_new[initial], 4);
-
-#ifdef __DEBUG__
-            CSLog(@"Offset 0x%lx", initial+4);
-#endif
-            
-            int32_t geometry_offset;
-            memcpy(&geometry_offset, &mapdata_new[initial+4], 4);
-            int32_t geoOffsetResolved = geometry_offset-[self magic];
-            
-#ifdef __DEBUG__
-            CSLog(@"Chunk count: %ld 0x%lx", chunk_count, geoOffsetResolved);
-#endif
-            
-            int a;
-            for (a=0; a < chunk_count; a++)
+            if (memcmp([mapstag tagClassHigh], "2dom", 4) == 0)
             {
-                int32_t parts_count = 0, parts_offset = 0;
-                initial = (geoOffsetResolved + (a * 48)) + 36;
+#ifdef __DEBUG__
+                CSLog(@"Updating model data %@ 0x%lx 0x%lx", [mapstag tagName], [mapstag offsetInMap], [mapstag offsetInIndex]-32);
+#endif
                 
-                if (initial < 0 || initial >= mapSize)
+                //modelData
+                int32_t initial = ([mapstag offsetInMap]+48+4+4+140+12);
+                
+#ifdef __DEBUG__
+                CSLog(@"Count offset 0x%lx", initial);
+#endif
+                
+                if (initial < 0 || initial >= mapSize) { continue; }
+                
+                int32_t chunk_count = 0;
+                memcpy(&chunk_count, &mapdata_new[initial], 4);
+                
+#ifdef __DEBUG__
+                CSLog(@"Offset 0x%lx", initial+4);
+#endif
+                
+                int32_t geometry_offset;
+                memcpy(&geometry_offset, &mapdata_new[initial+4], 4);
+                int32_t geoOffsetResolved = geometry_offset-[self magic];
+                
+#ifdef __DEBUG__
+                CSLog(@"Chunk count: %ld 0x%lx", chunk_count, geoOffsetResolved);
+#endif
+                
+                int a;
+                for (a=0; a < chunk_count; a++)
                 {
-                    continue;
-                }
-                
-                memcpy(&parts_count, &mapdata_new[initial], 4); initial+=4;
-                memcpy(&parts_offset, &mapdata_new[initial], 4);
-                initial = parts_offset-[self magic];
-                
-                #ifdef __DEBUG__
-                CSLog(@"Parts: %ld 0x%lx 0x%lx", parts_count, initial, (geoOffsetResolved + (a * 48)) + 36);
-                #endif
-                
-                int x;
-                for (x=0; x < parts_count; x++)
-                {
-                    initial+=72;
+                    int32_t parts_count = 0, parts_offset = 0;
+                    initial = (geoOffsetResolved + (a * 48)) + 36;
                     
-                    int32_t indexPointer_count = 0, indexPointerRaw1= 0, indexPointerRaw2= 0;
-                    int32_t vertPointer_count= 0, vertPointerRaw= 0;
-
                     if (initial < 0 || initial >= mapSize)
                     {
-                        break;
+                        continue;
                     }
                     
-                    memcpy(&indexPointer_count, &mapdata_new[initial], 4); initial+=4;
+                    memcpy(&parts_count, &mapdata_new[initial], 4); initial+=4;
+                    memcpy(&parts_offset, &mapdata_new[initial], 4);
+                    initial = parts_offset-[self magic];
                     
-                    int32_t indexLocation = initial;
-                    memcpy(&indexPointerRaw1, &mapdata_new[initial], 4); initial+=4;
-                    memcpy(&indexPointerRaw2, &mapdata_new[initial], 4); initial+=4;
-                    initial+=4;
-                    memcpy(&vertPointer_count, &mapdata_new[initial], 4); initial+=4;
-                    initial+=8;
+#ifdef __DEBUG__
+                    CSLog(@"Parts: %ld 0x%lx 0x%lx", parts_count, initial, (geoOffsetResolved + (a * 48)) + 36);
+#endif
                     
-                    int32_t vertLocation = initial;
-                    memcpy(&vertPointerRaw, &mapdata_new[initial], 4); initial+=4;
-                    initial+=28;
-                    
-                    int32_t endOfPart = initial;
-                    
-                    //Update vertex pointer
-                    int g;
-                    
-                    if (changingIndex)
+                    int x;
+                    for (x=0; x < parts_count; x++)
+                    {
+                        initial+=72;
+                        
+                        int32_t indexPointer_count = 0, indexPointerRaw1= 0, indexPointerRaw2= 0;
+                        int32_t vertPointer_count= 0, vertPointerRaw= 0;
+                        
+                        if (initial < 0 || initial >= mapSize)
+                        {
+                            break;
+                        }
+                        
+                        memcpy(&indexPointer_count, &mapdata_new[initial], 4); initial+=4;
+                        
+                        int32_t indexLocation = initial;
+                        memcpy(&indexPointerRaw1, &mapdata_new[initial], 4); initial+=4;
+                        memcpy(&indexPointerRaw2, &mapdata_new[initial], 4); initial+=4;
+                        initial+=4;
+                        memcpy(&vertPointer_count, &mapdata_new[initial], 4); initial+=4;
+                        initial+=8;
+                        
+                        int32_t vertLocation = initial;
+                        memcpy(&vertPointerRaw, &mapdata_new[initial], 4); initial+=4;
+                        initial+=28;
+                        
+                        int32_t endOfPart = initial;
+                        
+                        //Update vertex pointer
+                        int g;
+                        
+                        if (changingIndex)
                         g = 0;
-          
-                    if (vertPointerRaw+vertexOffset >= insertEnd[g])
-                    {
-                        vertPointerRaw+=dataLength[g];
-                        [self writeint32_tAtAddress:(int32_t*)(&vertPointerRaw) address:vertLocation];
-                    }
-                
-                    
-                    //Update index pointer
-                    if (changingIndex)
+                        
+                        if (vertPointerRaw+vertexOffset >= insertEnd[g])
+                        {
+                            vertPointerRaw+=dataLength[g];
+                            [self writeint32_tAtAddress:(int32_t*)(&vertPointerRaw) address:vertLocation];
+                        }
+                        
+                        
+                        //Update index pointer
+                        if (changingIndex)
                         g = 1;
-          
-                    if (indexPointerRaw1+vertexOffset+vertexSize >= insertEnd[g])
-                    {
-                        #ifdef __DEBUG__
-                        CSLog(@"Modifying index location from 0x%lx to 0x%lx", indexPointerRaw1, indexPointerRaw1+dataLength[g]);
-                        #endif
                         
-                        indexPointerRaw1+=dataLength[g];
-                        indexPointerRaw2+=dataLength[g];
-                        [self writeint32_tAtAddress:(int32_t*)(&indexPointerRaw1) address:indexLocation];
-                        [self writeint32_tAtAddress:(int32_t*)(&indexPointerRaw2) address:indexLocation+4];
+                        if (indexPointerRaw1+vertexOffset+vertexSize >= insertEnd[g])
+                        {
+#ifdef __DEBUG__
+                            CSLog(@"Modifying index location from 0x%lx to 0x%lx", indexPointerRaw1, indexPointerRaw1+dataLength[g]);
+#endif
+                            
+                            indexPointerRaw1+=dataLength[g];
+                            indexPointerRaw2+=dataLength[g];
+                            [self writeint32_tAtAddress:(int32_t*)(&indexPointerRaw1) address:indexLocation];
+                            [self writeint32_tAtAddress:(int32_t*)(&indexPointerRaw2) address:indexLocation+4];
+                            
+                            
+                        }
                         
                         
+                        initial = endOfPart;
                     }
-                   
-                    
-                    initial = endOfPart;
                 }
             }
         }
+        
+        free(mapdata_new);
     }
     
-    free(mapdata_new);
-    }
     
-  
     CSLog(@"Rebuild complete");
-
+    
     
     /*//correct bsp_data name_offset info
      for i as integer = 0 to UBound(bsp_data)
@@ -1431,17 +1410,17 @@ int comp(const int32_t *a, const int32_t *b)
      Progress = 100 w.tick("Finishing up", progress)
      bw.Close
      Return true End Function
-*/
+     */
     
     
     
     
     /*
-	// Then we load the BSP
-	bspHandler = [[BSP alloc] initWithMapFile:self texManager:_texManager];
-	[bspHandler loadVisibleBspInfo:[mapScenario header].StructBsp version:mapHeader.version];
-	[bspHandler setActiveBsp:0];
-	*/
+     // Then we load the BSP
+     bspHandler = [[BSP alloc] initWithMapFile:self texManager:_texManager];
+     [bspHandler loadVisibleBspInfo:[mapScenario header].StructBsp version:mapHeader.version];
+     [bspHandler setActiveBsp:0];
+     */
     
     //Update the map magic
     //index offset
@@ -1456,7 +1435,7 @@ int comp(const int32_t *a, const int32_t *b)
 - (void)closeMap
 {
     if (!dataReading)
-        fclose(mapFile);
+    fclose(mapFile);
     
 	fclose(bitmapsFile);
 }
@@ -1473,10 +1452,6 @@ int comp(const int32_t *a, const int32_t *b)
     }
 	return mapFile;
 }
-- (BOOL)isPPC
-{
-	return isPPC;
-}
 
 - (void)swapBufferEndian32:(void *)buffer size:(int)size
 {
@@ -1487,7 +1462,7 @@ int comp(const int32_t *a, const int32_t *b)
 	else if (size == 2)
 	{
 		short *tmpShort = (short *)buffer;
-	
+        
 		*tmpShort = EndianSwap16(*tmpShort);
 	}
 	else if (size >= 4)
@@ -1512,71 +1487,71 @@ int comp(const int32_t *a, const int32_t *b)
 - (BOOL)writeChar:(char)byte
 {
     if ([self write:byte size:1] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeByte:(void *)byte
 {
     if ([self write:byte size:1] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeShort:(void *)byte
 {
     if ([self write:byte size:sizeof(short)] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeFloat:(float *)toWrite
 {
 	if ([self write:toWrite size:sizeof(float)] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeInt:(int *)myInt
 {
 	if ([self write:myInt size:sizeof(int)] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeint32_t:(int32_t *)myint32_t
 {
 	if ([self write:myint32_t size:sizeof(int32_t)] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeAnyData:(void *)data size:(unsigned int)size
 {
     if ([self write:data size:size] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeByteAtAddress:(void *)byte address:(uint32_t)address
 {
 	currentOffset = address;
     if ([self write:byte size:1] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeFloatAtAddress:(float *)toWrite address:(uint32_t)address
 {
 	currentOffset = address;
     if ([self write:toWrite size:sizeof(float)] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeIntAtAddress:(int *)myInt address:(uint32_t)address
 {
 	currentOffset = address;
     if ([self write:myInt size:sizeof(int)] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeint32_tAtAddress:(int32_t *)myint32_t address:(uint32_t)address
 {
 	currentOffset = address;
     if ([self write:myint32_t size:sizeof(int32_t)] == 1)
-        return YES;
+    return YES;
     return NO;
 }
 - (BOOL)writeAnyDataAtAddress:(void *)data size:(unsigned int)size address:(uint32_t)address
@@ -1596,30 +1571,30 @@ int comp(const int32_t *a, const int32_t *b)
 	{
         CSLog(@"PPC Write");
 		/*
-			lol, this takes some work, doesn't it?
-			
-			What I'm doing is going through the buffer and swapping the bytes
-			This way we can build once and run on all macs
-		*/
-
+         lol, this takes some work, doesn't it?
+         
+         What I'm doing is going through the buffer and swapping the bytes
+         This way we can build once and run on all macs
+         */
+        
 		if (size == 1)
 		{
 			if (fwrite(buffer, size, 1, mapFile) == 1)
-				return YES;
+            return YES;
 		}
 		else if (size == 2)
 		{
 			short tmpShort;
 			tmpShort = EndianSwap16(tmpShort);
 			if (fwrite(&tmpShort, size, 1, mapFile) == 1);
-				return YES;
+            return YES;
 		}
 		else if (size >= 4)
 		{
 			int32_t *pointint32_t = buffer;
 			int32_t tmpint32_t;
 			for (i = 0; i < (size / 4); i++)
-			{	
+			{
 				tmpint32_t = EndianSwap32(pointint32_t[i]);
 				fwrite(&tmpint32_t, 4, 1, mapFile);
 			}
@@ -1634,11 +1609,11 @@ int comp(const int32_t *a, const int32_t *b)
 				}
 			}
 			FILE *tmpFile = fopen("test.scnr","wrb+");
-	
+            
 			fwrite(buffer,size,1,tmpFile);
-		
+            
 			fclose(tmpFile);
-
+            
 			return YES;
 		}
 	}
@@ -1651,7 +1626,7 @@ int comp(const int32_t *a, const int32_t *b)
         }
 		else
         {
-
+            
 			return NO;
         }
 	}
@@ -1660,90 +1635,90 @@ int comp(const int32_t *a, const int32_t *b)
 - (BOOL)writeChar:(char)byte
 {
 	if (fwrite(byte,1,1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeByte:(void *)byte
 {
 	if (fwrite(byte,1,1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeShort:(void *)byte
 {
 	if (fwrite(byte,2,1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeFloat:(float *)toWrite
-{	
+{
 	if (fwrite(toWrite, sizeof(float),1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeInt:(int *)myInt
 {
 	if (fwrite(myInt, sizeof(int),1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeint32_t:(int32_t *)myint32_t
 {
 	if (fwrite(myint32_t, sizeof(int32_t),1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeAnyData:(void *)data size:(unsigned int)size
 {
 	if (fwrite(data, size,1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeAnyArrayData:(void *)data size:(unsigned int)size array_size:(unsigned int)array_size
 {
 	if (fwrite(data, size,array_size,mapFile) == array_size)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeByteAtAddress:(void *)byte address:(uint32_t)address
 {
 	fseek(mapFile, address, SEEK_SET);
 	if (fwrite(byte,1,1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeFloatAtAddress:(float *)toWrite address:(uint32_t)address
-{	
+{
 	fseek(mapFile, address, SEEK_SET);
 	if (fwrite(toWrite, sizeof(float),1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeIntAtAddress:(int *)myInt address:(uint32_t)address
 {
 	fseek(mapFile, address, SEEK_SET);
 	if (fwrite(myInt, sizeof(int),1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 - (BOOL)writeint32_tAtAddress:(int32_t *)myint32_t address:(uint32_t)address
 {
 	fseek(mapFile, address, SEEK_SET);
 	if (fwrite(myint32_t, sizeof(int32_t),1,mapFile) == 1)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 
 
@@ -1755,18 +1730,18 @@ int comp(const int32_t *a, const int32_t *b)
     
     if (![mapName isEqualToString:filename])
     {
-       
+        
         if ([[NSFileManager defaultManager] fileExistsAtPath:filename])
-            [[NSFileManager defaultManager] removeItemAtPath:filename error:nil];
+        [[NSFileManager defaultManager] removeItemAtPath:filename error:nil];
         
         [[NSFileManager defaultManager] copyItemAtPath:mapName toPath:filename error:nil];
         
         FILE *oldMap = mapFile;
         mapFile = fopen([filename cString],"rwb+");
-
+        
         fseek(mapFile, address, SEEK_SET);
         return [self write:data size:size];
-    
+        
         fclose(mapFile);
         mapFile = oldMap;
     }
@@ -1778,7 +1753,7 @@ int comp(const int32_t *a, const int32_t *b)
             return [self write:data size:size];
         }
     }
-   
+    
     return NO;
 }
 
@@ -1791,9 +1766,9 @@ int comp(const int32_t *a, const int32_t *b)
 {
 	fseek(mapFile,address, SEEK_SET);
 	if (fwrite(data, size,array_size,mapFile) == array_size)
-		return YES;
+    return YES;
 	else
-		return NO;
+    return NO;
 }
 #endif
 
@@ -1802,7 +1777,6 @@ int comp(const int32_t *a, const int32_t *b)
     //CSLog([self mapLocation]);
     //CSLog(filename);
     
-    isPPC = NO;
     
 #ifdef __DEBUG__
     CSLog(@"Logging");
@@ -1811,7 +1785,7 @@ int comp(const int32_t *a, const int32_t *b)
     
     char *start_data = malloc(address);
     if (![self readBlockOfDataAtAddress:start_data size_of_buffer:address address:0])
-        CSLog(@"READ ERROR");
+    CSLog(@"READ ERROR");
     
     //Get the current size using memory?
 #ifdef MEMORY_READING
@@ -1824,7 +1798,7 @@ int comp(const int32_t *a, const int32_t *b)
     int32_t readSize = size-address;
     char *data_buffer = malloc(readSize);
     if (![self readBlockOfDataAtAddress:data_buffer size_of_buffer:readSize address:address])
-        CSLog(@"READ ERROR");
+    CSLog(@"READ ERROR");
     
 #ifdef MEMORY_READING
     //Update the map data in memory
@@ -1847,7 +1821,7 @@ int comp(const int32_t *a, const int32_t *b)
         oldMap = fopen([filename cStringUsingEncoding:NSASCIIStringEncoding],"wb+");
     }
     else
-        oldMap = fopen([filename cStringUsingEncoding:NSASCIIStringEncoding],"wb+");
+    oldMap = fopen([filename cStringUsingEncoding:NSASCIIStringEncoding],"wb+");
     
 #ifdef __DEBUG__
     CSLog(@"Writing to %@", filename);
@@ -1864,7 +1838,7 @@ int comp(const int32_t *a, const int32_t *b)
         mapFile = fopen([filename cStringUsingEncoding:NSASCIIStringEncoding],"rb+");
     }
     else
-        fclose(oldMap);
+    fclose(oldMap);
 #endif
     
     return YES;
@@ -1977,7 +1951,7 @@ int comp(const int32_t *a, const int32_t *b)
 		if (size == 1)
 		{
 			if (fread(buffer, size, 1, mapFile) == 1)
-				return YES;
+            return YES;
 		}
 		else if (size == 2)
 		{
@@ -2018,9 +1992,9 @@ int comp(const int32_t *a, const int32_t *b)
 	else
 	{
 		if (fread(buffer, size, 1, mapFile) == 1)
-			return YES;
+        return YES;
 		else
-			return NO;
+        return NO;
 	}
 	return NO;
 }
@@ -2233,7 +2207,7 @@ int comp(const int32_t *a, const int32_t *b)
 	// ok, so lets lookup the shader tag
 	MapTag *tempShaderTag = [[self tagForId:shaderId] retain]; // Now we have the shader! Yay!
     
-    #ifdef __DEBUG__
+#ifdef __DEBUG__
     CSLog(@"Shader offset 0x%lx 0x%lx %@", shaderId, [tempShaderTag offsetInMap], [tempShaderTag tagName]);
 #endif
     
@@ -2242,17 +2216,17 @@ int comp(const int32_t *a, const int32_t *b)
     
     int i;
     for (i=0; i<41; i++)
-        [self readint32_t:&shader->junk1[i]];
+    [self readint32_t:&shader->junk1[i]];
     
     //CSLog(@"Offset to reference", [tempShaderTag offsetInMap]);
     shader->baseMap = [self readReference];
     for (i=0; i<2; i++)
-        [self readint32_t:&shader->junk3[i]];
+    [self readint32_t:&shader->junk3[i]];
     
     shader->multiPurpose = [self readReference];
     
     for (i=0; i<3; i++)
-        [self readint32_t:&shader->junk2[i]];
+    [self readint32_t:&shader->junk2[i]];
     
     [self readFloat:&shader->detailScale];
     shader->detailMap = [self readReference];
@@ -2293,11 +2267,11 @@ int comp(const int32_t *a, const int32_t *b)
     
     int i;
     for (i=0; i<34; i++)
-        [self readint32_t:&shader->junk1[i]];
+    [self readint32_t:&shader->junk1[i]];
     
     shader->baseMapBitm = [self readReference];
     for (i=0; i<7; i++)
-        [self readint32_t:&shader->junk2[i]];
+    [self readint32_t:&shader->junk2[i]];
     
     [self readFloat:&shader->primaryMapScale];
     shader->primaryMapBitm = [self readReference];
@@ -2315,7 +2289,7 @@ int comp(const int32_t *a, const int32_t *b)
     //USEDEBUG CSLog(@"Diffuse colour: %f %f %f", shader->r, shader->g, shader->b);
     
     [self seekToAddress:currentOffset];
-   // CSLog(@"DONE");
+    // CSLog(@"DONE");
 }
 
 - (NSMutableArray*)bitmsTagForShaderId:(int32_t)shaderId //FUNCTION WHICH FINDS MULTIPLE BITMAPS
@@ -2459,18 +2433,18 @@ int comp(const int32_t *a, const int32_t *b)
 		if ([self isTag:vehi_ref[x].vehi_ref.TagId])
         {
             if ([[self tagForId:[mapScenario baseModelIdent:vehi_ref[x].vehi_ref.TagId]] respondsToSelector:@selector(loadAllBitmaps)])
-                [(ModelTag *)[self tagForId:[mapScenario baseModelIdent:vehi_ref[x].vehi_ref.TagId]] loadAllBitmaps];
+            [(ModelTag *)[self tagForId:[mapScenario baseModelIdent:vehi_ref[x].vehi_ref.TagId]] loadAllBitmaps];
         }
 	}
     /*
-    for (x = 0; x < [mapScenario bipd_ref_count]; x++)
-	{
-        CSLog(@"Loading bipds");
-		if ([self isTag:bipd_ref[x].bipd_ref.TagId])
-        {
-			[(ModelTag *)[self tagForId:[mapScenario baseModelIdent:bipd_ref[x].bipd_ref.TagId]] loadAllBitmaps];
-        }
-	}
+     for (x = 0; x < [mapScenario bipd_ref_count]; x++)
+     {
+     CSLog(@"Loading bipds");
+     if ([self isTag:bipd_ref[x].bipd_ref.TagId])
+     {
+     [(ModelTag *)[self tagForId:[mapScenario baseModelIdent:bipd_ref[x].bipd_ref.TagId]] loadAllBitmaps];
+     }
+     }
      */
     
 	for (x = 0; x < [mapScenario scen_ref_count]; x++)
@@ -2484,7 +2458,7 @@ int comp(const int32_t *a, const int32_t *b)
                 ModelTag *tag = (ModelTag *)[self tagForId:[mapScenario baseModelIdent:scen_ref[x].scen_ref.TagId]];
                 
                 if ([tag respondsToSelector:@selector(loadAllBitmaps)])
-                    [tag loadAllBitmaps];
+                [tag loadAllBitmaps];
             }
 		}
 	}
@@ -2494,7 +2468,7 @@ int comp(const int32_t *a, const int32_t *b)
         if ([self isTag:[mapScenario sky][x].modelIdent])
         {
             if ([[self tagForId:[mapScenario sky][x].modelIdent] respondsToSelector:@selector(loadAllBitmaps)])
-                [(ModelTag *)[self tagForId:[mapScenario sky][x].modelIdent] loadAllBitmaps];
+            [(ModelTag *)[self tagForId:[mapScenario sky][x].modelIdent] loadAllBitmaps];
         }
     }
 	for (x = 0; x < [mapScenario item_spawn_count]; x++)
@@ -2505,16 +2479,16 @@ int comp(const int32_t *a, const int32_t *b)
 		if ([self isTag:tempIdent])
         {
             if ([[self tagForId:[mapScenario baseModelIdent:tempIdent]] respondsToSelector:@selector(loadAllBitmaps)])
-                [(ModelTag *)[self tagForId:[mapScenario baseModelIdent:tempIdent]] loadAllBitmaps];
+            [(ModelTag *)[self tagForId:[mapScenario baseModelIdent:tempIdent]] loadAllBitmaps];
         }
 	}
 	for (x = 0; x < [mapScenario mach_ref_count]; x++)
 	{
-       USEDEBUG  CSLog(@"Loading mach");
+        USEDEBUG  CSLog(@"Loading mach");
 		if ([self tagForId:[mapScenario mach_references][x].modelIdent] != mapScenario)
         {
             if ([[self tagForId:[mapScenario mach_references][x].modelIdent] respondsToSelector:@selector(loadAllBitmaps)])
-                [(ModelTag *)[self tagForId:[mapScenario mach_references][x].modelIdent] loadAllBitmaps];
+            [(ModelTag *)[self tagForId:[mapScenario mach_references][x].modelIdent] loadAllBitmaps];
         }
 	}
 	// Then we put netgame flags in a bit
@@ -2522,11 +2496,11 @@ int comp(const int32_t *a, const int32_t *b)
 - (BOOL)isTag:(int32_t)tagId
 {
 	if (tagId == 0xFFFFFFFF)
-		return NO;
+    return NO;
 	if (tagId == [mapScenario idOfTag])
-		return NO;
+    return NO;
 	if ((tagId < (indexHead.tagcount + indexHead.starting_id)) || (unsigned int)tagId < (unsigned int)indexHead.starting_id)
-		return NO;
+    return NO;
 	//CSLog(@"Int val: 0x%x", [[tagLookupDict objectForKey:[NSNumber numberWithLong:tagId]] intValue]);
 	
 	return TRUE;
@@ -2570,7 +2544,7 @@ int comp(const int32_t *a, const int32_t *b)
 - (NSMutableArray *)constructArrayForTagType:(char *)tagType
 {
 	int i,
-		tagCount = 0;
+    tagCount = 0;
 	MapTag *tmptag;
 	
 	NSMutableArray *tmpArray;
@@ -2580,7 +2554,7 @@ int comp(const int32_t *a, const int32_t *b)
 	{
 		tmptag = [[MapTag alloc] initWithDataFromFile:self];
 		if (memcmp([tmptag tagClassHigh], tagType, 4) == 0)
-			tagCount++;
+        tagCount++;
 		[tmptag release];
 	}
 	
@@ -2602,8 +2576,8 @@ int comp(const int32_t *a, const int32_t *b)
 }
 - (void)constructArrayAndLookupForTagType:(char *)tagType array:(NSMutableArray *)array dictionary:(NSMutableDictionary *)dictionary
 {
-	int i, 
-		tagCount = 0;
+	int i,
+    tagCount = 0;
 	MapTag *tmptag;
 	
 	NSMutableDictionary *tmpDict;
@@ -2614,10 +2588,10 @@ int comp(const int32_t *a, const int32_t *b)
 	{
 		tmptag = [[MapTag alloc] initWithDataFromFile:self];
 		if (memcmp([tmptag tagClassHigh],tagType,4) == 0)
-			tagCount++;
+        tagCount++;
 		[tmptag release];
 	}
-
+    
 	tmpArray = [[NSMutableArray alloc] initWithCapacity:tagCount];
 	tmpDict = [[NSMutableDictionary alloc] initWithCapacity:tagCount];
 	tagCount = 0;
@@ -2673,13 +2647,13 @@ int comp(const int32_t *a, const int32_t *b)
     //return NO;
     NSString *tempFile = @"/tmp/archon_export.map";
 #ifndef MEMORY_WRITING
-
+    
     //Copy the map
     if ([[NSFileManager defaultManager] fileExistsAtPath:tempFile])
-        [[NSFileManager defaultManager] removeItemAtPath:tempFile error:nil];
+    [[NSFileManager defaultManager] removeItemAtPath:tempFile error:nil];
     
-
-
+    
+    
     FILE *tempFilePath = fopen([tempFile cStringUsingEncoding:NSASCIIStringEncoding],"wb+");
     
     fseek(mapFile, 0, SEEK_END);
@@ -2692,14 +2666,14 @@ int comp(const int32_t *a, const int32_t *b)
     fseek(tempFilePath, 0, SEEK_SET);
     fclose(mapFile);
     free(data);
-
     
-
+    
+    
     //Save changes to a temportary file
     //CSLog(tempFile);
     mapFile = tempFilePath;
 #endif
-   
+    
     
     
     //Lets free up some space after the scenario?
@@ -2712,7 +2686,7 @@ int comp(const int32_t *a, const int32_t *b)
         indexes[0]=[mapScenario offsetInMap] + [mapScenario tagLength];
         lengths[0]=added_space;
         [self rebuildTagArrayToPath:[self mapLocation] withDataAtIndexes:indexes lengths:lengths offsets:1 flipped:YES isChangingData:NO];
-
+        
         void *spacing_data = malloc(added_space);
         memset(spacing_data, 0, added_space);
         [self insertDataInFile:[self mapLocation] withData:spacing_data size:added_space address:[mapScenario offsetInMap] + [mapScenario tagLength]];
@@ -2724,13 +2698,13 @@ int comp(const int32_t *a, const int32_t *b)
     
     
     
-        //Add new tags to the file
-        //Add the new tags
-        int32_t oldTagCount = indexHead.tagcount;
-        CSLog(@"Adding new tags %ld %d", oldTagCount, [tagArray count]);
-        int itemtagLength = 32;
-        
-        int newTags = [tagArray count]-oldTagCount;
+    //Add new tags to the file
+    //Add the new tags
+    int32_t oldTagCount = indexHead.tagcount;
+    CSLog(@"Adding new tags %ld %d", oldTagCount, [tagArray count]);
+    int itemtagLength = 32;
+    
+    int newTags = [tagArray count]-oldTagCount;
     
     
     if (newTags > 0)
@@ -2754,27 +2728,27 @@ int comp(const int32_t *a, const int32_t *b)
         
         //Fix the new tags offset
         /*
-        for (i = oldTagCount; i < [tagArray count]; i++)
-        {
-            MapTag *tag = [tagArray objectAtIndex:i];
-            int32_t offset = [tag rawOffset];
-            
-            if (offset-_magic >= insertEnd)
-            {
-                offset+=dataLength;
-                CSLog(@"Updating for tag %@ offset 0x%lx 0x%lx to 0x%lx", [tag tagName], newOffset+i*itemtagLength+16, offset-dataLength, offset);
-            }
-            
-            [tag updateOffset:offset withMap:self];
-        }
-        */
+         for (i = oldTagCount; i < [tagArray count]; i++)
+         {
+         MapTag *tag = [tagArray objectAtIndex:i];
+         int32_t offset = [tag rawOffset];
+         
+         if (offset-_magic >= insertEnd)
+         {
+         offset+=dataLength;
+         CSLog(@"Updating for tag %@ offset 0x%lx 0x%lx to 0x%lx", [tag tagName], newOffset+i*itemtagLength+16, offset-dataLength, offset);
+         }
+         
+         [tag updateOffset:offset withMap:self];
+         }
+         */
         
         [self rebuildTagArrayToPath:tempFile withDataAtIndexes:insEnd lengths:datLen offsets:1 flipped:YES isChangingData:NO];
         
         void *tagSpace = malloc(dataLength);
         memset(tagSpace, 0, dataLength);
         CSLog(@"Set memory");
-
+        
         
         for (i = oldTagCount; i < [tagArray count]; i++)
         {
@@ -2791,16 +2765,16 @@ int comp(const int32_t *a, const int32_t *b)
             int32_t someNumber2 = [tag num2];
             
             
-             //Update the offsets
-             if (stringOffset-_magic >= insertEnd)
-                 stringOffset+=dataLength;
+            //Update the offsets
+            if (stringOffset-_magic >= insertEnd)
+            stringOffset+=dataLength;
             
             
-             if (offset-_magic >= insertEnd)
-             {
-                 offset+=dataLength;
-                 CSLog(@"Updating for tag %@ offset 0x%lx 0x%lx to 0x%lx", [tag tagName], newOffset+i*itemtagLength+16, offset-dataLength-_magic, offset-_magic);
-             }
+            if (offset-_magic >= insertEnd)
+            {
+                offset+=dataLength;
+                CSLog(@"Updating for tag %@ offset 0x%lx 0x%lx to 0x%lx", [tag tagName], newOffset+i*itemtagLength+16, offset-dataLength-_magic, offset-_magic);
+            }
             
             
             //Write all of the tag data to the file
@@ -2816,7 +2790,7 @@ int comp(const int32_t *a, const int32_t *b)
         
         CSLog(@"Inserting new tags %ld", dataLength);
         [self insertDataInFile:tempFile withData:tagSpace size:dataLength address:insertEnd];
-   
+        
         
         //Loop through all of the tags and update
         newOffset = indexHead.indexMagic+mapHeader.offsetToIndex-0x40440000;
@@ -2843,7 +2817,7 @@ int comp(const int32_t *a, const int32_t *b)
 #else
     //Copy the temp file to the save URL
     [[NSFileManager defaultManager] copyItemAtPath:tempFile toPath:saveURL error:nil];
-
+    
     fclose(mapFile);
     mapFile = fopen([mapName cStringUsingEncoding:NSASCIIStringEncoding],"rb+");
 #endif
